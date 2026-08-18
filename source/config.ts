@@ -1,0 +1,125 @@
+import type { Layer, Position, Size } from "./launch.js"
+
+/** Development settings for a Program's Server. */
+export type ServerDevelopment = Readonly<{
+  /** Command that starts the development Server from the project directory. */
+  startCommand: string
+}>
+
+/** Development settings for a Program's Client. */
+export type ClientDevelopment = Readonly<{
+  /** HTTP(S) URL served by the Client's development server. */
+  url: string
+
+  /** Optional command that starts the Client's development server. */
+  startCommand?: string
+}>
+
+/** Authoring declaration for a Program's Server. */
+export type ServerConfig = Readonly<{
+  /** Production directory containing the Server. */
+  location: string
+
+  /** Whether a default Process starts its Server. Defaults to `true`. */
+  start?: boolean
+
+  /** Optional preparation command run from {@link location} while installing. */
+  installCommand?: string
+
+  /** Command that starts the production Server from {@link location}. */
+  startCommand: string
+
+  /** Settings used only by the development command. */
+  development?: ServerDevelopment
+}>
+
+/** Authoring declaration for a Program's Client and initial Window. */
+export type ClientConfig = Readonly<{
+  /** Production directory containing the Client and its `index.html`. */
+  location: string
+
+  /** Whether a default Process starts its Client. Defaults to `true`. */
+  start?: boolean
+
+  /** Initial Window title. Defaults to the Program name. */
+  title?: string
+
+  /** Initial Window size. */
+  size?: Size
+
+  /** Initial Window position. */
+  position?: Position
+
+  /** Structurally isolated desktop layer containing the Window. */
+  layer?: Layer
+
+  /** Whether the Window initially opens minimized. */
+  minimize?: boolean
+
+  /** Settings used only by the development command. */
+  development?: ClientDevelopment
+}>
+
+type Description = Readonly<{
+  /** Stable public identity written in kebab-case. */
+  identity: string
+
+  /** Human-readable Program name. Defaults to {@link identity}. */
+  name?: string
+
+  /** Program version shown to people and included in packages. */
+  version?: string
+
+  /** Short human-readable explanation of what the Program does. */
+  description?: string
+
+  /**
+   * Markdown file describing only the Program-owned API contract.
+   * System access, Endpoint, and event mechanics belong to system documentation.
+   */
+  apiDocs?: string
+
+  /** PNG source between 128 and 2,048 pixels per side and no larger than 5 MiB. */
+  icon?: string
+
+  /** Command run before production start, installation, and packaging. */
+  buildCommand?: string
+}>
+
+type ServerProgramConfig = Description & Readonly<{
+  /** Server declaration for this Program. */
+  server: ServerConfig
+
+  /** Optional Client declaration for this Program. */
+  client?: ClientConfig
+}>
+
+type ClientProgramConfig = Description & Readonly<{
+  /** Optional Server declaration for this Program. */
+  server?: ServerConfig
+
+  /** Client declaration for this Program. */
+  client: ClientConfig
+}>
+
+/**
+ * The authoring description read from `phresh.config.ts`.
+ *
+ * A Program must declare a Server, a Client, or both.
+ */
+export type Config = ServerProgramConfig | ClientProgramConfig
+
+/**
+ * Defines a Program authoring description with contextual typing.
+ *
+ * This helper performs no work and returns the supplied description unchanged.
+ * The CLI validates and derives it for development, production, or packaging.
+ */
+export function defineConfig(config: ServerProgramConfig): Config
+
+/** Defines a Program authoring description with contextual typing. */
+export function defineConfig(config: ClientProgramConfig): Config
+
+export function defineConfig(config: Config): Config {
+  return config
+}
