@@ -220,6 +220,13 @@ from its Client; its stable capability addresses the Client's current, live
 presentation state and rejects reads or mutations while that Client is
 absent.
 
+`LaunchClient.title` supplies a dynamic initial title when starting a declared
+Client. The system resolves it with the remaining launch shape before the
+Client is announced, so the first rendered Window already has its final title.
+Omission uses the Program declaration; `window.changeTitle()` remains the live
+operation after startup. Window operations are never queued while the Client
+is absent.
+
 Core also defines the independent, environment-neutral `FileWallpaper` and
 `DesktopWallpaper` contracts. The desktop variant additionally accepts a
 Program and the deliberately narrow `WallpaperLaunch`, containing only `name`,
@@ -231,10 +238,9 @@ persistence, upload, Process creation, or rendering implementation.
 
 `client.window.surface` addresses the optional host-rendered material belonging
 to one Window. Its source of truth is authoritative, server-owned Window state,
-not iframe state. `snapshot()` explicitly reads the current target, while the
-ordinary `change` subscription receives only replacements published after that
-subscription exists. A `null` target means no Surface exists in the render
-tree.
+not iframe state. Program endpoints may explicitly replace or remove that
+target, but cannot read or subscribe to it. A `null` target means no Surface
+exists in the render tree.
 
 Only Windows currently occupying the `under` or `over` layer may call `set()`
 or `remove()`; `window` and `wallpaper` layers reject those operations. Calling

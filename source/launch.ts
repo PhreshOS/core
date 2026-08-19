@@ -26,6 +26,9 @@ export const layers: readonly Layer[] = ["window", "under", "over"]
 
 /** Per-Process overrides used when starting a Client and its Window. */
 export type LaunchClient = Readonly<{
+  /** Initial Window title for this Client incarnation. */
+  title?: string
+
   /** Initial Window size for this Process. */
   size?: Size
 

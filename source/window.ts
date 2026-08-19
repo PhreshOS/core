@@ -35,17 +35,8 @@ export type WindowSurfaceSettings = Readonly<{
   transaction?: WindowSurfaceTransaction
 }>
 
-/** Live changes emitted by one Window Surface capability. */
-export type WindowSurfaceEvents = {
-  /** The authoritative target changed, including immediate removal as null. */
-  change: WindowSurfaceSettings | null
-}
-
 /** Optional host-rendered material owned by one authoritative Window. */
-export interface WindowSurface extends Subscribable<WindowSurfaceEvents, never> {
-  /** Explicitly reads the authoritative target, or null when no Surface exists. */
-  snapshot(): Promise<WindowSurfaceSettings | null>
-
+export interface WindowSurface {
   /** Creates or replaces the authoritative target. Omission creates the default Surface. */
   set(settings?: WindowSurfaceSettings): Promise<void>
 
@@ -94,8 +85,6 @@ export type WindowState = Readonly<{
   /** Current page beneath the declared Client location. */
   location: string
 
-  /** Current authoritative host Surface target, or null when absent. */
-  surface: WindowSurfaceSettings | null
 }>
 
 /** Presentation capability owned by one Client handle. */

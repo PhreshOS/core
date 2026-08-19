@@ -100,7 +100,6 @@ export {
   type WindowState,
   type WindowSurface,
   type WindowSurfaceEasing,
-  type WindowSurfaceEvents,
   type WindowSurfaceSettings,
   type WindowSurfaceTransaction
 } from "./window.js"
