@@ -234,22 +234,17 @@ Program and the deliberately narrow `WallpaperLaunch`, containing only `name`,
 These contracts describe capability and data shape only — they contain no
 persistence, upload, Process creation, or rendering implementation.
 
-## Window Surface
+## Client Surface values
 
-`client.window.surface` addresses the optional host-rendered material belonging
-to one Window. Its source of truth is authoritative, server-owned Window state,
-not iframe state. Program endpoints may explicitly replace or remove that
-target, but cannot read or subscribe to it. A `null` target means no Surface
-exists in the render tree.
-
-Only Windows currently occupying the `under` or `over` layer may call `set()`
-or `remove()`; `window` and `wallpaper` layers reject those operations. Calling
-`set()` without settings creates a sharp, fully opaque Surface. Settings may
-select opacity from zero to one, a nonnegative pixel radius, a scale level, or
-`"full"`, and an optional transaction containing a duration from zero through
-60,000 milliseconds and a stable named or cubic Bézier easing. Zero opacity
-retains the Surface node; only `remove()` returns the authoritative target
-immediately to `null`. The server validates settings, and the desktop animates
+`ClientSurfaceSettings` describes optional host-rendered material requested by
+one live Client representation. It is a value contract, not Window state and
+not server authority. Calling the Client capability without settings creates a
+sharp, fully opaque Surface. Settings may select opacity from zero to one, a
+nonnegative pixel radius, a scale level, or `"full"`, and an optional
+transaction containing a duration from zero through 60,000 milliseconds and a
+stable named or cubic Bézier easing. Zero opacity
+retains the Surface node; the Client capability's separate `remove()` command
+removes it immediately. The receiving desktop validates settings and animates
 from the rendered values to each new target.
 
 ## Window geometry
@@ -260,6 +255,15 @@ pixel number or a linear relative expression such as `"1/2"`, `"50% + 10"`, or
 `parseRelativeValue()` reduces it to a single relative coefficient and pixel
 offset. The CLI, runtime validation, and desktop layout all consume this one
 Core definition rather than maintaining separate parsers.
+
+`move()` and `resize()` change one dimension of authoritative geometry.
+`setGeometry({ position, size })` validates and commits both dimensions as one
+operation, then emits one `geometry` event. Compound interactions such as
+resizing from a top or left edge and snapping must use this atomic form so a
+remote representation never observes a new position with the previous size.
+`move` and `resize` subscribers are also notified after the complete geometry
+has committed; those component notifications never represent partial
+authoritative state.
 
 ## Process parentage
 

@@ -109,13 +109,15 @@ export {
 export {
   type Window,
   type WindowEvents,
+  type WindowGeometry,
   type WindowLayer,
-  type WindowState,
-  type WindowSurface,
-  type WindowSurfaceEasing,
-  type WindowSurfaceSettings,
-  type WindowSurfaceTransaction
+  type WindowState
 } from "./window.js"
+export {
+  type ClientSurfaceEasing,
+  type ClientSurfaceSettings,
+  type ClientSurfaceTransaction
+} from "./client-surface.js"
 export { layers, type Launch, type LaunchClient, type Layer, type Position, type Size } from "./launch.js"
 export {
   defineConfig,

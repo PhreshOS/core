@@ -23,7 +23,7 @@ export interface TimedPermissions {
   request(name: PermissionName): Promise<PermissionDecision>
 }
 
-/** Client access to the current Process's permissions. */
+/** Client access to one Program's effective permission decisions. */
 export interface Permissions extends Timeoutable<TimedPermissions> {
   /** Reads the effective decision without prompting the user. */
   granted(name: PermissionName): Promise<PermissionDecision>
