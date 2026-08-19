@@ -1,12 +1,17 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, expectTypeOf, it } from "vitest"
 import {
   Client,
+  ClientServiceHandler,
+  type Channel,
   Endpoint,
   Server,
+  ServerServiceHandler,
+  ServiceHandler,
   defineConfig,
   isPermissionName,
   isRelativeValue,
   isScaleLevel,
+  isServiceKey,
   layers,
   parseRelativeValue
 } from "../source/main.js"
@@ -15,6 +20,16 @@ describe("public runtime", function () {
   it("preserves the domain class hierarchy", function () {
     expect(Client.prototype).toBeInstanceOf(Endpoint)
     expect(Server.prototype).toBeInstanceOf(Endpoint)
+    expect(ClientServiceHandler.prototype).toBeInstanceOf(ServiceHandler)
+    expect(ServerServiceHandler.prototype).toBeInstanceOf(ServiceHandler)
+  })
+
+  it("places service exposure on Channel and service identity on Endpoint", function () {
+    expectTypeOf<Channel>().toHaveProperty("enableService")
+    expectTypeOf<Channel>().toHaveProperty("disableService")
+    expectTypeOf<Endpoint>().toHaveProperty("service")
+    expectTypeOf<Endpoint>().not.toHaveProperty("enableService")
+    expectTypeOf<Endpoint>().not.toHaveProperty("disableService")
   })
 
   it("keeps the finite public registries narrow", function () {
@@ -32,6 +47,12 @@ describe("public runtime", function () {
     } as const
 
     expect(defineConfig(config)).toBe(config)
+  })
+
+  it("recognizes only complete public service keys", function () {
+    expect(isServiceKey({ program: "counter", endpoint: "server", name: "state" })).toBe(true)
+    expect(isServiceKey({ program: "counter", endpoint: "process", name: "state" })).toBe(false)
+    expect(isServiceKey({ program: "counter", endpoint: "client", name: "" })).toBe(false)
   })
 
   it("accepts only finite linear geometry", function () {

@@ -1,6 +1,7 @@
 import type { Process } from "./process.js"
 import type { Publishable } from "./publishable.js"
 import type { Server } from "./server.js"
+import type { ServiceHandler } from "./service.js"
 import type { Captures, Cleanup, Subscribable } from "./subscribable.js"
 
 /** One application value observed in traffic originating from an Endpoint. */
@@ -93,4 +94,8 @@ export interface Endpoint<Events extends object = {}>
    * fails. Stopping never exits the Process implicitly.
    */
   stop(): Promise<void>
+
+  /** Returns this Endpoint's current complete service handle, or `null`. */
+  service(): Promise<ServiceHandler | null>
+
 }

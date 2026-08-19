@@ -26,4 +26,10 @@ export type ChannelCapture<Events extends object = {}, From = Endpoint> =
 
 /** Addressed input and destinationless output for the executing Endpoint. */
 export interface Channel<Events extends object = {}, From = Endpoint>
-  extends Subscribable<ChannelEvents<Events, From>, ChannelFallback<Events, From>>, Publishable {}
+  extends Subscribable<ChannelEvents<Events, From>, ChannelFallback<Events, From>>, Publishable {
+  /** Exposes this executing Channel under one public service name. */
+  enableService(name: string): Promise<void>
+
+  /** Stops exposing this executing Channel as a service. */
+  disableService(): Promise<void>
+}

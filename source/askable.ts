@@ -16,12 +16,11 @@ export interface Askable<Events extends object = {}, Fallback = unknown>
   /**
    * Sends one question payload to this target and waits for its answer.
    *
-   * The SDK uses a ten-second deadline by default. It sends the question only
-   * after the current Server incarnation becomes ready. The operation rejects
-   * immediately when that Server is absent, and also rejects if the incarnation
-   * stops before readiness or before answering. One SDK deadline covers both
-   * readiness and the answer. The boundary cannot infer whether an answerer
-   * exists, so a ready unanswered question waits for that deadline.
+   * The SDK uses a ten-second deadline by default. Any target-specific
+   * readiness wait shares that same deadline with the answer. The operation
+   * rejects when the target is known to be unavailable, or stops before
+   * answering. A boundary cannot infer whether an answerer exists, so a
+   * delivered but unanswered question waits for the deadline.
    */
   ask<Answer = unknown>(event: string): Promise<Answer>
   ask<Answer = unknown, Payload = unknown>(event: string, payload: Payload): Promise<Answer>
