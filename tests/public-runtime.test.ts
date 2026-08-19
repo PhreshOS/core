@@ -3,6 +3,8 @@ import {
   Client,
   ClientServiceHandler,
   type Channel,
+  type LocalWindow,
+  type Transaction,
   Endpoint,
   Server,
   ServerServiceHandler,
@@ -17,6 +19,22 @@ import {
 } from "../source/main.js"
 
 describe("public runtime", function () {
+  it("keeps local representation commands separate from subscriptions", function () {
+    expectTypeOf<LocalWindow>().toHaveProperty("setGeometry")
+    expectTypeOf<LocalWindow>().toHaveProperty("surface")
+    expectTypeOf<LocalWindow>().not.toHaveProperty("subscribe")
+
+    const duration: Transaction = { duration: 180 }
+    const easing: Transaction = { easing: "ease-out", wait: true }
+    void duration
+    void easing
+
+    type EmptyRejected = {} extends Transaction ? false : true
+    type WaitOnlyRejected = { wait: true } extends Transaction ? false : true
+    expectTypeOf<EmptyRejected>().toEqualTypeOf<true>()
+    expectTypeOf<WaitOnlyRejected>().toEqualTypeOf<true>()
+  })
+
   it("preserves the domain class hierarchy", function () {
     expect(Client.prototype).toBeInstanceOf(Endpoint)
     expect(Server.prototype).toBeInstanceOf(Endpoint)

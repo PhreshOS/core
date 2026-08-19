@@ -234,18 +234,26 @@ Program and the deliberately narrow `WallpaperLaunch`, containing only `name`,
 These contracts describe capability and data shape only — they contain no
 persistence, upload, Process creation, or rendering implementation.
 
-## Client Surface values
+## Local representation
 
-`ClientSurfaceSettings` describes optional host-rendered material requested by
-one live Client representation. It is a value contract, not Window state and
-not server authority. Calling the Client capability without settings creates a
-sharp, fully opaque Surface. Settings may select opacity from zero to one, a
-nonnegative pixel radius, a scale level, or `"full"`, and an optional
-transaction containing a duration from zero through 60,000 milliseconds and a
-stable named or cubic Bézier easing. Zero opacity
-retains the Surface node; the Client capability's separate `remove()` command
-removes it immediately. The receiving desktop validates settings and animates
-from the rendered values to each new target.
+`Window` is the authoritative, subscribable presentation state shared through
+the system. `LocalWindow` is the current desktop's physical representation of
+the current Client only. Its reads and commands are deliberately eventless and
+never change or publish authoritative state. A desktop projects authoritative
+changes onto an ordinary `window` layer; `under` and `over` representations
+receive their initial truth and control their local projection thereafter.
+
+`SurfaceSettings` describes optional host-rendered material belonging to one
+live `under` or `over` representation. Calling `set()` without settings creates
+a sharp, fully opaque Surface; `remove()` removes its render node immediately.
+Opacity accepts zero through one, while radius accepts a nonnegative pixel
+number, a scale level, or `"full"`.
+
+Geometry commands and Surface replacement may receive a generic `Transaction`.
+It must contain a duration in milliseconds, an easing, or both; `{}` and
+`{ wait: true }` are not transactions. Omitting it preserves the layer's normal
+behavior. `wait: true` makes the command settle with the visual transition,
+while omission or `false` settles when the desktop accepts it.
 
 ## Window geometry
 

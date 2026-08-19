@@ -114,10 +114,11 @@ export {
   type WindowState
 } from "./window.js"
 export {
-  type ClientSurfaceEasing,
-  type ClientSurfaceSettings,
-  type ClientSurfaceTransaction
-} from "./client-surface.js"
+  type LocalWindow,
+  type LocalWindowSurface,
+  type SurfaceSettings
+} from "./local-window.js"
+export { type Easing, type Transaction } from "./transaction.js"
 export { layers, type Launch, type LaunchClient, type Layer, type Position, type Size } from "./launch.js"
 export {
   defineConfig,
