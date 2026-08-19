@@ -13,6 +13,18 @@ export type ServiceKey = Readonly<{
   name: string
 }>
 
+/** Runtime declaration of one service exposed by an Endpoint Channel. */
+export type ServiceDefinition = Readonly<{
+  /** Program-authored service identity. */
+  name: string
+}>
+
+/** Runtime declaration of one Server service and its optional API document. */
+export type ServerServiceDefinition = ServiceDefinition & Readonly<{
+  /** Complete API documentation owned by this service. */
+  docs?: string
+}>
+
 /** Lifecycle transitions of one exact service identity. */
 export type ServiceLifecycleEvents = {
   /** A live Endpoint began providing this service. */
@@ -68,6 +80,9 @@ export class ServerServiceHandler<Events extends object = {}>
 export interface ServerServiceHandler<Events extends object = {}> {
   readonly endpoint: "server"
   readonly channel: ServerServiceChannel<Events>
+
+  /** Explicitly reads this live Server service's documentation, or `null`. */
+  docs(): Promise<string | null>
 }
 
 /** Stable handle for one Client-provided service. */

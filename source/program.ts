@@ -116,12 +116,6 @@ export interface Program<Events extends object = {}> extends Subscribable<Progra
   createProcess(launch?: Launch): Promise<Process>
 
   /**
-   * Returns the Program-authored API entry point, or `null`.
-   * The document describes the Program's contract, not system mechanics.
-   */
-  apiDocs(): Promise<string | null>
-
-  /**
    * Returns one standard PNG representation of this Program's icon.
    * Programs without an authored icon receive the system default.
    *

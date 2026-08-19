@@ -23,7 +23,9 @@ export {
   isServiceKey,
   type ClientServiceChannel,
   type ServerServiceChannel,
+  type ServerServiceDefinition,
   type ServiceChannel,
+  type ServiceDefinition,
   type ServiceKey,
   type ServiceLifecycleEvents
 } from "./service.js"

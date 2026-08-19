@@ -1,5 +1,6 @@
 import type { Endpoint } from "./endpoint.js"
 import type { Publishable } from "./publishable.js"
+import type { ServiceDefinition } from "./service.js"
 import type { Captures, Subscribable } from "./subscribable.js"
 
 /** One application value arriving through the current Endpoint's Channel. */
@@ -25,10 +26,10 @@ export type ChannelCapture<Events extends object = {}, From = Endpoint> =
   Captures<ChannelEvents<Events, From>, ChannelFallback<Events, From>>
 
 /** Addressed input and destinationless output for the executing Endpoint. */
-export interface Channel<Events extends object = {}, From = Endpoint>
+export interface Channel<Events extends object = {}, From = Endpoint, Definition extends ServiceDefinition = ServiceDefinition>
   extends Subscribable<ChannelEvents<Events, From>, ChannelFallback<Events, From>>, Publishable {
   /** Exposes this executing Channel under one public service name. */
-  enableService(name: string): Promise<void>
+  enableService(definition: Definition): Promise<void>
 
   /** Stops exposing this executing Channel as a service. */
   disableService(): Promise<void>

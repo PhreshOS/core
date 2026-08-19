@@ -73,12 +73,6 @@ type Description = Readonly<{
   /** Short human-readable explanation of what the Program does. */
   description?: string
 
-  /**
-   * Markdown file describing only the Program-owned API contract.
-   * System access, Endpoint, and event mechanics belong to system documentation.
-   */
-  apiDocs?: string
-
   /** PNG source between 128 and 2,048 pixels per side and no larger than 5 MiB. */
   icon?: string
 
