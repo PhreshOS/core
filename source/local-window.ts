@@ -12,7 +12,7 @@ export type SurfaceSettings = Readonly<{
   radius?: ScaleLevel | number | "full"
 }>
 
-/** Local Surface commands for the current Client representation. */
+/** Local Surface commands for one Client Window representation. */
 export interface LocalWindowSurface {
   /** Creates or replaces the Surface, optionally as a visual transaction. */
   set(settings?: SurfaceSettings, transaction?: Transaction): Promise<void>
@@ -22,9 +22,9 @@ export interface LocalWindowSurface {
 }
 
 /**
- * The current desktop's physical representation of the current Client Window.
- * It has no events: its commands neither change authoritative state nor
- * broadcast anything.
+ * One Client Window's physical representation on the current desktop. It has
+ * no events: its commands neither change authoritative state nor broadcast
+ * anything.
  */
 export interface LocalWindow {
   readonly surface: LocalWindowSurface

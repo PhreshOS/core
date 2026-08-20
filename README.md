@@ -237,11 +237,13 @@ persistence, upload, Process creation, or rendering implementation.
 ## Local representation
 
 `Window` is the authoritative, subscribable presentation state shared through
-the system. `LocalWindow` is the current desktop's physical representation of
-the current Client only. Its reads and commands are deliberately eventless and
-never change or publish authoritative state. A desktop projects authoritative
-changes onto an ordinary `window` layer; `under` and `over` representations
-receive their initial truth and control their local projection thereafter.
+the system. `LocalWindow` describes one Client Window's physical representation
+on the current desktop. Its reads and commands are deliberately eventless and
+never change or publish authoritative state. Client SDKs may attach this
+capability to their Window handles; Server SDKs must not. A desktop projects
+authoritative changes onto an ordinary `window` layer, while `under` and `over`
+representations receive their initial truth and control their local projection
+thereafter.
 
 `SurfaceSettings` describes optional host-rendered material belonging to one
 live `under` or `over` representation. Calling `set()` without settings creates
