@@ -3,7 +3,7 @@ import { createThemeSnapshot, standardTheme } from "../source/main.js"
 
 describe("Theme colors", function () {
   it("keeps independent standard surface, content, and emphasis sources", function () {
-    expect(standardTheme.background).toBe("#edf8fc")
+    expect(standardTheme.background).toBe("#f5f4ee")
     expect(standardTheme.foreground).toBe("#183447")
     expect(standardTheme.accent).toBe("#4c9cff")
   })

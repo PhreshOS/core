@@ -59,23 +59,21 @@ explicit, asynchronous read of one complete, immutable value. `Theme` extends
 the ordinary `Subscribable` capability with a `change` event; it has no
 dedicated subscription shape of its own.
 
-Theme properties are expressed as concrete default values. `themeLimits`
-declares the system-owned customization bounds for spacing, corner radius, and
-glass-material properties; implementing authorities validate replacements
-against those bounds. Core defines one fixed numeric scale around any explicit
-number and one fixed color scale around any explicit CSS color — it does not
-prescribe which value an interface ultimately chooses to derive. Background,
-foreground, and accent are independent CSS color sources, with standard values
-of `#edf8fc`, `#183447`, and `#4c9cff` — the established pale surface, primary
-ink, and original system blue, respectively. Core stores only those source
-colors, never their derived treatments. The declared glass-opacity range ends
-at `0.3`.
+Theme properties are expressed as concrete values. `themeLimits` declares the
+contractual customization bounds for spacing, corner radius, and glass-material
+properties; implementing authorities validate replacements against those
+bounds. Core defines one fixed numeric scale around any explicit number and one
+fixed color scale around any explicit CSS color. `standardTheme` is the
+canonical reusable default value for that contract, shared by systems,
+interfaces, websites, and Programs that need the same baseline. It is not an
+authoritative environment's mutable Theme state. Background, foreground, and
+accent remain independent CSS color sources, and the declared glass-opacity
+range ends at `0.3`.
 
-`standardTheme` is the single, complete initial value shared by every
-environment; the running system remains the authority for its current value.
-`createThemeSnapshot()` copies and freezes a complete replacement at the
-contract boundary; validation remains the implementing authority's
-responsibility.
+`createThemeSnapshot()` copies and freezes one complete value at the contract
+boundary. An implementing authority remains responsible for validation,
+persistence, and the current value; its own schema may derive its defaults from
+`standardTheme` rather than duplicating them.
 
 Derived variants are calculations, not persisted `Theme` state. `numericScale()`
 produces `xsmall`, `small`, `medium`, `large`, and `xlarge`, preserving the
@@ -86,9 +84,9 @@ supplied value exactly at `medium`. `color()` produces `subtle`, `soft`, `base`,
 after that registration exists. It never supplies an initial snapshot and
 never replays a change published earlier; Programs request the current
 snapshot explicitly when they need one. `WritableTheme` adds asynchronous
-authority to replace the value — a read-only environment exposes `Theme`,
-while an authorized environment may expose `WritableTheme` without altering
-the shared lifecycle.
+authority to replace the value. A read-only environment exposes `Theme`, while
+an authorized environment may expose `WritableTheme` without altering the
+shared lifecycle.
 
 `Colorable`, `Sizable`, `Shapeable`, `Variantable`, and `Elevatable` are
 independent element capabilities whose concrete value vocabularies are defined

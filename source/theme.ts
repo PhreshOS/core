@@ -67,7 +67,7 @@ export const themeLimits = Object.freeze({
 
 /** Complete standard Theme available to every environment. */
 export const standardTheme = createThemeSnapshot({
-  background: "#edf8fc",
+  background: "#f5f4ee",
   foreground: "#183447",
   accent: "#4c9cff",
   spacing: 12,
