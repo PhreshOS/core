@@ -9,9 +9,15 @@ describe("Theme colors", function () {
     expect("glass" in standardTheme).toBe(false)
     expect(standardTheme.surface).toEqual({
       grain: 0.04,
+      grainAmount: 1,
       animation: 0,
       backdrop: 0,
-      opacity: 1
+      opacity: 1,
+      distortion: 0,
+      waves: 0,
+      ripples: 0,
+      saturation: 1,
+      brightness: 1
     })
   })
 
@@ -34,9 +40,15 @@ describe("Theme colors", function () {
     expect("glass" in themeLimits).toBe(false)
     expect(themeLimits.surface).toEqual({
       grain: { minimum: 0, maximum: 1 },
+      grainAmount: { minimum: 0, maximum: 1 },
       animation: { minimum: 0, maximum: 16 },
       backdrop: { minimum: 0, maximum: 24 },
-      opacity: { minimum: 0, maximum: 1 }
+      opacity: { minimum: 0, maximum: 1 },
+      distortion: { minimum: 0, maximum: 140 },
+      waves: { minimum: 0, maximum: 40 },
+      ripples: { minimum: 0, maximum: 40 },
+      saturation: { minimum: 1, maximum: 2.6 },
+      brightness: { minimum: 1, maximum: 1.12 }
     })
   })
 })

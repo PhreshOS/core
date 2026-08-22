@@ -14,6 +14,9 @@ export type ThemeSurface = Readonly<{
   /** Grain intensity from zero to one. */
   grain: number
 
+  /** Fraction of deterministic grain cells retained from zero to one. */
+  grainAmount: number
+
   /** Grain texture changes per second. */
   animation: number
 
@@ -22,6 +25,21 @@ export type ThemeSurface = Readonly<{
 
   /** Material opacity from zero to one. */
   opacity: number
+
+  /** Organic backdrop displacement in CSS pixels. */
+  distortion: number
+
+  /** Directional-wave backdrop displacement in CSS pixels. */
+  waves: number
+
+  /** Ripple backdrop displacement in CSS pixels. */
+  ripples: number
+
+  /** Backdrop saturation multiplier, neutral at one. */
+  saturation: number
+
+  /** Backdrop brightness multiplier, neutral at one. */
+  brightness: number
 }>
 
 /** The complete set of system-defined Theme properties. */
@@ -51,9 +69,15 @@ export const themeLimits = Object.freeze({
   radius: Object.freeze({ minimum: 6, maximum: 18 }),
   surface: Object.freeze({
     grain: Object.freeze({ minimum: 0, maximum: 1 }),
+    grainAmount: Object.freeze({ minimum: 0, maximum: 1 }),
     animation: Object.freeze({ minimum: 0, maximum: 16 }),
     backdrop: Object.freeze({ minimum: 0, maximum: 24 }),
-    opacity: Object.freeze({ minimum: 0, maximum: 1 })
+    opacity: Object.freeze({ minimum: 0, maximum: 1 }),
+    distortion: Object.freeze({ minimum: 0, maximum: 140 }),
+    waves: Object.freeze({ minimum: 0, maximum: 40 }),
+    ripples: Object.freeze({ minimum: 0, maximum: 40 }),
+    saturation: Object.freeze({ minimum: 1, maximum: 2.6 }),
+    brightness: Object.freeze({ minimum: 1, maximum: 1.12 })
   })
 }) satisfies Readonly<{
   spacing: ThemeRange
@@ -70,9 +94,15 @@ export const standardTheme = createThemeSnapshot({
   radius: 10,
   surface: {
     grain: 0.04,
+    grainAmount: 1,
     animation: 0,
     backdrop: 0,
-    opacity: 1
+    opacity: 1,
+    distortion: 0,
+    waves: 0,
+    ripples: 0,
+    saturation: 1,
+    brightness: 1
   }
 })
 

@@ -74,7 +74,10 @@ and material opacity; its standard backdrop is zero, so blur is opt-in.
 `createThemeSnapshot()` copies and freezes one complete value at the contract
 boundary. An implementing authority remains responsible for validation,
 persistence, and the current value; its own schema may derive its defaults from
-`standardTheme` rather than duplicating them.
+`standardTheme` rather than duplicating them. Surface defaults include grain
+intensity and amount, animation, material opacity, optional backdrop blur and
+three displacement stages, plus neutral saturation and brightness. Effects
+whose neutral value avoids rendering work remain neutral by default.
 
 Derived variants are calculations, not persisted `Theme` state. `numericScale()`
 produces `xsmall`, `small`, `medium`, `large`, and `xlarge`, preserving the
