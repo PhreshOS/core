@@ -29,9 +29,6 @@ export type ThemeGlass = Readonly<{
 
 /** Concrete defaults for the shared opaque Surface material. */
 export type ThemeSurface = Readonly<{
-  /** CSS color painted by the material. */
-  color: string
-
   /** Grain intensity from zero to one. */
   grain: number
 
@@ -47,7 +44,7 @@ export type ThemeSurface = Readonly<{
 
 /** The complete set of system-defined Theme properties. */
 export type ThemeProperties = Readonly<{
-  /** CSS color underlying shared interface surfaces and materials. */
+  /** CSS color underlying interfaces and painted by Surface materials. */
   background: string
 
   /** CSS color used for shared interface content. */
@@ -90,7 +87,7 @@ export const themeLimits = Object.freeze({
   spacing: ThemeRange
   radius: ThemeRange
   glass: Readonly<Record<keyof ThemeGlass, ThemeRange>>
-  surface: Readonly<Record<Exclude<keyof ThemeSurface, "color">, ThemeRange>>
+  surface: Readonly<Record<keyof ThemeSurface, ThemeRange>>
 }>
 
 /** Complete standard Theme available to every environment. */
@@ -108,8 +105,7 @@ export const standardTheme = createThemeSnapshot({
     opacity: 0.12
   },
   surface: {
-    color: "#f5f4ee",
-    grain: 0.1,
+    grain: 0.04,
     animation: 0,
     backdrop: 0,
     opacity: 1

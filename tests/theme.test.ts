@@ -2,13 +2,12 @@ import { describe, expect, it } from "vitest"
 import { createThemeSnapshot, standardTheme, themeLimits } from "../source/main.js"
 
 describe("Theme colors", function () {
-  it("keeps independent standard surface, content, and emphasis sources", function () {
+  it("keeps independent standard background, content, and emphasis sources", function () {
     expect(standardTheme.background).toBe("#f5f4ee")
     expect(standardTheme.foreground).toBe("#183447")
     expect(standardTheme.accent).toBe("#4c9cff")
     expect(standardTheme.surface).toEqual({
-      color: "#f5f4ee",
-      grain: 0.1,
+      grain: 0.04,
       animation: 0,
       backdrop: 0,
       opacity: 1
