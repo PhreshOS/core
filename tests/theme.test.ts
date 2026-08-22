@@ -3,13 +3,13 @@ import { createThemeSnapshot, standardTheme, themeLimits } from "../source/main.
 
 describe("Theme colors", function () {
   it("keeps independent standard background, content, and emphasis sources", function () {
-    expect(standardTheme.background).toBe("#f5f4ee")
+    expect(standardTheme.background).toBe("#fffff5")
     expect(standardTheme.foreground).toBe("#183447")
     expect(standardTheme.accent).toBe("#4c9cff")
     expect("glass" in standardTheme).toBe(false)
     expect(standardTheme.surface).toEqual({
-      grain: 0.04,
-      grainAmount: 1,
+      grain: 0,
+      grainAmount: 0,
       animation: 0,
       backdrop: 0,
       opacity: 1,

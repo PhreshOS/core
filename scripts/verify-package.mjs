@@ -61,7 +61,7 @@ import { Client, Endpoint, Server, permissionNames, standardTheme } from "@phres
 assert(Client.prototype instanceof Endpoint)
 assert(Server.prototype instanceof Endpoint)
 assert.deepEqual(permissionNames, ["pointer"])
-assert.equal(standardTheme.background, "#f5f4ee")
+assert.equal(standardTheme.background, "#fffff5")
 `
   )
   execFileSync(process.execPath, [join(consumer, "runtime.mjs")], { stdio: "inherit" })

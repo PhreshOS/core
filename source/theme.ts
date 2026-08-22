@@ -87,14 +87,14 @@ export const themeLimits = Object.freeze({
 
 /** Complete standard Theme available to every environment. */
 export const standardTheme = createThemeSnapshot({
-  background: "#f5f4ee",
+  background: "#fffff5",
   foreground: "#183447",
   accent: "#4c9cff",
   spacing: 12,
   radius: 10,
   surface: {
-    grain: 0.04,
-    grainAmount: 1,
+    grain: 0,
+    grainAmount: 0,
     animation: 0,
     backdrop: 0,
     opacity: 1,
