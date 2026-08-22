@@ -65,6 +65,7 @@ export {
   type ThemeGlass,
   type ThemeProperties,
   type ThemeRange,
+  type ThemeSurface,
   type Variantable,
   type WritableTheme
 } from "./theme.js"

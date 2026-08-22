@@ -60,14 +60,16 @@ the ordinary `Subscribable` capability with a `change` event; it has no
 dedicated subscription shape of its own.
 
 Theme properties are expressed as concrete values. `themeLimits` declares the
-contractual customization bounds for spacing, corner radius, and glass-material
-properties; implementing authorities validate replacements against those
+contractual customization bounds for spacing, corner radius, glass-material,
+and Surface properties; implementing authorities validate replacements against those
 bounds. Core defines one fixed numeric scale around any explicit number and one
 fixed color scale around any explicit CSS color. `standardTheme` is the
 canonical reusable default value for that contract, shared by systems,
 interfaces, websites, and Programs that need the same baseline. It is not an
 authoritative environment's mutable Theme state. Background, foreground, and
-accent remain independent CSS color sources, and the declared glass-opacity
+accent remain independent CSS color sources. Surface adds a concrete color,
+grain intensity, animation rate, optional backdrop blur, and material opacity;
+its standard backdrop is zero, so blur is opt-in. The declared glass-opacity
 range ends at `0.3`.
 
 `createThemeSnapshot()` copies and freezes one complete value at the contract

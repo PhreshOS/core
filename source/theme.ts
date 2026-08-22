@@ -27,6 +27,24 @@ export type ThemeGlass = Readonly<{
   opacity: number
 }>
 
+/** Concrete defaults for the shared opaque Surface material. */
+export type ThemeSurface = Readonly<{
+  /** CSS color painted by the material. */
+  color: string
+
+  /** Grain intensity from zero to one. */
+  grain: number
+
+  /** Grain texture changes per second. */
+  animation: number
+
+  /** Optional backdrop blur in CSS pixels. */
+  backdrop: number
+
+  /** Material opacity from zero to one. */
+  opacity: number
+}>
+
 /** The complete set of system-defined Theme properties. */
 export type ThemeProperties = Readonly<{
   /** CSS color underlying shared interface surfaces and materials. */
@@ -46,6 +64,9 @@ export type ThemeProperties = Readonly<{
 
   /** Default values for the shared glass material. */
   glass: ThemeGlass
+
+  /** Default values for the shared opaque Surface material. */
+  surface: ThemeSurface
 }>
 
 /** System-owned bounds for Theme customization. */
@@ -58,11 +79,18 @@ export const themeLimits = Object.freeze({
     saturation: Object.freeze({ minimum: 1.25, maximum: 1.8 }),
     brightness: Object.freeze({ minimum: 1.02, maximum: 1.1 }),
     opacity: Object.freeze({ minimum: 0, maximum: 0.3 })
+  }),
+  surface: Object.freeze({
+    grain: Object.freeze({ minimum: 0, maximum: 1 }),
+    animation: Object.freeze({ minimum: 0, maximum: 16 }),
+    backdrop: Object.freeze({ minimum: 0, maximum: 24 }),
+    opacity: Object.freeze({ minimum: 0, maximum: 1 })
   })
 }) satisfies Readonly<{
   spacing: ThemeRange
   radius: ThemeRange
   glass: Readonly<Record<keyof ThemeGlass, ThemeRange>>
+  surface: Readonly<Record<Exclude<keyof ThemeSurface, "color">, ThemeRange>>
 }>
 
 /** Complete standard Theme available to every environment. */
@@ -78,6 +106,13 @@ export const standardTheme = createThemeSnapshot({
     saturation: 1.8,
     brightness: 1.06,
     opacity: 0.12
+  },
+  surface: {
+    color: "#f5f4ee",
+    grain: 0.1,
+    animation: 0,
+    backdrop: 0,
+    opacity: 1
   }
 })
 
@@ -85,7 +120,8 @@ export const standardTheme = createThemeSnapshot({
 export function createThemeSnapshot(theme: ThemeProperties): ThemeProperties {
   return Object.freeze({
     ...theme,
-    glass: Object.freeze({ ...theme.glass })
+    glass: Object.freeze({ ...theme.glass }),
+    surface: Object.freeze({ ...theme.surface })
   })
 }
 
