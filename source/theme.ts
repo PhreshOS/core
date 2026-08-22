@@ -9,24 +9,6 @@ export type ThemeRange = Readonly<{
   maximum: number
 }>
 
-/** Bounded controls for the shared glass material. */
-export type ThemeGlass = Readonly<{
-  /** Default strength of the refracted backdrop. */
-  distortion: number
-
-  /** Default backdrop blur in CSS pixels. */
-  blur: number
-
-  /** Default backdrop saturation multiplier. */
-  saturation: number
-
-  /** Default backdrop brightness multiplier. */
-  brightness: number
-
-  /** Default material opacity from zero to the system's glass cap. */
-  opacity: number
-}>
-
 /** Concrete defaults for the shared opaque Surface material. */
 export type ThemeSurface = Readonly<{
   /** Grain intensity from zero to one. */
@@ -59,9 +41,6 @@ export type ThemeProperties = Readonly<{
   /** Default component corner radius expressed in CSS pixels. */
   radius: number
 
-  /** Default values for the shared glass material. */
-  glass: ThemeGlass
-
   /** Default values for the shared opaque Surface material. */
   surface: ThemeSurface
 }>
@@ -70,13 +49,6 @@ export type ThemeProperties = Readonly<{
 export const themeLimits = Object.freeze({
   spacing: Object.freeze({ minimum: 6, maximum: 18 }),
   radius: Object.freeze({ minimum: 6, maximum: 18 }),
-  glass: Object.freeze({
-    distortion: Object.freeze({ minimum: 48, maximum: 92 }),
-    blur: Object.freeze({ minimum: 2, maximum: 8 }),
-    saturation: Object.freeze({ minimum: 1.25, maximum: 1.8 }),
-    brightness: Object.freeze({ minimum: 1.02, maximum: 1.1 }),
-    opacity: Object.freeze({ minimum: 0, maximum: 0.3 })
-  }),
   surface: Object.freeze({
     grain: Object.freeze({ minimum: 0, maximum: 1 }),
     animation: Object.freeze({ minimum: 0, maximum: 16 }),
@@ -86,7 +58,6 @@ export const themeLimits = Object.freeze({
 }) satisfies Readonly<{
   spacing: ThemeRange
   radius: ThemeRange
-  glass: Readonly<Record<keyof ThemeGlass, ThemeRange>>
   surface: Readonly<Record<keyof ThemeSurface, ThemeRange>>
 }>
 
@@ -97,13 +68,6 @@ export const standardTheme = createThemeSnapshot({
   accent: "#4c9cff",
   spacing: 12,
   radius: 10,
-  glass: {
-    distortion: 70,
-    blur: 4,
-    saturation: 1.8,
-    brightness: 1.06,
-    opacity: 0.12
-  },
   surface: {
     grain: 0.04,
     animation: 0,
@@ -116,7 +80,6 @@ export const standardTheme = createThemeSnapshot({
 export function createThemeSnapshot(theme: ThemeProperties): ThemeProperties {
   return Object.freeze({
     ...theme,
-    glass: Object.freeze({ ...theme.glass }),
     surface: Object.freeze({ ...theme.surface })
   })
 }

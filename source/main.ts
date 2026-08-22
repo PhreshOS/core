@@ -62,7 +62,6 @@ export {
   type Sizable,
   type Theme,
   type ThemeEvents,
-  type ThemeGlass,
   type ThemeProperties,
   type ThemeRange,
   type ThemeSurface,
