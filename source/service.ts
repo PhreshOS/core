@@ -34,6 +34,15 @@ export type ServiceLifecycleEvents = {
   disable: undefined
 }
 
+/** Lifecycle transitions across the authoritative service registry. */
+export type ServiceRegistryEvents = {
+  /** A service entered the enabled registry. */
+  enable: ServiceKey
+
+  /** A service left the enabled registry. */
+  disable: ServiceKey
+}
+
 /** Application events emitted by one service. */
 export interface ServiceChannel<Events extends object = {}>
   extends Subscribable<Events, keyof Events extends never ? unknown : never> {}
@@ -53,20 +62,17 @@ export class ServiceHandler<Channel extends object = ServiceChannel> {
 
 export interface ServiceHandler<Channel extends object = ServiceChannel>
   extends Subscribable<ServiceLifecycleEvents, never> {
-  /** Program namespace of this service. */
-  readonly program: string
-
-  /** Endpoint kind represented by this service. */
-  readonly endpoint: "server" | "client"
-
   /** Program-authored service identity. */
   readonly name: string
 
   /** Application communication, separate from service lifecycle. */
   readonly channel: Channel
 
-  /** Explicitly reads whether no live Endpoint currently provides the service. */
-  disabled(): Promise<boolean>
+  /** Reads whether a live Endpoint currently provides this service. */
+  enabled(): Promise<boolean>
+
+  /** Waits until a live Endpoint provides this service. */
+  waitReady(timeout?: number): Promise<void>
 }
 
 /** Stable handle for one Server-provided service. */
@@ -78,7 +84,6 @@ export class ServerServiceHandler<Events extends object = {}>
 }
 
 export interface ServerServiceHandler<Events extends object = {}> {
-  readonly endpoint: "server"
   readonly channel: ServerServiceChannel<Events>
 
   /** Explicitly reads this live Server service's documentation, or `null`. */
@@ -94,7 +99,6 @@ export class ClientServiceHandler<Events extends object = {}>
 }
 
 export interface ClientServiceHandler<Events extends object = {}> {
-  readonly endpoint: "client"
   readonly channel: ClientServiceChannel<Events>
 }
 

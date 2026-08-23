@@ -18,13 +18,13 @@ export function isPermissionName(value: unknown): value is PermissionName {
 export type PermissionDecision = boolean | null
 
 /** Permission requests using one caller-selected deadline. */
-export interface TimedPermissions {
+export interface TimedPermission {
   /** Requests one permission, resolving `null` if the deadline expires. */
   request(name: PermissionName): Promise<PermissionDecision>
 }
 
 /** Client access to one Program's effective permission decisions. */
-export interface Permissions extends Timeoutable<TimedPermissions> {
+export interface Permission extends Timeoutable<TimedPermission> {
   /** Reads the effective decision without prompting the user. */
   granted(name: PermissionName): Promise<PermissionDecision>
 
@@ -33,7 +33,7 @@ export interface Permissions extends Timeoutable<TimedPermissions> {
 }
 
 /** Server-side management of one Program's persistent permission decisions. */
-export interface ProgramPermissions {
+export interface ProgramPermission {
   /** Reads one persistent decision, or `undefined` when none is stored. */
   get(name: PermissionName): Promise<boolean | undefined>
 

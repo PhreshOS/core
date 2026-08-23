@@ -27,7 +27,8 @@ export {
   type ServiceChannel,
   type ServiceDefinition,
   type ServiceKey,
-  type ServiceLifecycleEvents
+  type ServiceLifecycleEvents,
+  type ServiceRegistryEvents
 } from "./service.js"
 export {
   isPermissionName,
@@ -35,9 +36,9 @@ export {
   type PermissionDecision,
   type PermissionDecisions,
   type PermissionName,
-  type Permissions,
-  type ProgramPermissions,
-  type TimedPermissions
+  type Permission,
+  type ProgramPermission,
+  type TimedPermission
 } from "./permissions.js"
 export { type Outcome } from "./outcome.js"
 export { type ServedFile } from "./served-file.js"
@@ -104,6 +105,8 @@ export {
   type EndpointDeclaration,
   type ProgramEvents,
   type ProgramIconSize,
+  type ProgramProcess,
+  type ProgramProcessEvents,
   type ProgramProcessExit
 } from "./program.js"
 export {

@@ -52,7 +52,7 @@ export interface Process<Events extends object = {}> extends Subscribable<Proces
   program(): Program
 
   /**
-   * Returns the Process whose `createProcess()` call created this Process.
+   * Returns the Process whose `program.process.create()` call created this Process.
    *
    * Returns `null` when this Process has no accessible parent handle. Rejects
    * when this Process or its retained parent no longer exists. Client

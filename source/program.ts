@@ -37,8 +37,8 @@ export type ProgramProcessExit = Exit & Readonly<{
   process: Process
 }>
 
-/** Lifecycle events scoped to one Program. */
-export type ProgramEvents = {
+/** Process lifecycle events scoped to one Program. */
+export type ProgramProcessEvents = {
   /** One Process Endpoint entered a new live incarnation. */
   endpointStart: Process["server"] | Process["client"]
 
@@ -46,11 +46,36 @@ export type ProgramEvents = {
   endpointStop: Process["server"] | Process["client"]
 
   /** A Process entered this Program's runtime set. */
-  processCreate: Process
+  create: Process
 
   /** A Process left this Program's runtime set. */
-  processExit: ProgramProcessExit
+  exit: ProgramProcessExit
 
+}
+
+/** Operations over the Processes belonging to one Program. */
+export interface ProgramProcess extends Subscribable<ProgramProcessEvents, never> {
+  /** Returns every live Process of this Program available to this SDK. */
+  list(): Promise<Process[]>
+
+  /** Returns the earliest-started live Process, or `null` when none exist. */
+  first(): Promise<Process | null>
+
+  /** Returns the latest-started live Process, or `null` when none exist. */
+  last(): Promise<Process | null>
+
+  /** Finds a live Process by identity or Program-local name. */
+  find(identityOrName: string): Promise<Process | null>
+
+  /** Creates one Process of this Program. */
+  create(launch?: Launch): Promise<Process>
+
+  /** Ends every live Process and returns their identities. */
+  exitAll(): Promise<string[]>
+}
+
+/** Lifecycle events belonging to one Program entity. */
+export type ProgramEvents = {
   /** This Program left the runtime registry. */
   forget: undefined
 
@@ -100,20 +125,8 @@ export interface Program<Events extends object = {}> extends Subscribable<Progra
   /** Writable SQLite database owned by this Program. */
   readonly database: ProgramSql
 
-  /** Returns every live Process of this Program available to this SDK. */
-  processes(): Promise<Process[]>
-
-  /** Returns the earliest-started live Process, or `null` when none exist. */
-  firstProcess(): Promise<Process | null>
-
-  /** Returns the latest-started live Process, or `null` when none exist. */
-  lastProcess(): Promise<Process | null>
-
-  /** Finds a live Process by identity or Program-local name. */
-  getProcess(identityOrName: string): Promise<Process | null>
-
-  /** Creates one Process of this Program. */
-  createProcess(launch?: Launch): Promise<Process>
+  /** Operations and lifecycle observation for this Program's Processes. */
+  readonly process: ProgramProcess
 
   /**
    * Returns one standard PNG representation of this Program's icon.
@@ -132,6 +145,4 @@ export interface Program<Events extends object = {}> extends Subscribable<Progra
   /** Ends all Processes and removes this Program from the runtime registry. */
   forget(): Promise<void>
 
-  /** Ends every live Process and returns their identities. */
-  exitAll(): Promise<string[]>
 }
