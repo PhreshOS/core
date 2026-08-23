@@ -280,6 +280,13 @@ authoritative state.
 
 ## Process parentage
 
+Programs own creation through `program.process`. `create()` always requests a
+new Process. `findOrCreate()` requires a Program-local name and atomically
+converges equivalent concurrent launches on one Process. If that name already
+belongs to a Process created with a different normalized launch, the operation
+rejects rather than mutating or replacing it. The authority compares immutable
+launch intent, never later endpoint or Window state.
+
 Process parentage belongs to `Process`, not to contextual SDK state. Each
 live Process retains only a handle to its immediate parent. `process.parent()`
 returns `null` when no accessible parent handle exists, and does not preserve

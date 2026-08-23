@@ -76,6 +76,9 @@ export interface ProgramProcess extends Subscribable<ProgramProcessEvents, never
   /** Creates one Process of this Program. */
   create(launch?: Launch): Promise<Process>
 
+  /** Finds the named Process or atomically creates it with the same resolved launch. */
+  findOrCreate(launch: Launch & Readonly<{ name: string }>): Promise<Process>
+
   /** Ends every live Process and returns their identities. */
   exitAll(): Promise<string[]>
 }
