@@ -12,8 +12,11 @@ export type EndpointDeclaration = Readonly<{
   /** Whether a default Process starts this declared Endpoint. */
   start: boolean
 
-  /** Whether this Endpoint may expose its Channel as a public Service. */
-  serviceable: boolean
+  /** Returns whether this Endpoint is permitted to expose a documented Service. */
+  hasService(): boolean
+
+  /** Reads this Endpoint's installed Service documentation, or `null` when undeclared. */
+  docs(): Promise<string | null>
 }>
 
 /** Resolved Client declaration and its default Window state. */

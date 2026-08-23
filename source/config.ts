@@ -23,8 +23,8 @@ export type ServerConfig = Readonly<{
   /** Whether a default Process starts its Server. Defaults to `true`. */
   start?: boolean
 
-  /** Whether this Server may expose its Channel as a public Service. Defaults to `false`. */
-  serviceable?: boolean
+  /** Program-relative Markdown file documenting the Service this Server may expose. */
+  serviceDocs?: string
 
   /** Optional preparation command run from {@link location} while installing. */
   installCommand?: string
@@ -44,8 +44,8 @@ export type ClientConfig = Readonly<{
   /** Whether a default Process starts its Client. Defaults to `true`. */
   start?: boolean
 
-  /** Whether this Client may expose its Channel as a public Service. Defaults to `false`. */
-  serviceable?: boolean
+  /** Program-relative Markdown file documenting the Service this Client may expose. */
+  serviceDocs?: string
 
   /** Initial Window title. Defaults to the Program name. */
   title?: string

@@ -61,11 +61,11 @@ describe("public runtime", function () {
   it("returns the exact authored Program description", function () {
     const config = {
       identity: "public-contract",
-      client: { location: "./client", serviceable: true }
+      client: { location: "./client", serviceDocs: "./client-api.md" }
     } as const
 
     expect(defineConfig(config)).toBe(config)
-    expect(config.client.serviceable).toBe(true)
+    expect(config.client.serviceDocs).toBe("./client-api.md")
   })
 
   it("recognizes only complete public service keys", function () {
