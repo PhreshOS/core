@@ -11,6 +11,9 @@ export type ProgramIconSize = "small" | "medium" | "large"
 export type EndpointDeclaration = Readonly<{
   /** Whether a default Process starts this declared Endpoint. */
   start: boolean
+
+  /** Whether this Endpoint may expose its Channel as a public Service. */
+  serviceable: boolean
 }>
 
 /** Resolved Client declaration and its default Window state. */

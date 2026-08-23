@@ -308,6 +308,7 @@ export default defineConfig({
   icon: "./icon.png",
   server: {
     location: "./dist/server",
+    serviceable: true,
     startCommand: "node main.js",
     development: {
       startCommand: "node --watch --import tsx source/server/main.ts"
@@ -328,6 +329,13 @@ settings remain authoring metadata; the CLI derives the appropriate runtime
 description for each mode. The optional `icon` field names a single PNG
 source — packaging and installation normalize it to `icon.png`, while hosting
 derives the system's fixed presentation sizes.
+
+Every Server and Client declaration may opt into public Service exposure with
+`serviceable: true`. It defaults to false. This declares only that the Endpoint
+is permitted to call `current.enableService()`; the Service name,
+documentation, and live binding remain runtime facts. The resolved
+`program.server.serviceable` and `program.client.serviceable` values are always
+booleans.
 
 Every Program also exposes its guaranteed icon without revealing hosting or
 filesystem details:
