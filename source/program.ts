@@ -11,12 +11,6 @@ export type ProgramIconSize = "small" | "medium" | "large"
 export type EndpointDeclaration = Readonly<{
   /** Whether a default Process starts this declared Endpoint. */
   start: boolean
-
-  /** Returns whether this Endpoint is permitted to expose a documented Service. */
-  hasService(): boolean
-
-  /** Reads this Endpoint's installed Service documentation, or `null` when undeclared. */
-  docs(): Promise<string | null>
 }>
 
 /** Resolved Client declaration and its default Window state. */
@@ -113,6 +107,9 @@ export interface Program<Events extends object = {}> extends Subscribable<Progra
   /** Declared description, or `null`. */
   readonly description: string | null
 
+  /** Whether this Program provides Program-specific documentation for agents. */
+  readonly hasAgent: boolean
+
   /** Server declaration, or `null` when this Program cannot start one. */
   readonly server: EndpointDeclaration | null
 
@@ -144,6 +141,9 @@ export interface Program<Events extends object = {}> extends Subscribable<Progra
    * @param size Rendered size. Omission selects `medium`.
    */
   icon(size?: ProgramIconSize): Promise<Blob>
+
+  /** Reads this Program's agent documentation, or `null` when none is declared. */
+  agent(): Promise<string | null>
 
   /** Returns whether this Program currently has an installed form. */
   installed(): Promise<boolean>

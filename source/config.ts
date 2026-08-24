@@ -23,9 +23,6 @@ export type ServerConfig = Readonly<{
   /** Whether a default Process starts its Server. Defaults to `true`. */
   start?: boolean
 
-  /** Program-relative Markdown file documenting the Service this Server may expose. */
-  serviceDocs?: string
-
   /** Optional preparation command run from {@link location} while installing. */
   installCommand?: string
 
@@ -43,9 +40,6 @@ export type ClientConfig = Readonly<{
 
   /** Whether a default Process starts its Client. Defaults to `true`. */
   start?: boolean
-
-  /** Program-relative Markdown file documenting the Service this Client may expose. */
-  serviceDocs?: string
 
   /** Initial Window title. Defaults to the Program name. */
   title?: string
@@ -81,6 +75,9 @@ type Description = Readonly<{
 
   /** PNG source between 128 and 2,048 pixels per side and no larger than 5 MiB. */
   icon?: string
+
+  /** Program-relative Markdown file describing Program-specific operation to agents. */
+  agent?: string
 
   /** Command run before production start, installation, and packaging. */
   buildCommand?: string

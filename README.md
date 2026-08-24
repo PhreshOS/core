@@ -313,9 +313,9 @@ import { defineConfig } from "@phreshos/core"
 export default defineConfig({
   identity: "my-program",
   icon: "./icon.png",
+  agent: "./agent.md",
   server: {
     location: "./dist/server",
-    serviceDocs: "./server-api.md",
     startCommand: "node main.js",
     development: {
       startCommand: "node --watch --import tsx source/server/main.ts"
@@ -337,14 +337,17 @@ description for each mode. The optional `icon` field names a single PNG
 source — packaging and installation normalize it to `icon.png`, while hosting
 derives the system's fixed presentation sizes.
 
-Every Server and Client declaration may name a Markdown `serviceDocs` file.
-Its presence declares that the Endpoint is permitted to call
-`current.enableService(name)`. Packaging installs it canonically as
-`server-docs.md` or `client-docs.md`, so its policies can be inspected before
-the Endpoint starts. `program.server?.hasService()` reports the declaration and
-`await program.server?.docs()` reads it. The chosen Service name and live
-binding remain runtime facts; the documentation itself should state the name
-consumers must address.
+The optional top-level `agent` field names one Markdown document containing
+Program-specific knowledge an agent cannot discover from the shared PhreshOS
+contracts. Packaging installs it canonically as `agent.md`.
+`program.hasAgent` reports its availability without loading it, and
+`await program.agent()` reads it. The document remains independent of any one
+agent implementation and does not explain generic Process, Endpoint, or tool
+mechanics.
+
+Services are independent runtime bindings. A running Endpoint may explicitly
+expose its Channel with `current.enableService(name)` without declaring or
+shipping documentation through the Program contract.
 
 Every Program also exposes its guaranteed icon without revealing hosting or
 filesystem details:
