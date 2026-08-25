@@ -102,7 +102,7 @@ export {
   type EndpointDeclaration,
   type ProgramEvents,
   type ProgramIconSize,
-  type ProgramInstallChunk,
+  type ProgramCommandChunk,
   type ProgramProcess,
   type ProgramProcessEvents,
   type ProgramProcessExit

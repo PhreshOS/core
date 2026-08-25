@@ -211,9 +211,10 @@ Core also owns the common launch, geometry, lifecycle-message, `ChannelMessage`,
 `ChannelCapture`, `TrafficMessage`, and `TrafficCapture` types used by both
 environments.
 
-`ProgramInstallChunk` is the shared shape of one ordered install-command
+`ProgramCommandChunk` is the shared shape of one ordered lifecycle-command
 output value. It preserves whether the text came from `stdout` or `stderr`;
-environment SDKs decide which Program handles may initiate installation.
+environment SDKs decide which Program handles may initiate installation or
+uninstallation.
 
 ## Window placement
 
@@ -318,8 +319,13 @@ export default defineConfig({
   identity: "my-program",
   icon: "./icon.png",
   agent: "./agent.md",
+  categories: ["Development"],
+  keywords: ["example"],
+  website: "https://example.com/my-program",
   server: {
     location: "./dist/server",
+    installCommand: "npm install --omit=dev",
+    uninstallCommand: "npm run clean:external",
     startCommand: "node main.js",
     development: {
       startCommand: "node --watch --import tsx source/server/main.ts"
@@ -340,6 +346,12 @@ settings remain authoring metadata; the CLI derives the appropriate runtime
 description for each mode. The optional `icon` field names a single PNG
 source — packaging and installation normalize it to `icon.png`, while hosting
 derives the system's fixed presentation sizes.
+
+The optional root `categories`, `keywords`, and `website` fields describe a
+published Program without introducing a second metadata object. They do not
+affect execution. A Server may declare matching lifecycle commands:
+`installCommand` prepares external resources and `uninstallCommand` removes
+them before the installed Server directory is deleted.
 
 The optional top-level `agent` field names one Markdown document containing
 Program-specific knowledge an agent cannot discover from the shared PhreshOS

@@ -7,8 +7,8 @@ import type { Subscribable } from "./subscribable.js"
 /** Standard rendered sizes available for every Program icon. */
 export type ProgramIconSize = "small" | "medium" | "large"
 
-/** One ordered text chunk produced while preparing an installed Program. */
-export type ProgramInstallChunk = Readonly<{
+/** One ordered text chunk produced by a Program lifecycle command. */
+export type ProgramCommandChunk = Readonly<{
   /** Command stream that produced this chunk. */
   stream: "stdout" | "stderr"
 
@@ -157,8 +157,8 @@ export interface Program<Events extends object = {}> extends Subscribable<Progra
   /** Returns whether this Program currently has an installed form. */
   installed(): Promise<boolean>
 
-  /** Removes this Program's installed form. */
-  uninstall(everything?: boolean): Promise<void>
+  /** Removes this Program's installed form while yielding cleanup output. */
+  uninstall(everything?: boolean): AsyncGenerator<ProgramCommandChunk, void, void>
 
   /** Ends all Processes and removes this Program from the runtime registry. */
   forget(): Promise<void>

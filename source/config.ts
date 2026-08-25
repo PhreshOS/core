@@ -26,6 +26,9 @@ export type ServerConfig = Readonly<{
   /** Optional preparation command run from {@link location} while installing. */
   installCommand?: string
 
+  /** Optional cleanup command run from {@link location} while uninstalling. */
+  uninstallCommand?: string
+
   /** Command that starts the production Server from {@link location}. */
   startCommand: string
 
@@ -78,6 +81,15 @@ type Description = Readonly<{
 
   /** Program-relative Markdown file describing Program-specific operation to agents. */
   agent?: string
+
+  /** Optional catalog categories used when publishing this Program. */
+  categories?: readonly string[]
+
+  /** Optional catalog search terms used when publishing this Program. */
+  keywords?: readonly string[]
+
+  /** Optional public website for this Program. */
+  website?: string
 
   /** Command run before production start, installation, and packaging. */
   buildCommand?: string
