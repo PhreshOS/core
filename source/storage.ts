@@ -34,19 +34,19 @@ export type OtherStat = Readonly<{
 /** Filesystem operations confined to one configured directory. */
 export interface Storage {
   /** Reads one file as bytes. */
-  bytes(...path: string[]): Promise<Uint8Array>
+  bytes(...path: [string, ...string[]]): Promise<Uint8Array>
 
   /** Reads one UTF-8 text file. */
-  text(...path: string[]): Promise<string>
+  text(...path: [string, ...string[]]): Promise<string>
 
   /** Reads and parses one JSON file. */
-  json<Value = unknown>(...path: string[]): Promise<Value>
+  json<Value = unknown>(...path: [string, ...string[]]): Promise<Value>
 
   /** Opens one file as a byte stream. */
-  stream(...path: string[]): Promise<ReadableStream<Uint8Array>>
+  stream(...path: [string, ...string[]]): Promise<ReadableStream<Uint8Array>>
 
   /** Atomically writes one supported value, including a byte stream. */
-  write(...arguments_: [...path: string[], value: unknown]): Promise<void>
+  write(...arguments_: [...path: [string, ...string[]], value: unknown]): Promise<void>
 
   /** Returns entry metadata, or `null` when the entry does not exist. */
   stat(...path: string[]): Promise<EntryStat | null>
@@ -55,7 +55,7 @@ export interface Storage {
   list(...path: string[]): Promise<string[]>
 
   /** Recursively removes an entry. A missing entry is accepted. */
-  delete(...path: string[]): Promise<void>
+  delete(...path: [string, ...string[]]): Promise<void>
 
   /** Removes every entry below one directory while preserving that directory. */
   clear(...path: string[]): Promise<void>

@@ -383,7 +383,9 @@ filesystem-like `data` and `cache`, a key-value `store`, read-only SQL `logs`,
 and a writable SQLite `database`. Both filesystem properties implement the
 general `Storage` contract. Every operation remains inside its configured
 directory; `clear()` empties that directory, while `clear(...path)` empties and
-preserves one contained directory. The Server SDK refines `Storage` with
+preserves one contained directory. File reads, writes, and deletion require at
+least one path segment; root metadata, listing, and clearing accept no path.
+The Server SDK refines `Storage` with
 `path()` and safe `resolve()` access; these host filesystem paths are
 structurally absent from the Client SDK.
 
