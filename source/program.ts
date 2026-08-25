@@ -7,6 +7,15 @@ import type { Subscribable } from "./subscribable.js"
 /** Standard rendered sizes available for every Program icon. */
 export type ProgramIconSize = "small" | "medium" | "large"
 
+/** One ordered text chunk produced while preparing an installed Program. */
+export type ProgramInstallChunk = Readonly<{
+  /** Command stream that produced this chunk. */
+  stream: "stdout" | "stderr"
+
+  /** Text exactly as emitted by the install command. */
+  text: string
+}>
+
 /** Resolved declaration shared by Server and Client endpoint kinds. */
 export type EndpointDeclaration = Readonly<{
   /** Whether a default Process starts this declared Endpoint. */

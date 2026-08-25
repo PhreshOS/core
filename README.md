@@ -211,6 +211,10 @@ Core also owns the common launch, geometry, lifecycle-message, `ChannelMessage`,
 `ChannelCapture`, `TrafficMessage`, and `TrafficCapture` types used by both
 environments.
 
+`ProgramInstallChunk` is the shared shape of one ordered install-command
+output value. It preserves whether the text came from `stdout` or `stderr`;
+environment SDKs decide which Program handles may initiate installation.
+
 ## Window placement
 
 Window placement is expressed through two deliberately separate contracts.
