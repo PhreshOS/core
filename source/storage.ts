@@ -31,8 +31,8 @@ export type OtherStat = Readonly<{
   modifiedAt: number
 }>
 
-/** Filesystem-like storage owned by one Program. */
-export interface ProgramArea {
+/** Filesystem operations confined to one configured directory. */
+export interface Storage {
   /** Reads one file as bytes. */
   bytes(...path: string[]): Promise<Uint8Array>
 
@@ -57,8 +57,8 @@ export interface ProgramArea {
   /** Recursively removes an entry. A missing entry is accepted. */
   delete(...path: string[]): Promise<void>
 
-  /** Removes every entry while preserving the area itself. */
-  clear(): Promise<void>
+  /** Removes every entry below one directory while preserving that directory. */
+  clear(...path: string[]): Promise<void>
 }
 
 /** Persistent key-value storage owned by one Program. */

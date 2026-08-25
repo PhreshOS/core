@@ -71,8 +71,8 @@ export {
   type EntryStat,
   type FileStat,
   type OtherStat,
-  type ProgramArea,
-  type ProgramStore
+  type ProgramStore,
+  type Storage
 } from "./storage.js"
 export { type LogKind, type LogRecord, type LogSource, type ProgramSql } from "./sql.js"
 

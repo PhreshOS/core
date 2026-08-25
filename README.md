@@ -380,8 +380,11 @@ authored, the system returns its default through the same operation.
 
 Every Program exposes the same storage contracts in both environments:
 filesystem-like `data` and `cache`, a key-value `store`, read-only SQL `logs`,
-and a writable SQLite `database`. The Server SDK refines its filesystem areas
-with `path()` and safe `resolve()` access; these host filesystem paths are
+and a writable SQLite `database`. Both filesystem properties implement the
+general `Storage` contract. Every operation remains inside its configured
+directory; `clear()` empties that directory, while `clear(...path)` empties and
+preserves one contained directory. The Server SDK refines `Storage` with
+`path()` and safe `resolve()` access; these host filesystem paths are
 structurally absent from the Client SDK.
 
 ## License

@@ -1,7 +1,7 @@
 import type { Launch, Layer, Position, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
 import type { ProgramSql } from "./sql.js"
-import type { ProgramArea, ProgramStore } from "./storage.js"
+import type { ProgramStore, Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 
 /** Standard rendered sizes available for every Program icon. */
@@ -126,10 +126,10 @@ export interface Program<Events extends object = {}> extends Subscribable<Progra
   readonly client: ClientDeclaration | null
 
   /** Persistent filesystem data shared by every Process of this Program. */
-  readonly data: ProgramArea
+  readonly data: Storage
 
   /** Disposable filesystem data shared by every Process of this Program. */
-  readonly cache: ProgramArea
+  readonly cache: Storage
 
   /** Persistent key-value storage shared by every Process of this Program. */
   readonly store: ProgramStore
