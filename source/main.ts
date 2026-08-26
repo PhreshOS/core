@@ -117,7 +117,7 @@ export {
 export {
   type LocalWindow,
   type LocalWindowSurface,
-  type SurfaceSettings
+  type VisibilityTransition
 } from "./local-window.js"
 export { type Easing, type Transaction } from "./transaction.js"
 export { layers, type Launch, type LaunchClient, type Layer, type Position, type Size } from "./launch.js"

@@ -1,24 +1,17 @@
 import type { Position, Size } from "./launch.js"
-import type { ScaleLevel } from "./scale.js"
 import type { Transaction } from "./transaction.js"
 import type { WindowGeometry, WindowLayer } from "./window.js"
 
-/** A host Surface belonging only to one live Client representation. */
-export type SurfaceSettings = Readonly<{
-  /** Whole-Surface opacity from zero through one. Omission means one. */
-  opacity?: number
-
-  /** A Theme level, CSS pixels, or maximum proportional rounding. */
-  radius?: ScaleLevel | number | "full"
-}>
+/** Timing applied while a local representation becomes visible or disappears. */
+export type VisibilityTransition = Transaction
 
 /** Local Surface commands for one Client Window representation. */
 export interface LocalWindowSurface {
-  /** Creates or replaces the Surface, optionally as a visual transaction. */
-  set(settings?: SurfaceSettings, transaction?: Transaction): Promise<void>
+  /** Makes the host Surface visible using the requested transition. */
+  set(transition: VisibilityTransition): Promise<void>
 
-  /** Removes the Surface immediately. */
-  remove(): Promise<void>
+  /** Removes the host Surface using the requested transition. */
+  remove(transition: VisibilityTransition): Promise<void>
 }
 
 /**

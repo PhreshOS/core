@@ -68,7 +68,7 @@ assert.equal(standardTheme.background, "#fffff5")
 
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { defineConfig, type Config, type LocalWindow, type Program, type SurfaceSettings, type Transaction, type Window, type WindowGeometry } from "@phreshos/core"
+    `import { defineConfig, type Config, type LocalWindow, type Program, type Transaction, type VisibilityTransition, type Window, type WindowGeometry } from "@phreshos/core"
 
 const config: Config = defineConfig({
   identity: "package-consumer",
@@ -78,8 +78,8 @@ const config: Config = defineConfig({
 declare const program: Program
 type WindowHasSurface = "surface" extends keyof Window ? true : false
 const windowHasSurface: WindowHasSurface = false
-const surface: SurfaceSettings = { opacity: 0.5, radius: "large" }
 const transaction: Transaction = { duration: 180, wait: true }
+const visibility: VisibilityTransition = { duration: 180, wait: true }
 declare const localWindow: LocalWindow
 const geometry: WindowGeometry = {
   position: { x: "0/1", y: "0/1" },
@@ -89,9 +89,9 @@ declare const window: Window
 const setGeometry: Promise<void> = window.setGeometry(geometry)
 void config
 void program.identity
-void surface
 void transaction
-void localWindow.surface.set(surface, transaction)
+void localWindow.surface.set(visibility)
+void localWindow.surface.remove(visibility)
 void setGeometry
 void windowHasSurface
 `
