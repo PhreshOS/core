@@ -56,12 +56,12 @@ try {
   writeFileSync(
     join(consumer, "runtime.mjs"),
     `import assert from "node:assert/strict"
-import { Client, Endpoint, Server, permissionNames, standardTheme } from "@phreshos/core"
+import { Client, Endpoint, Server, permissionNames, standardAppearance } from "@phreshos/core"
 
 assert(Client.prototype instanceof Endpoint)
 assert(Server.prototype instanceof Endpoint)
 assert.deepEqual(permissionNames, ["pointer"])
-assert.equal(standardTheme.background, "#fffff5")
+assert.equal(standardAppearance.background.light, "#fffff5")
 `
   )
   execFileSync(process.execPath, [join(consumer, "runtime.mjs")], { stdio: "inherit" })

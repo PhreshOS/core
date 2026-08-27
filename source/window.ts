@@ -2,7 +2,7 @@ import type { Layer, Position, Size } from "./launch.js"
 import type { Subscribable } from "./subscribable.js"
 
 /** The authoritative runtime layer occupied by a Window. */
-export type WindowLayer = Layer | "wallpaper"
+export type WindowLayer = Layer
 
 /** Position and size committed as one authoritative Window change. */
 export type WindowGeometry = Readonly<{

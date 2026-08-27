@@ -39,24 +39,30 @@ export {
 } from "./permissions.js"
 export { type Outcome } from "./outcome.js"
 export { type ServedFile } from "./served-file.js"
-export { type DesktopWallpaper, type FileWallpaper, type WallpaperLaunch } from "./wallpaper.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
 export {
-  createThemeSnapshot,
-  standardTheme,
-  themeLimits,
+  type SystemTheme,
+  type Theme,
+  type ThemeEvents,
+  type ThemePreference,
   type Colorable,
   type Elevatable,
   type Shapeable,
   type Sizable,
-  type Theme,
-  type ThemeEvents,
-  type ThemeProperties,
-  type ThemeRange,
-  type ThemeSurface,
-  type Variantable,
-  type WritableTheme
+  type Variantable
 } from "./theme.js"
+export {
+  appearanceLimits,
+  createAppearanceSnapshot,
+  standardAppearance,
+  type Appearance,
+  type AppearanceEvents,
+  type AppearanceRange,
+  type AppearanceSource,
+  type AppearanceSurface,
+  type ThemedValue,
+  type WritableAppearance,
+} from "./appearance.js"
 export {
   type DirectoryStat,
   type EntryStat,

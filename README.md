@@ -51,54 +51,35 @@ The current registry contains `pointer`. Persistent snapshots use
 `PermissionDecisions`, a partial map, since an absent permission simply has no
 stored decision.
 
-## Theme lifecycle
+## Appearance and Theme
 
-Core defines both `ThemeProperties` and the read-only `Theme` contract without
-any knowledge of how a given interface renders them. `snapshot()` is an
-explicit, asynchronous read of one complete, immutable value. `Theme` extends
-the ordinary `Subscribable` capability with a `change` event; it has no
-dedicated subscription shape of its own.
+`Appearance` is the complete unresolved visual state owned by the System.
+Every property is a `ThemedValue`: shared properties contain only `light`, while
+properties that support an independent dark value contain required `light` and
+`dark` branches of the same value type. Core's concrete `Appearance` contract
+therefore decides where a dark branch is legal; `undefined` is never state.
 
-Theme properties are expressed as concrete values. `themeLimits` declares the
-contractual customization bounds for spacing, corner radius, and Surface
-properties; implementing authorities validate replacements against those
-bounds. Core exposes no presentation levels or derived color treatments.
-`standardTheme` is the canonical reusable default value for that contract,
-shared by systems, interfaces, websites, and Programs that need the same
-baseline. It is not an authoritative environment's mutable Theme state.
-Background, foreground, and accent remain independent CSS color sources.
-Surface derives its color from background and adds static grain intensity,
-optional backdrop blur, and material opacity; its standard backdrop is zero,
-so blur is opt-in.
+`standardAppearance` is the complete reusable default and
+`appearanceLimits` contains the accepted numeric bounds. The authoritative
+System validates and persists these values. SDKs carry the complete contract
+without maintaining shadow schemas. `AppearanceSource` exposes explicit
+snapshots and live-only `change` events; `WritableAppearance` adds replacement
+authority for Server environments.
 
-`createThemeSnapshot()` copies and freezes one complete value at the contract
-boundary. An implementing authority remains responsible for validation,
-persistence, and the current value; its own schema may derive its defaults from
-`standardTheme` rather than duplicating them. Its standard background is
-`#fffff5`; both grain intensity and grain amount default to zero. Surface also
-stores material opacity, optional backdrop blur and three
-displacement stages, plus neutral saturation and brightness. Effects whose
-neutral value avoids rendering work remain neutral by default.
-
-Derived variants are calculations, not persisted `Theme` state. React UI owns
-that interpretation; Core and the System know only the complete concrete Theme
-value.
-
-`subscribe("change", listener)` delivers only complete replacements published
-after that registration exists. It never supplies an initial snapshot and
-never replays a change published earlier; Programs request the current
-snapshot explicitly when they need one. `WritableTheme` adds asynchronous
-authority to replace the value. A read-only environment exposes `Theme`, while
-an authorized environment may expose `WritableTheme` without altering the
-shared lifecycle.
+`Theme` is deliberately smaller: it is the effective `"light" | "dark"` mode
+of one Desktop. A `SystemTheme` reads and observes only that effective value,
+while `update()` also accepts `"default"` to resume following the native
+environment. Appearance remains unresolved until a consumer has a Theme and
+needs one particular value. React UI owns that resolution and any semantic
+levels derived from concrete Appearance values.
 
 `Colorable`, `Sizable`, `Shapeable`, `Variantable`, and `Elevatable` are
 independent element capabilities whose concrete value vocabularies are defined
 separately. An element composes only the capabilities it actually supports.
 
 These contracts contain no React types, component names, presentation levels,
-or runtime `Theme` authority. Environment and interface SDKs build those
-concerns on top of the same neutral Theme lifecycle.
+or mutable implementation. Environment and interface SDKs implement the
+neutral Appearance and Theme contracts in their own domains.
 
 ## Messaging primitives
 
@@ -217,13 +198,9 @@ uninstallation.
 
 ## Window placement
 
-Window placement is expressed through two deliberately separate contracts.
-Authoring `Layer` contains only `under`, `window`, and `over`, so that
-Program declarations and Client launch overrides cannot request system-owned
-placement. Runtime `WindowLayer` adds `wallpaper`, allowing `window.layer()`
-to report the truth for a wallpaper Window without making that layer
-constructible from Program code. `Window` has no identity or lifecycle apart
-from its Client; its stable capability addresses the Client's current, live
+Window placement uses `under`, `window`, and `over` everywhere. Wallpaper is
+Desktop appearance, not a Program Window layer. `Window` has no identity or
+lifecycle apart from its Client; its stable capability addresses the Client's current, live
 presentation state and rejects reads or mutations while that Client is
 absent.
 
@@ -233,13 +210,6 @@ Client is announced, so the first rendered Window already has its final title.
 Omission uses the Program declaration; `window.changeTitle()` remains the live
 operation after startup. Window operations are never queued while the Client
 is absent.
-
-Core also defines the independent, environment-neutral `FileWallpaper` and
-`DesktopWallpaper` contracts. The desktop variant additionally accepts a
-Program and the deliberately narrow `WallpaperLaunch`, containing only `name`,
-`server`, the Client's initial `location`, and immutable Process `options`.
-These contracts describe capability and data shape only — they contain no
-persistence, upload, Process creation, or rendering implementation.
 
 ## Local representation
 
