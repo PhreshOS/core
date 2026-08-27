@@ -62,14 +62,14 @@ dedicated subscription shape of its own.
 Theme properties are expressed as concrete values. `themeLimits` declares the
 contractual customization bounds for spacing, corner radius, and Surface
 properties; implementing authorities validate replacements against those
-bounds. Core defines one fixed numeric scale around any explicit number and one
-fixed color scale around any explicit CSS color. `standardTheme` is the
-canonical reusable default value for that contract, shared by systems,
-interfaces, websites, and Programs that need the same baseline. It is not an
-authoritative environment's mutable Theme state. Background, foreground, and
-accent remain independent CSS color sources. Surface derives its color from
-background and adds static grain intensity, optional backdrop blur,
-and material opacity; its standard backdrop is zero, so blur is opt-in.
+bounds. Core exposes no presentation levels or derived color treatments.
+`standardTheme` is the canonical reusable default value for that contract,
+shared by systems, interfaces, websites, and Programs that need the same
+baseline. It is not an authoritative environment's mutable Theme state.
+Background, foreground, and accent remain independent CSS color sources.
+Surface derives its color from background and adds static grain intensity,
+optional backdrop blur, and material opacity; its standard backdrop is zero,
+so blur is opt-in.
 
 `createThemeSnapshot()` copies and freezes one complete value at the contract
 boundary. An implementing authority remains responsible for validation,
@@ -80,10 +80,9 @@ stores material opacity, optional backdrop blur and three
 displacement stages, plus neutral saturation and brightness. Effects whose
 neutral value avoids rendering work remain neutral by default.
 
-Derived variants are calculations, not persisted `Theme` state. `numericScale()`
-produces `xsmall`, `small`, `medium`, `large`, and `xlarge`, preserving the
-supplied value exactly at `medium`. `color()` produces `subtle`, `soft`, `base`,
-`strong`, and `intense`, preserving the supplied color exactly at `base`.
+Derived variants are calculations, not persisted `Theme` state. React UI owns
+that interpretation; Core and the System know only the complete concrete Theme
+value.
 
 `subscribe("change", listener)` delivers only complete replacements published
 after that registration exists. It never supplies an initial snapshot and
@@ -97,9 +96,9 @@ shared lifecycle.
 independent element capabilities whose concrete value vocabularies are defined
 separately. An element composes only the capabilities it actually supports.
 
-These contracts contain no React types, component names, or runtime `Theme`
-authority. Environment and interface SDKs build those concerns on top of the
-same neutral lifecycle and derivations.
+These contracts contain no React types, component names, presentation levels,
+or runtime `Theme` authority. Environment and interface SDKs build those
+concerns on top of the same neutral Theme lifecycle.
 
 ## Messaging primitives
 

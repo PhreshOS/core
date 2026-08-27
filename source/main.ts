@@ -41,15 +41,6 @@ export { type Outcome } from "./outcome.js"
 export { type ServedFile } from "./served-file.js"
 export { type DesktopWallpaper, type FileWallpaper, type WallpaperLaunch } from "./wallpaper.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
-export { color, type ColorLevel, type ColorScale } from "./color.js"
-export {
-  isScaleLevel,
-  numericScale,
-  scale,
-  scaleMultiplier,
-  type NumericScale,
-  type ScaleLevel
-} from "./scale.js"
 export {
   createThemeSnapshot,
   standardTheme,

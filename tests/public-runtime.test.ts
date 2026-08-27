@@ -12,7 +12,6 @@ import {
   defineConfig,
   isPermissionName,
   isRelativeValue,
-  isScaleLevel,
   isServiceKey,
   layers,
   parseRelativeValue
@@ -54,8 +53,6 @@ describe("public runtime", function () {
     expect(layers).toEqual(["window", "under", "over"])
     expect(isPermissionName("pointer")).toBe(true)
     expect(isPermissionName("pointerMove")).toBe(false)
-    expect(isScaleLevel("medium")).toBe(true)
-    expect(isScaleLevel("full")).toBe(false)
   })
 
   it("returns the exact authored Program description", function () {
