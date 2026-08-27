@@ -18,7 +18,7 @@ export type WallpaperLaunch = Readonly<{
 
 /** File-backed wallpaper assigned to one system surface. */
 export interface FileWallpaper {
-  /** Selects one file previously created through `host.serve()`. */
+  /** Selects one file previously created through `system.serve()`. */
   set(file: string): Promise<void>
 
   /** Removes the customization so the bundled wallpaper is used. */
