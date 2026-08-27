@@ -10,7 +10,6 @@ describe("Theme colors", function () {
     expect(standardTheme.surface).toEqual({
       grain: 0,
       grainAmount: 0,
-      grainAnimation: 0,
       backdrop: 0,
       opacity: 1,
       distortion: 0,
@@ -41,7 +40,6 @@ describe("Theme colors", function () {
     expect(themeLimits.surface).toEqual({
       grain: { minimum: 0, maximum: 1 },
       grainAmount: { minimum: 0, maximum: 1 },
-      grainAnimation: { minimum: 0, maximum: 16 },
       backdrop: { minimum: 0, maximum: 24 },
       opacity: { minimum: 0, maximum: 1 },
       distortion: { minimum: 0, maximum: 140 },

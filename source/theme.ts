@@ -17,9 +17,6 @@ export type ThemeSurface = Readonly<{
   /** Fraction of deterministic grain cells retained from zero to one. */
   grainAmount: number
 
-  /** Grain texture changes per second. */
-  grainAnimation: number
-
   /** Optional backdrop blur in CSS pixels. */
   backdrop: number
 
@@ -70,7 +67,6 @@ export const themeLimits = Object.freeze({
   surface: Object.freeze({
     grain: Object.freeze({ minimum: 0, maximum: 1 }),
     grainAmount: Object.freeze({ minimum: 0, maximum: 1 }),
-    grainAnimation: Object.freeze({ minimum: 0, maximum: 16 }),
     backdrop: Object.freeze({ minimum: 0, maximum: 24 }),
     opacity: Object.freeze({ minimum: 0, maximum: 1 }),
     distortion: Object.freeze({ minimum: 0, maximum: 140 }),
@@ -95,7 +91,6 @@ export const standardTheme = createThemeSnapshot({
   surface: {
     grain: 0,
     grainAmount: 0,
-    grainAnimation: 0,
     backdrop: 0,
     opacity: 1,
     distortion: 0,

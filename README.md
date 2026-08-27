@@ -68,7 +68,7 @@ canonical reusable default value for that contract, shared by systems,
 interfaces, websites, and Programs that need the same baseline. It is not an
 authoritative environment's mutable Theme state. Background, foreground, and
 accent remain independent CSS color sources. Surface derives its color from
-background and adds grain intensity, grain animation rate, optional backdrop blur,
+background and adds static grain intensity, optional backdrop blur,
 and material opacity; its standard backdrop is zero, so blur is opt-in.
 
 `createThemeSnapshot()` copies and freezes one complete value at the contract
@@ -76,7 +76,7 @@ boundary. An implementing authority remains responsible for validation,
 persistence, and the current value; its own schema may derive its defaults from
 `standardTheme` rather than duplicating them. Its standard background is
 `#fffff5`; both grain intensity and grain amount default to zero. Surface also
-stores grain animation, material opacity, optional backdrop blur and three
+stores material opacity, optional backdrop blur and three
 displacement stages, plus neutral saturation and brightness. Effects whose
 neutral value avoids rendering work remain neutral by default.
 
