@@ -165,7 +165,16 @@ const object = (
   properties: Readonly<Record<string, SystemControlSchema>>,
   required: readonly string[] = []
 ): SystemControlSchema => schema({ type: "object", properties, required, additionalProperties: false })
-const any: SystemControlSchema = schema({})
+const any: SystemControlSchema = schema({
+  oneOf: [
+    { type: "object" },
+    { type: "array", items: {} },
+    { type: "string" },
+    { type: "number" },
+    { type: "boolean" },
+    { type: "null" }
+  ]
+})
 
 const program = text("Program identity.")
 const process = text("Runtime Process identity, or Program-local Process name when program is supplied.")

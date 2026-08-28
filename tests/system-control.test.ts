@@ -32,6 +32,18 @@ describe("System control", function () {
 
     expect(request.action).toBe("move")
     expectTypeOf<SystemControlClient["execute"]>().toBeFunction()
+
+    const endpoint = systemControlToolSchema("endpoint")
+    const ask = endpoint.oneOf?.find(branch => branch.properties?.action?.const === "ask")
+
+    expect(ask?.properties?.payload?.oneOf?.map(branch => branch.type)).toEqual([
+      "object",
+      "array",
+      "string",
+      "number",
+      "boolean",
+      "null"
+    ])
   })
 
   it("keeps entity-scoped wait constraints in the shared contract", function () {
