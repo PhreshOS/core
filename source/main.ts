@@ -154,5 +154,6 @@ export {
   type ClientDevelopment,
   type Config,
   type ServerConfig,
+  type ServerExecution,
   type ServerDevelopment
 } from "./config.js"

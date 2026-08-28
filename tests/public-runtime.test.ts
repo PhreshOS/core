@@ -66,6 +66,24 @@ describe("public runtime", function () {
     expect(config.agent).toBe("./agent-guide.md")
   })
 
+  it("requires exactly one Server execution declaration", function () {
+    const worker = defineConfig({
+      identity: "worker-contract",
+      server: { location: "./server", entryFile: "main.js" }
+    })
+
+    expect(worker.server?.entryFile).toBe("main.js")
+
+    // @ts-expect-error A Server cannot declare two execution modes.
+    const both = defineConfig({ identity: "both-contract", server: { location: "./server", startCommand: "node main.js", entryFile: "main.js" } })
+
+    // @ts-expect-error A Server must declare one execution mode.
+    const neither = defineConfig({ identity: "neither-contract", server: { location: "./server" } })
+
+    void both
+    void neither
+  })
+
   it("recognizes only complete public service keys", function () {
     expect(isServiceKey({ program: "counter", endpoint: "server", name: "state" })).toBe(true)
     expect(isServiceKey({ program: "counter", endpoint: "process", name: "state" })).toBe(false)

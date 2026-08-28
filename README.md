@@ -321,7 +321,15 @@ export default defineConfig({
 
 The declaration must include a Server, a Client, or both. Development
 settings remain authoring metadata; the CLI derives the appropriate runtime
-description for each mode. The optional `icon` field names a single PNG
+description for each mode. A Server selects exactly one execution mode:
+`startCommand` starts an isolated operating-system process tree, while
+`entryFile` loads a JavaScript module as a Worker owned by the System. The
+same exclusive choice applies to `server.development`, which may deliberately
+select a different mode from production. Worker modules resolve their own
+resources through module URLs or SDK storage; they do not receive an
+independent process working directory and are not a security boundary.
+
+The optional `icon` field names a single PNG
 source — packaging and installation normalize it to `icon.png`, while hosting
 derives the system's fixed presentation sizes.
 

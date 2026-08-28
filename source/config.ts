@@ -1,10 +1,20 @@
 import type { Layer, Position, Size } from "./launch.js"
 
+/** One explicit way to execute a Program's Server. */
+export type ServerExecution =
+  | Readonly<{
+    /** Shell command that starts an isolated operating-system process. */
+    startCommand: string
+    entryFile?: never
+  }>
+  | Readonly<{
+    startCommand?: never
+    /** JavaScript module loaded as a worker owned by the System. */
+    entryFile: string
+  }>
+
 /** Development settings for a Program's Server. */
-export type ServerDevelopment = Readonly<{
-  /** Command that starts the development Server from the project directory. */
-  startCommand: string
-}>
+export type ServerDevelopment = ServerExecution
 
 /** Development settings for a Program's Client. */
 export type ClientDevelopment = Readonly<{
@@ -29,12 +39,9 @@ export type ServerConfig = Readonly<{
   /** Optional cleanup command run from {@link location} while uninstalling. */
   uninstallCommand?: string
 
-  /** Command that starts the production Server from {@link location}. */
-  startCommand: string
-
   /** Settings used only by the development command. */
   development?: ServerDevelopment
-}>
+}> & ServerExecution
 
 /** Authoring declaration for a Program's Client and initial Window. */
 export type ClientConfig = Readonly<{
