@@ -6,12 +6,26 @@ export type Theme = "light" | "dark"
 /** A direct mode or a request to follow the native environment. */
 export type ThemePreference = Theme | "default"
 
-export type ThemeEvents = { change: Theme }
+/** A direct animation decision or a request to follow the native environment. */
+export type AnimationsPreference = boolean | "default"
 
-/** Mutable Desktop Theme. Reads and events expose only the effective mode. */
-export interface SystemTheme extends Subscribable<ThemeEvents, never> {
-  readonly snapshot: () => Promise<Theme>
-  readonly update: (theme: ThemePreference) => Promise<void>
+/** Complete effective preferences of one Desktop representation. */
+export type DesktopPreferences = Readonly<{
+  theme: Theme
+  animations: boolean
+}>
+
+/** At least one raw preference to replace on the current Desktop. */
+export type DesktopPreferencesUpdate =
+  | Readonly<{ theme: ThemePreference, animations?: AnimationsPreference }>
+  | Readonly<{ theme?: ThemePreference, animations: AnimationsPreference }>
+
+export type DesktopPreferencesEvents = { change: DesktopPreferences }
+
+/** Mutable preferences local to one Desktop. Reads expose only effective values. */
+export interface SystemDesktopPreferences extends Subscribable<DesktopPreferencesEvents, never> {
+  readonly snapshot: () => Promise<DesktopPreferences>
+  readonly update: (preferences: DesktopPreferencesUpdate) => Promise<void>
 }
 
 /** An element whose semantic color may be selected. */

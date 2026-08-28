@@ -59,7 +59,7 @@ The current registry contains `pointer`. Persistent snapshots use
 `PermissionDecisions`, a partial map, since an absent permission simply has no
 stored decision.
 
-## Appearance and Theme
+## Appearance and Desktop preferences
 
 `Appearance` is the complete unresolved visual state owned by the System.
 Every property is a `ThemedValue`: shared properties contain only `light`, while
@@ -74,12 +74,12 @@ without maintaining shadow schemas. `AppearanceSource` exposes explicit
 snapshots and live-only `change` events; `WritableAppearance` adds replacement
 authority for Server environments.
 
-`Theme` is deliberately smaller: it is the effective `"light" | "dark"` mode
-of one Desktop. A `SystemTheme` reads and observes only that effective value,
-while `update()` also accepts `"default"` to resume following the native
-environment. Appearance remains unresolved until a consumer has a Theme and
-needs one particular value. React UI owns that resolution and any semantic
-levels derived from concrete Appearance values.
+`DesktopPreferences` is local to one Desktop. Its snapshot always contains the
+effective `theme` and `animations` values. Updates may use `"default"` to
+resume following the native environment. Appearance remains unresolved until
+a consumer has the effective Theme and needs one particular value. React UI
+owns that resolution and any semantic levels derived from concrete Appearance
+values.
 
 `Colorable`, `Sizable`, `Shapeable`, `Variantable`, and `Elevatable` are
 independent element capabilities whose concrete value vocabularies are defined
@@ -87,7 +87,7 @@ separately. An element composes only the capabilities it actually supports.
 
 These contracts contain no React types, component names, presentation levels,
 or mutable implementation. Environment and interface SDKs implement the
-neutral Appearance and Theme contracts in their own domains.
+neutral Appearance and Desktop-preferences contracts in their own domains.
 
 ## Messaging primitives
 

@@ -41,9 +41,12 @@ export { type Outcome } from "./outcome.js"
 export { isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
 export {
-  type SystemTheme,
+  type AnimationsPreference,
+  type DesktopPreferences,
+  type DesktopPreferencesEvents,
+  type DesktopPreferencesUpdate,
+  type SystemDesktopPreferences,
   type Theme,
-  type ThemeEvents,
   type ThemePreference,
   type Colorable,
   type Elevatable,
