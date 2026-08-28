@@ -149,7 +149,9 @@ emitted by it. `Server` additionally composes `Askable`.
 
 The contextual `Channel` is the executing Endpoint's inward boundary.
 Subscriptions receive events explicitly addressed to it, delivered as a
-`ChannelMessage` containing the otherwise unknown sender. `channel.publish()`
+`ChannelMessage` containing the sender as `Endpoint | null`. `null` means the
+request came from a trusted boundary outside Program Endpoints, such as the
+owner-local System gateway; no fake Endpoint is invented. `channel.publish()`
 emits outward from that executing Endpoint without naming a destination.
 
 Directed inspection remains deliberately separate, exposed as

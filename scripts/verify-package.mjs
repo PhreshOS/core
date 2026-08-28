@@ -68,7 +68,7 @@ assert.equal(standardAppearance.background.light, "#fffff5")
 
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { defineConfig, type Config, type LocalWindow, type Program, type Transaction, type VisibilityTransition, type Window, type WindowGeometry } from "@phreshos/core"
+    `import { defineConfig, type ChannelMessage, type Config, type LocalWindow, type Program, type Transaction, type VisibilityTransition, type Window, type WindowGeometry } from "@phreshos/core"
 
 const config: Config = defineConfig({
   identity: "package-consumer",
@@ -87,12 +87,14 @@ const geometry: WindowGeometry = {
 }
 declare const window: Window
 const setGeometry: Promise<void> = window.setGeometry(geometry)
+const outside: ChannelMessage<string> = { from: null, payload: "owner-local" }
 void config
 void program.identity
 void transaction
 void localWindow.surface.set(visibility)
 void localWindow.surface.remove(visibility)
 void setGeometry
+void outside
 void windowHasSurface
 `
   )
