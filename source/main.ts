@@ -71,6 +71,27 @@ export {
   type ProgramStore,
   type Storage
 } from "./storage.js"
+export {
+  type ClientDescription,
+  type ProgramDescription,
+  type ServerDescription,
+  type System,
+  type SystemProcess,
+  type SystemProcessEntity,
+  type SystemProcessEntityEvents,
+  type SystemProcessEvents,
+  type SystemProcessExit,
+  type SystemProgram,
+  type SystemProgramEntity,
+  type SystemProgramProcess,
+  type SystemProgramProcessEvents,
+  type SystemEndpointEntity,
+  type SystemServerEntity,
+  type SystemClientEntity,
+  type SystemWindowEvents,
+  type SystemProgramEvents,
+  type SystemProgramUninstall
+} from "./system.js"
 export { type LogKind, type LogRecord, type LogSource, type ProgramSql } from "./sql.js"
 
 export {
@@ -126,6 +147,7 @@ export {
   type EndpointAskInput,
   type EndpointInput,
   type EndpointPublishInput,
+  type EndpointStartInput,
   type EndpointWaitInput,
   type EndpointWaitReadyInput,
   type ProcessCreateInput,

@@ -1,4 +1,4 @@
-import type { Launch, Position, Size } from "./launch.js"
+import type { Launch, LaunchClient, Position, Size } from "./launch.js"
 
 export type SystemControlCapabilityName = "program" | "process" | "endpoint" | "window"
 export type SystemControlOperationMode = "read" | "write" | "request" | "wait"
@@ -16,7 +16,7 @@ export type SystemControlRequest =
   | Readonly<{ capability: "process", operation: "findOrCreate", input: ProcessFindOrCreateInput }>
   | Readonly<{ capability: "process", operation: "wait", input: ProcessWaitInput }>
   | Readonly<{ capability: "endpoint", operation: "inspect", input: EndpointInput }>
-  | Readonly<{ capability: "endpoint", operation: "start", input: EndpointInput }>
+  | Readonly<{ capability: "endpoint", operation: "start", input: EndpointStartInput }>
   | Readonly<{ capability: "endpoint", operation: "stop", input: EndpointInput }>
   | Readonly<{ capability: "endpoint", operation: "waitReady", input: EndpointWaitReadyInput }>
   | Readonly<{ capability: "endpoint", operation: "ask", input: EndpointAskInput }>
@@ -35,6 +35,7 @@ export interface ProgramListInput {
   installedOnly?: boolean
   search?: string
   limit?: number
+  offset?: number
 }
 
 export interface ProgramInput { program: string }
@@ -49,6 +50,7 @@ export interface ProcessListInput {
   program?: string
   search?: string
   limit?: number
+  offset?: number
 }
 
 export interface ProcessInput {
@@ -75,6 +77,10 @@ export interface ProcessWaitInput {
 
 export interface EndpointInput extends ProcessInput {
   endpoint: SystemControlEndpoint
+}
+
+export interface EndpointStartInput extends EndpointInput {
+  client?: LaunchClient
 }
 
 export interface EndpointWaitReadyInput extends ProcessInput {
@@ -184,6 +190,7 @@ const server = schema({ type: "string", const: "server", description: "The Serve
 const event = text("Event name.")
 const search = text("Case-insensitive search text.")
 const limit = integer("Maximum returned items. Defaults to 30 and never exceeds 100.", 1, 100)
+const offset = integer("Number of matching items to skip. Defaults to 0.", 0)
 const value: SystemControlSchema = schema({
   oneOf: [{ type: "number" }, { type: "string", minLength: 1 }],
   description: "Absolute pixels as a number, or a workspace-relative expression such as 50% or 1/2."
@@ -291,7 +298,7 @@ export const systemControl = Object.freeze({
     ]),
     operations: Object.freeze({
       list: operation("read", "List Programs with bounded filtering.", object({
-        installedOnly: boolean("Return only installed Programs.", true), search, limit
+        installedOnly: boolean("Return only installed Programs.", true), search, limit, offset
       }), page(programSummary), [{}]),
       inspect: operation("read", "Read one Program declaration and installed state.", object({ program }, ["program"]), programSummary, [{ program: "theme" }]),
       agent: operation("read", "Read the Program's own agent operating policy. Fails when none is declared.", object({ program }, ["program"]), object({ program: { type: "string" }, content: { type: "string" } }), [{ program: "flambo" }]),
@@ -309,7 +316,7 @@ export const systemControl = Object.freeze({
       "findOrCreate requires a stable name. An existing Process with a different resolved launch is an error and is never silently reshaped."
     ]),
     operations: Object.freeze({
-      list: operation("read", "List live Processes with bounded filtering.", object({ program, search, limit }), page(processSummary), [{}]),
+      list: operation("read", "List live Processes with bounded filtering.", object({ program, search, limit, offset }), page(processSummary), [{}]),
       inspect: operation("read", "Read one live Process and its Endpoint state.", object(processCoordinates, ["process"]), processSummary, [{ process: "process-identity" }]),
       create: operation("write", "Create a Process. Omitted Endpoint selections inherit Program defaults.", object({ program, launch }, ["program"]), processSummary, [{ program: "theme" }]),
       findOrCreate: operation("write", "Atomically find the named Process or create it with the same resolved launch.", object({ program, launch }, ["program", "launch"]), processSummary, [{ program: "lemo", launch: { name: "lemo", server: true, client: false } }]),
@@ -332,7 +339,7 @@ export const systemControl = Object.freeze({
     ]),
     operations: Object.freeze({
       inspect: operation("read", "Read whether one Endpoint is declared and running.", object(endpointCoordinates, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "server" }]),
-      start: operation("write", "Start a fresh Endpoint incarnation without implicitly changing the other Endpoint.", object(endpointCoordinates, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "client" }]),
+      start: operation("write", "Start a fresh Endpoint incarnation without implicitly changing the other Endpoint.", object({ ...endpointCoordinates, client: clientLaunch }, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "client" }]),
       stop: operation("write", "Stop one Endpoint. The final live Endpoint cannot be stopped; exit the Process instead.", object(endpointCoordinates, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "client" }]),
       waitReady: operation("wait", "Wait until the current or next Server incarnation reports readiness.", object({ ...processCoordinates, endpoint: server, timeout }, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "server", timeout: 30000 }]),
       ask: operation("request", "Ask a Server event and return its answer. Read Program agent documentation first for event and payload policy.", object({ ...processCoordinates, endpoint: server, event, payload: any, timeout }, ["process", "endpoint", "event"]), any, [{ process: "process-identity", endpoint: "server", event: "metrics" }]),
