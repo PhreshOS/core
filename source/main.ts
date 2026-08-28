@@ -38,7 +38,7 @@ export {
   type TimedPermission
 } from "./permissions.js"
 export { type Outcome } from "./outcome.js"
-export { type ServedFile } from "./served-file.js"
+export { isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
 export {
   type SystemTheme,

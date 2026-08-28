@@ -68,7 +68,7 @@ assert.equal(standardAppearance.background.light, "#fffff5")
 
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { defineConfig, type ChannelMessage, type Config, type LocalWindow, type Program, type Transaction, type VisibilityTransition, type Window, type WindowGeometry } from "@phreshos/core"
+    `import { defineConfig, isUploadFile, type ChannelMessage, type Config, type LocalWindow, type Program, type SystemUploads, type Transaction, type Upload, type VisibilityTransition, type Window, type WindowGeometry } from "@phreshos/core"
 
 const config: Config = defineConfig({
   identity: "package-consumer",
@@ -88,6 +88,10 @@ const geometry: WindowGeometry = {
 declare const window: Window
 const setGeometry: Promise<void> = window.setGeometry(geometry)
 const outside: ChannelMessage<string> = { from: null, payload: "owner-local" }
+declare const uploads: SystemUploads
+const written: Promise<Upload> = uploads.write("hello")
+const read: Promise<string> = uploads.text("00000000-0000-0000-0000-000000000000.txt")
+const uploadKey: boolean = isUploadFile("00000000-0000-0000-0000-000000000000.txt")
 void config
 void program.identity
 void transaction
@@ -95,6 +99,9 @@ void localWindow.surface.set(visibility)
 void localWindow.surface.remove(visibility)
 void setGeometry
 void outside
+void written
+void read
+void uploadKey
 void windowHasSurface
 `
   )

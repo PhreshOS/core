@@ -39,6 +39,14 @@ the Client and Server SDKs provide the real `Program`, `Process`, `Server`, and
 environments one vocabulary and stable runtime identity without implementing
 their transport, storage, authority, or presentation.
 
+## Uploads
+
+`SystemUploads` describes one flat, System-owned public upload collection.
+`write()` creates an opaque generated file key. `stream()`, `bytes()`,
+`text()`, `json()`, and `stat()` accept exactly that one key—never filesystem
+paths or path segments. The contract deliberately exposes no listing, deletion,
+or clearing operation.
+
 ## Permission names
 
 Core owns the finite, system-wide permission registry. `permissionNames` is
