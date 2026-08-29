@@ -53,9 +53,34 @@ export interface SystemProgramProcess extends Subscribable<SystemProgramProcessE
   last(): Promise<SystemProcessEntity | null>
   find(identityOrName: string): Promise<SystemProcessEntity | null>
   create(launch?: Launch): Promise<SystemProcessEntity>
+  run(launch?: Launch, options?: SystemProcessRunOptions): AsyncGenerator<SystemProcessRunEvent, void, void>
   findOrCreate(launch: Launch & Readonly<{ name: string }>): Promise<SystemProcessEntity>
   exitAll(): Promise<string[]>
 }
+
+/** Persistent Process launch used when the System starts. */
+export interface SystemProgramStartup {
+  /** Returns the configured launch, or `null` when startup is disabled. */
+  get(): Promise<Launch | null>
+
+  /** Enables startup with one validated Process launch. */
+  enable(launch?: Launch): Promise<void>
+
+  /** Disables startup without changing the Program or its Processes. */
+  disable(): Promise<void>
+}
+
+/** Cancellation controls for one Process whose lifetime belongs to its iterator. */
+export type SystemProcessRunOptions = Readonly<{
+  /** Exits the Process and aborts iteration with this signal's reason. */
+  signal?: AbortSignal
+}>
+
+/** Ordered lifecycle information produced by an attached Process run. */
+export type SystemProcessRunEvent =
+  | Readonly<{ event: "started", process: SystemProcessEntity }>
+  | (Readonly<{ event: "output" }> & ProgramCommandChunk)
+  | Readonly<{ event: "exited", process: SystemProcessEntity, exit: Exit }>
 
 export type SystemProgramProcessEvents = {
   endpointStart: SystemServerEntity | SystemClientEntity
@@ -74,6 +99,7 @@ export interface SystemProgramEntity extends Subscribable<ProgramEvents, never> 
   readonly server: EndpointDeclaration | null
   readonly client: ClientDeclaration | null
   readonly process: SystemProgramProcess
+  readonly startup: SystemProgramStartup
 
   agent(): Promise<string | null>
   installed(): Promise<boolean>
@@ -160,6 +186,15 @@ export interface System {
   readonly program: SystemProgram
   readonly process: SystemProcess
   readonly uploads: SystemUploads
+
+  /**
+   * Atomically claims a Program identity for a new uninstalled runtime entity.
+   *
+   * Any current runtime Program at the identity is forgotten first. Installed
+   * files and storage remain untouched; invalid incoming descriptions are
+   * rejected before the current entity is changed.
+   */
+  forceCreateProgram(source: ProgramDescription | string): Promise<SystemProgramEntity>
 
   service<Events extends object = {}>(key: ServiceKey & { endpoint: "server" }): ServerServiceHandler<Events>
   service<Events extends object = {}>(key: ServiceKey & { endpoint: "client" }): ClientServiceHandler<Events>

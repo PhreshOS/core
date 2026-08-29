@@ -47,6 +47,21 @@ their transport, storage, authority, or presentation.
 paths or path segments. The contract deliberately exposes no listing, deletion,
 or clearing operation.
 
+## System lifecycle
+
+The shared `System` contract separates runtime identity from authoring modes.
+`forceCreateProgram()` validates a concrete description, forgets any current
+runtime Program with that identity, and creates one new uninstalled Program
+without deleting installed files or storage. Development and production are
+composed by environment SDKs rather than encoded as System operations.
+
+`program.process.run(launch, { signal })` creates one Process whose lifetime is
+owned by its asynchronous iterator. It yields ordered `started`, `output`, and
+`exited` events; cancellation or early iterator return exits the Process.
+`program.process.create()` remains the independent alternative. A Client
+location may be a filesystem path or HTTP(S) URL at runtime; installation may
+reject a URL because there are no Client files to install.
+
 ## Permission names
 
 Core owns the finite, system-wide permission registry. `permissionNames` is
