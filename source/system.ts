@@ -4,7 +4,7 @@ import type { ClientDeclaration, EndpointDeclaration, ProgramCommandChunk, Progr
 import type { Layer, Launch, LaunchClient, Position, Size } from "./launch.js"
 import type { Exit } from "./process.js"
 import type { Publishable } from "./publishable.js"
-import type { ClientServiceHandler, ServerServiceHandler, ServiceHandler, ServiceKey } from "./service.js"
+import type { ClientService, ServerService, Service, ServiceKey } from "./service.js"
 import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
@@ -114,18 +114,18 @@ export interface SystemEndpointEntity<Events extends object = {}>
   exists(): Promise<boolean>
   start(): Promise<void>
   stop(): Promise<void>
-  service(): Promise<ServiceHandler | null>
+  service(): Promise<Service | null>
 }
 
 export interface SystemServerEntity<Events extends object = {}> extends SystemEndpointEntity<Events>, Askable {
   waitReady(timeout?: number): Promise<void>
-  service<ServiceEvents extends object = {}>(): Promise<ServerServiceHandler<ServiceEvents> | null>
+  service<ServiceEvents extends object = {}>(): Promise<ServerService<ServiceEvents> | null>
 }
 
 export interface SystemClientEntity<Events extends object = {}> extends SystemEndpointEntity<Events> {
   readonly window: Window
   start(overrides?: LaunchClient): Promise<void>
-  service<ServiceEvents extends object = {}>(): Promise<ClientServiceHandler<ServiceEvents> | null>
+  service<ServiceEvents extends object = {}>(): Promise<ClientService<ServiceEvents> | null>
 }
 
 export type SystemProcessEntityEvents = {
@@ -196,8 +196,8 @@ export interface System {
    */
   forceCreateProgram(source: ProgramDefinition | string): Promise<SystemProgramEntity>
 
-  service<Events extends object = {}>(key: ServiceKey & { endpoint: "server" }): ServerServiceHandler<Events>
-  service<Events extends object = {}>(key: ServiceKey & { endpoint: "client" }): ClientServiceHandler<Events>
+  service<Events extends object = {}>(key: ServiceKey & { endpoint: "server" }): ServerService<Events>
+  service<Events extends object = {}>(key: ServiceKey & { endpoint: "client" }): ClientService<Events>
 }
 
 // Keep Window's event vocabulary explicitly reachable from this contract.

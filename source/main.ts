@@ -17,9 +17,9 @@ export { type Publishable } from "./publishable.js"
 export { type Timeoutable } from "./timeout.js"
 export { type Askable, type TimedAskable } from "./askable.js"
 export {
-  ClientServiceHandler,
-  ServerServiceHandler,
-  ServiceHandler,
+  ClientService,
+  ServerService,
+  Service,
   isServiceKey,
   type ClientServiceChannel,
   type ServerServiceChannel,

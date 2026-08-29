@@ -1,14 +1,14 @@
 import { describe, expect, expectTypeOf, it } from "vitest"
 import {
   Client,
-  ClientServiceHandler,
+  ClientService,
   type Channel,
   type LocalWindow,
   type Transaction,
   Endpoint,
   Server,
-  ServerServiceHandler,
-  ServiceHandler,
+  ServerService,
+  Service,
   defineConfig,
   isPermissionName,
   isRelativeValue,
@@ -37,8 +37,8 @@ describe("public runtime", function () {
   it("preserves the domain class hierarchy", function () {
     expect(Client.prototype).toBeInstanceOf(Endpoint)
     expect(Server.prototype).toBeInstanceOf(Endpoint)
-    expect(ClientServiceHandler.prototype).toBeInstanceOf(ServiceHandler)
-    expect(ServerServiceHandler.prototype).toBeInstanceOf(ServiceHandler)
+    expect(ClientService.prototype).toBeInstanceOf(Service)
+    expect(ServerService.prototype).toBeInstanceOf(Service)
   })
 
   it("places service exposure on Channel and service identity on Endpoint", function () {

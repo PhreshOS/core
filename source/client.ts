@@ -2,7 +2,7 @@ import { Endpoint, type EndpointTraffic } from "./endpoint.js"
 import type { LaunchClient } from "./launch.js"
 import type { Server } from "./server.js"
 import type { Window } from "./window.js"
-import type { ClientServiceHandler } from "./service.js"
+import type { ClientService } from "./service.js"
 
 /** Directed communication originating from one Client. */
 export interface ClientTraffic<
@@ -29,6 +29,6 @@ export interface Client<Events extends object = {}> {
   start(overrides?: LaunchClient): Promise<void>
 
   /** Returns this Client's current complete service handle, or `null`. */
-  service<ServiceEvents extends object = {}>(): Promise<ClientServiceHandler<ServiceEvents> | null>
+  service<ServiceEvents extends object = {}>(): Promise<ClientService<ServiceEvents> | null>
 
 }

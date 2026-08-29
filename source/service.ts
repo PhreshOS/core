@@ -35,11 +35,11 @@ export interface ClientServiceChannel<Events extends object = {}>
   extends ServiceChannel<Events> {}
 
 /** Stable lifecycle handle for one exact public service identity. */
-export class ServiceHandler<Channel extends object = ServiceChannel> {
+export class Service<Channel extends object = ServiceChannel> {
   protected constructor() {}
 }
 
-export interface ServiceHandler<Channel extends object = ServiceChannel>
+export interface Service<Channel extends object = ServiceChannel>
   extends Subscribable<ServiceLifecycleEvents, never> {
   /** Program-authored service identity. */
   readonly name: string
@@ -55,26 +55,26 @@ export interface ServiceHandler<Channel extends object = ServiceChannel>
 }
 
 /** Stable handle for one Server-provided service. */
-export class ServerServiceHandler<Events extends object = {}>
-  extends ServiceHandler<ServerServiceChannel<Events>> {
+export class ServerService<Events extends object = {}>
+  extends Service<ServerServiceChannel<Events>> {
   protected constructor() {
     super()
   }
 }
 
-export interface ServerServiceHandler<Events extends object = {}> {
+export interface ServerService<Events extends object = {}> {
   readonly channel: ServerServiceChannel<Events>
 }
 
 /** Stable handle for one Client-provided service. */
-export class ClientServiceHandler<Events extends object = {}>
-  extends ServiceHandler<ClientServiceChannel<Events>> {
+export class ClientService<Events extends object = {}>
+  extends Service<ClientServiceChannel<Events>> {
   protected constructor() {
     super()
   }
 }
 
-export interface ClientServiceHandler<Events extends object = {}> {
+export interface ClientService<Events extends object = {}> {
   readonly channel: ClientServiceChannel<Events>
 }
 

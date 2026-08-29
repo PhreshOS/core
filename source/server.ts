@@ -2,7 +2,7 @@ import type { Askable } from "./askable.js"
 import { Endpoint, type EndpointTraffic } from "./endpoint.js"
 import type { Outcome } from "./outcome.js"
 import type { Cleanup } from "./subscribable.js"
-import type { ServerServiceHandler } from "./service.js"
+import type { ServerService } from "./service.js"
 
 /** One answer sent by this Server to the Endpoint that asked. */
 export type AnswerMessage<Result = unknown, To = Endpoint> = Readonly<{
@@ -58,6 +58,6 @@ export interface Server<Events extends object = {}> extends Askable {
   waitReady(timeout?: number): Promise<void>
 
   /** Returns this Server's current complete service handle, or `null`. */
-  service<ServiceEvents extends object = {}>(): Promise<ServerServiceHandler<ServiceEvents> | null>
+  service<ServiceEvents extends object = {}>(): Promise<ServerService<ServiceEvents> | null>
 
 }
