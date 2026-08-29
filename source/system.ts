@@ -179,7 +179,7 @@ export interface SystemProcess extends Subscribable<SystemProcessEvents, never> 
   find(identity: string): Promise<SystemProcessEntity | null>
 }
 
-/** Transport-neutral authoritative System contract shared by Server and Gateway adapters. */
+/** Transport-neutral authoritative System contract shared by environment adapters. */
 export interface System {
   readonly storage: Storage
   readonly appearance: WritableAppearance
