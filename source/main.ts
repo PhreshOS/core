@@ -75,9 +75,9 @@ export {
   type Storage
 } from "./storage.js"
 export {
-  type ClientDescription,
-  type ProgramDescription,
-  type ServerDescription,
+  type ClientDefinition,
+  type ProgramDefinition,
+  type ServerDefinition,
   type System,
   type SystemProcess,
   type SystemProcessEntity,

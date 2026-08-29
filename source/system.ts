@@ -10,19 +10,19 @@ import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { Window, WindowEvents } from "./window.js"
 
-type ServerDescriptionBase = Readonly<{
+type ServerDefinitionBase = Readonly<{
   location: string
   start?: boolean
   installCommand?: string
   uninstallCommand?: string
 }>
 
-export type ServerDescription = ServerDescriptionBase & (
+export type ServerDefinition = ServerDefinitionBase & (
   | Readonly<{ startCommand: string, entryFile?: never }>
   | Readonly<{ startCommand?: never, entryFile: string }>
 )
 
-export type ClientDescription = Readonly<{
+export type ClientDefinition = Readonly<{
   location: string
   start?: boolean
   title?: string
@@ -32,7 +32,7 @@ export type ClientDescription = Readonly<{
   minimize?: boolean
 }>
 
-type Description = Readonly<{
+type ProgramDefinitionBase = Readonly<{
   identity: string
   name?: string
   version?: string
@@ -42,9 +42,9 @@ type Description = Readonly<{
   storage: string
 }>
 
-export type ProgramDescription = Description & (
-  | Readonly<{ server: ServerDescription, client?: ClientDescription }>
-  | Readonly<{ server?: ServerDescription, client: ClientDescription }>
+export type ProgramDefinition = ProgramDefinitionBase & (
+  | Readonly<{ server: ServerDefinition, client?: ClientDefinition }>
+  | Readonly<{ server?: ServerDefinition, client: ClientDefinition }>
 )
 
 export interface SystemProgramProcess extends Subscribable<SystemProgramProcessEvents, never> {
@@ -171,7 +171,7 @@ export type SystemProcessEvents = {
 export interface SystemProgram extends Subscribable<SystemProgramEvents, never> {
   list(onlyInstalled?: boolean): Promise<SystemProgramEntity[]>
   find(identity: string): Promise<SystemProgramEntity | null>
-  create(source: ProgramDescription | string): Promise<SystemProgramEntity>
+  create(source: ProgramDefinition | string): Promise<SystemProgramEntity>
 }
 
 export interface SystemProcess extends Subscribable<SystemProcessEvents, never> {
@@ -191,10 +191,10 @@ export interface System {
    * Atomically claims a Program identity for a new uninstalled runtime entity.
    *
    * Any current runtime Program at the identity is forgotten first. Installed
-   * files and storage remain untouched; invalid incoming descriptions are
+   * files and storage remain untouched; invalid incoming definitions are
    * rejected before the current entity is changed.
    */
-  forceCreateProgram(source: ProgramDescription | string): Promise<SystemProgramEntity>
+  forceCreateProgram(source: ProgramDefinition | string): Promise<SystemProgramEntity>
 
   service<Events extends object = {}>(key: ServiceKey & { endpoint: "server" }): ServerServiceHandler<Events>
   service<Events extends object = {}>(key: ServiceKey & { endpoint: "client" }): ClientServiceHandler<Events>

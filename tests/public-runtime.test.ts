@@ -55,7 +55,7 @@ describe("public runtime", function () {
     expect(isPermissionName("pointerMove")).toBe(false)
   })
 
-  it("returns the exact authored Program description", function () {
+  it("returns the exact authored Program configuration", function () {
     const config = {
       identity: "public-contract",
       agent: "./agent-guide.md",
