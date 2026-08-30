@@ -166,7 +166,6 @@ export {
   type ProgramWaitInput,
   type SystemControlCapability,
   type SystemControlCapabilityName,
-  type SystemControlClient,
   type SystemControlEndpoint,
   type SystemControlOperation,
   type SystemControlOperationMode,

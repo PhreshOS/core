@@ -1,10 +1,9 @@
-import { describe, expect, expectTypeOf, it } from "vitest"
+import { describe, expect, it } from "vitest"
 import {
   systemControl,
   systemControlInputIssue,
   systemControlOperation,
   systemControlToolSchema,
-  type SystemControlClient,
   type SystemControlToolInput
 } from "../source/main.js"
 
@@ -31,8 +30,6 @@ describe("System control", function () {
     }
 
     expect(request.action).toBe("move")
-    expectTypeOf<SystemControlClient["execute"]>().toBeFunction()
-
     const endpoint = systemControlToolSchema("endpoint")
     const ask = endpoint.oneOf?.find(branch => branch.properties?.action?.const === "ask")
 

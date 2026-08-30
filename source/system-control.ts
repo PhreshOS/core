@@ -112,10 +112,6 @@ export interface WindowWaitInput extends WindowInput {
   timeout?: number
 }
 
-export interface SystemControlClient {
-  execute(request: SystemControlRequest, signal?: AbortSignal): Promise<unknown>
-}
-
 /** One capability's operation inputs, adapted to the common agent-tool shape. */
 export type SystemControlToolInput<Capability extends SystemControlCapabilityName> =
   SystemControlRequest extends infer Request
@@ -285,8 +281,8 @@ function schema(value: SystemControlSchema): SystemControlSchema {
 /**
  * Authoritative, transport-neutral System-control vocabulary.
  *
- * System Core owns its behavior. Server SDK handles, local CLI commands, and
- * agent tools derive their public language and documentation from this catalog.
+ * System Core owns its behavior. Private Gateway adapters and agent tools use
+ * this vocabulary; environment SDK consumers use the shared System handles.
  */
 export const systemControl = Object.freeze({
   program: Object.freeze({
