@@ -107,7 +107,7 @@ neutral Appearance and Desktop-preferences contracts in their own domains.
 ## Messaging primitives
 
 `Subscribable` is the independent receiving capability, providing the
-contracts for `subscribe()`, `waitFor()`, `events()`, and `observe()`.
+contracts for `subscribe()`, `waitFor()`, and `events()`.
 `Publishable` independently provides `publish()`. `Askable` extends
 `Publishable` with `ask()`, since every target that can be asked can also be
 published to. Both operations accept a single payload, which is `undefined`
@@ -129,9 +129,9 @@ const stop = target.subscribe("event", handler)
 stop()
 ```
 
-There are no separate `unsubscribe()` or `unobserve()` methods, and no
-one-time subscription operation. Observation APIs such as `observeAsks()` and
-`observeAnswers()` follow the same returned-cleanup convention.
+There is no separate `unsubscribe()` method and no one-time subscription
+operation. Question and answer subscriptions follow the same returned-cleanup
+convention.
 
 ```ts
 import type { Subscribable } from "@phreshos/core"
@@ -149,54 +149,57 @@ target.subscribe("exit", message => {
   message.status
   message.code
 })
+
+target.subscribe(capture => {
+  if (capture.event === "exit") capture.message.code
+})
 ```
 
 Known messages are inferred from the target. An explicit generic or callback
 annotation may narrow that message further, but an incompatible replacement is
-a type error. `observe()` receives a `Capture` containing only the facts
-guaranteed by every `Subscribable`: `event` and `message`. It makes no
-assumption about a sender or destination.
+a type error. Calling `subscribe()` with only a callback follows every event
+and receives a correlated `Capture` containing `event` and `message`.
 
-An unparameterized Endpoint, Channel, or traffic surface accepts
+An unparameterized Endpoint, Context, Service, or traffic surface accepts
 application-defined event names with an `unknown` payload. Supplying an event
 map narrows both the names and their payloads, and names outside that map are
-then rejected. `events()` applies the same message inference and narrowing
-rules, exposing a named event as an `AsyncIterableIterator`.
+then rejected. `events("name")` iterates one named event, while `events()`
+iterates every event as the same correlated captures supplied to an all-event
+subscription.
 
-## Endpoints, Channels, and traffic
+## Endpoints, Context, and traffic
 
 `Endpoint` is the shared base of `Server` and `Client`. It functions as both
 an address and a source: `endpoint.publish()` sends directly to it, while
-`endpoint.subscribe()` and `endpoint.observe()` follow destinationless events
-emitted by it. `Server` additionally composes `Askable`.
+`endpoint.subscribe()` follows destinationless events emitted by it. `Server`
+additionally composes `Askable`.
 
-The contextual `Channel` is the executing Endpoint's inward boundary.
+The environment SDK's `context` is the executing Endpoint's inward boundary.
 Subscriptions receive events explicitly addressed to it, delivered as a
-`ChannelMessage` containing the sender as `Endpoint | null`. `null` means the
+`ContextMessage` containing the sender as `Endpoint | null`. `null` means the
 request came from a trusted boundary outside Program Endpoints, such as the
-owner-local System gateway; no fake Endpoint is invented. `channel.publish()`
+owner-local System gateway; no fake Endpoint is invented. `context.publish()`
 emits outward from that executing Endpoint without naming a destination.
 
 Directed inspection remains deliberately separate, exposed as
 `endpoint.traffic`. Because the Endpoint handle already identifies the source,
-ordinary traffic messages contain only the destination and payload; Channel
+ordinary traffic messages contain only the destination and payload; Context
 emissions never enter this surface. Every traffic surface exposes
-`observeAsks()`, since either Endpoint kind may originate a question. A
-Server's traffic additionally exposes `observeAnswers()`, since only a Server
-can originate an answer. These captures include their event, correlation ID,
-destination, and question payload or answer `Outcome`.
+`subscribeAsks()` and `asks()`, since either Endpoint kind may originate a
+question. A Server's traffic additionally exposes `subscribeAnswers()` and
+`answers()`, since only a Server can originate an answer. These captures
+include their event, correlation ID, destination, and question payload or
+answer `Outcome`.
 
 Every Endpoint exposes `exists()`, `start()`, and `stop()`. Endpoint lifecycle
-is observed through `endpointStart` and `endpointStop` at Process, Program,
-and Server Host scope. A start delivers the permanent `Server | Client`
-handle; a stop delivers that same permanent handle directly. Every scope
-receives the same canonical Endpoint instance, allowing comparison by
-identity. Neither lifecycle event wraps the Endpoint or carries process-exit
-details, and Endpoint subscriptions themselves carry only application events
-emitted by that Endpoint.
+is available directly through `endpoint.lifecycle` as `start` and `stop`.
+Broader Process, Program, and Server Host scopes retain `endpointStart` and
+`endpointStop`, whose payload is the same canonical `Server | Client` handle.
+Neither lifecycle surface carries process-exit details, and Endpoint root
+subscriptions remain exclusively application events emitted by that Endpoint.
 
 `Server` and `Client` are public, logic-free Endpoint specializations. Server
-adds request-response `ask()` and answer-traffic observation. Client owns two
+adds request-response `ask()` and answer-traffic inspection. Client owns two
 permanent, synchronous capability objects: `traffic` for communication and
 `window` for presentation. Accessing either object performs no operation and
 receives no data — their methods and subscriptions are the explicit
@@ -212,8 +215,8 @@ runtime class identity of their own. Core domain constructors are protected —
 environment SDKs supply the authoritative handles backed by their respective
 boundaries while reusing these exact Core constructors.
 
-Core also owns the common launch, geometry, lifecycle-message, `ChannelMessage`,
-`ChannelCapture`, `TrafficMessage`, and `TrafficCapture` types used by both
+Core also owns the common launch, geometry, lifecycle-message, `ContextMessage`,
+`ContextCapture`, `TrafficMessage`, and `TrafficCapture` types used by both
 environments.
 
 `ProgramCommandChunk` is the shared shape of one ordered lifecycle-command
@@ -363,8 +366,12 @@ agent implementation and does not explain generic Process, Endpoint, or tool
 mechanics.
 
 Services are independent runtime bindings. A running Endpoint may explicitly
-expose its Channel with `context.enableService(name)` without declaring or
+expose itself with `context.enableService(name)` without declaring or
 shipping documentation through the Program contract.
+Application events are subscribed to directly on the stable Service handle;
+a Server Service can also be published to or asked directly.
+`service.lifecycle` is the separate subscribable namespace for `enable` and
+`disable`, while `enabled()` and `waitReady()` remain root Service operations.
 
 Every Program also exposes its guaranteed icon without revealing hosting or
 filesystem details:

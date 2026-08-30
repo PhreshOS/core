@@ -24,8 +24,8 @@ export type Captures<Events extends object, Fallback = never> = {
 /** A callback for one subscribed message. Its return value is not communication. */
 export type EventSubscriber<Message> = (message: Message) => unknown
 
-/** A callback for an observed event and its message. */
-export type EventObserver<Events extends object, Fallback = never> = (capture: Captures<Events, Fallback>) => unknown
+/** A callback subscribed across every event on one target. */
+export type CaptureSubscriber<Events extends object, Fallback = never> = (capture: Captures<Events, Fallback>) => unknown
 
 /** Removes exactly one persistent registration. Safe to call more than once. */
 export type Cleanup = () => void
@@ -74,6 +74,9 @@ type CompatibleEvent<Events extends object, Fallback, Narrowed> = {
 }[EventName<Events>] | ([Fallback] extends [never] ? never : Narrowed extends Fallback ? OpenEvent : never)
 
 interface Subscribe<Events extends object, Fallback> {
+  /** Registers one persistent subscription across every event and returns its cleanup. */
+  (subscriber: CaptureSubscriber<Events, Fallback>): Cleanup
+
   /** Registers one persistent named-event subscription and returns its cleanup. */
   <Event extends AvailableEvent<Events, Fallback>>(event: InferredEvent<Event>, subscriber: EventSubscriber<EventMessage<Events, Fallback, Event>>): Cleanup
 
@@ -96,6 +99,9 @@ interface WaitFor<Events extends object, Fallback> {
 }
 
 interface EventStream<Events extends object, Fallback> {
+  /** Iterates every event as a correlated capture until closed, aborted, or impossible. */
+  (options?: EventOptions): AsyncIterableIterator<Captures<Events, Fallback>>
+
   /** Iterates matching messages until closed, aborted, or impossible. */
   <Narrowed>(event: CompatibleEvent<Events, Fallback, Narrowed>, options?: EventOptions): AsyncIterableIterator<Narrowed>
 
@@ -104,11 +110,6 @@ interface EventStream<Events extends object, Fallback> {
 
   /** Iterates matching messages until closed, aborted, or impossible. */
   (event: [Fallback] extends [never] ? never : OpenEvent, options?: EventOptions): AsyncIterableIterator<Fallback>
-}
-
-interface Observe<Events extends object, Fallback> {
-  /** Registers one persistent observer across every event and returns its cleanup. */
-  (observer: EventObserver<Events, Fallback>): Cleanup
 }
 
 /**
@@ -126,15 +127,12 @@ export interface Subscribable<Events extends object = {}, Fallback = unknown> {
   /** @internal Preserves this contract's declared types for SDK adapters. */
   readonly [definition]?: Definition<Events, Fallback>
 
-  /** Registers one persistent named-event subscription. */
+  /** Registers one persistent subscription for a named event or every event. */
   subscribe: Subscribe<Events, Fallback>
 
   /** Waits for the next matching message. */
   waitFor: WaitFor<Events, Fallback>
 
-  /** Iterates matching messages until closed, aborted, or impossible. */
+  /** Iterates one named event or every event until closed, aborted, or impossible. */
   events: EventStream<Events, Fallback>
-
-  /** Registers one persistent observer across every event on this target. */
-  observe: Observe<Events, Fallback>
 }

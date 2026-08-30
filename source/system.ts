@@ -5,6 +5,7 @@ import type { Layer, Launch, LaunchClient, Position, Size } from "./launch.js"
 import type { Exit } from "./process.js"
 import type { Publishable } from "./publishable.js"
 import type { ClientService, ServerService, Service, ServiceKey } from "./service.js"
+import type { EndpointLifecycle } from "./endpoint.js"
 import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
@@ -110,6 +111,7 @@ export interface SystemProgramEntity extends Subscribable<ProgramEvents, never> 
 
 export interface SystemEndpointEntity<Events extends object = {}>
   extends Publishable, Subscribable<Events, keyof Events extends never ? unknown : never> {
+  readonly lifecycle: EndpointLifecycle
   process(): Promise<SystemProcessEntity>
   exists(): Promise<boolean>
   start(): Promise<void>

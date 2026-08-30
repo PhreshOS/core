@@ -2,7 +2,7 @@ import { describe, expect, expectTypeOf, it } from "vitest"
 import {
   Client,
   ClientService,
-  type Channel,
+  type Context,
   type LocalWindow,
   type Transaction,
   Endpoint,
@@ -41,12 +41,15 @@ describe("public runtime", function () {
     expect(ServerService.prototype).toBeInstanceOf(Service)
   })
 
-  it("places service exposure on Channel and service identity on Endpoint", function () {
-    expectTypeOf<Channel>().toHaveProperty("enableService")
-    expectTypeOf<Channel>().toHaveProperty("disableService")
+  it("places service exposure on Context and lifecycle beside application events", function () {
+    expectTypeOf<Context>().toHaveProperty("enableService")
+    expectTypeOf<Context>().toHaveProperty("disableService")
     expectTypeOf<Endpoint>().toHaveProperty("service")
+    expectTypeOf<Endpoint>().toHaveProperty("lifecycle")
     expectTypeOf<Endpoint>().not.toHaveProperty("enableService")
     expectTypeOf<Endpoint>().not.toHaveProperty("disableService")
+    expectTypeOf<Service>().toHaveProperty("lifecycle")
+    expectTypeOf<Service>().not.toHaveProperty("channel")
   })
 
   it("keeps the finite public registries narrow", function () {

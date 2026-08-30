@@ -3,9 +3,9 @@ export {
   type Cleanup,
   type Capture,
   type Captures,
+  type CaptureSubscriber,
   type EventMessage,
   type EventName,
-  type EventObserver,
   type EventOptions,
   type EventSubscriber,
   type Subscribable,
@@ -21,10 +21,8 @@ export {
   ServerService,
   Service,
   isServiceKey,
-  type ClientServiceChannel,
-  type ServerServiceChannel,
-  type ServiceChannel,
   type ServiceKey,
+  type ServiceLifecycle,
   type ServiceLifecycleEvents
 } from "./service.js"
 export {
@@ -104,18 +102,20 @@ export {
   Endpoint,
   type AskCapture,
   type AskMessage,
-  type AskObserver,
+  type AskSubscriber,
+  type EndpointLifecycle,
+  type EndpointLifecycleEvents,
   type EndpointTraffic,
   type TrafficCapture,
   type TrafficEvents,
   type TrafficMessage
 } from "./endpoint.js"
-export { type Channel, type ChannelCapture, type ChannelEvents, type ChannelMessage } from "./channel.js"
+export { type Context, type ContextCapture, type ContextEvents, type ContextMessage } from "./context.js"
 export {
   Server,
   type AnswerCapture,
   type AnswerMessage,
-  type AnswerObserver,
+  type AnswerSubscriber,
   type ServerTraffic
 } from "./server.js"
 export { Client, type ClientTraffic } from "./client.js"

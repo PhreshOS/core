@@ -1,7 +1,7 @@
 import type { Askable } from "./askable.js"
 import { Endpoint, type EndpointTraffic } from "./endpoint.js"
 import type { Outcome } from "./outcome.js"
-import type { Cleanup } from "./subscribable.js"
+import type { Cleanup, EventOptions } from "./subscribable.js"
 import type { ServerService } from "./service.js"
 
 /** One answer sent by this Server to the Endpoint that asked. */
@@ -25,8 +25,8 @@ export type AnswerCapture<Result = unknown, To = Endpoint> = Readonly<{
   message: AnswerMessage<Result, To>
 }>
 
-/** A callback that observes answers sent by this Server. */
-export type AnswerObserver<Result = unknown, To = Endpoint> = (capture: AnswerCapture<Result, To>) => unknown
+/** A callback subscribed to answers sent by this Server. */
+export type AnswerSubscriber<Result = unknown, To = Endpoint> = (capture: AnswerCapture<Result, To>) => unknown
 
 /** Directed communication originating from one Server, including its answers. */
 export interface ServerTraffic<
@@ -34,8 +34,11 @@ export interface ServerTraffic<
   To = Endpoint,
   AskTo = Server
 > extends EndpointTraffic<Events, To, AskTo> {
-  /** Observes answers originating from this Server. */
-  observeAnswers<Result = unknown>(observer: AnswerObserver<Result, To>): Cleanup
+  /** Subscribes to answers originating from this Server. */
+  subscribeAnswers<Result = unknown>(subscriber: AnswerSubscriber<Result, To>): Cleanup
+
+  /** Iterates answers originating from this Server. */
+  answers<Result = unknown>(options?: EventOptions): AsyncIterableIterator<AnswerCapture<Result, To>>
 }
 
 /** The server Endpoint of a Process. */

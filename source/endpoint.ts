@@ -2,7 +2,7 @@ import type { Process } from "./process.js"
 import type { Publishable } from "./publishable.js"
 import type { Server } from "./server.js"
 import type { Service } from "./service.js"
-import type { Captures, Cleanup, Subscribable } from "./subscribable.js"
+import type { Captures, Cleanup, EventOptions, Subscribable } from "./subscribable.js"
 
 /** One application value observed in traffic originating from an Endpoint. */
 export type TrafficMessage<Payload = unknown, To = Endpoint> = Readonly<{
@@ -43,8 +43,8 @@ export type AskCapture<Payload = unknown, To = Server> = Readonly<{
   message: AskMessage<Payload, To>
 }>
 
-/** A callback that observes questions sent by this Endpoint. */
-export type AskObserver<Payload = unknown, To = Server> = (capture: AskCapture<Payload, To>) => unknown
+/** A callback subscribed to questions sent by this Endpoint. */
+export type AskSubscriber<Payload = unknown, To = Server> = (capture: AskCapture<Payload, To>) => unknown
 
 /** Every ordinary publication observable in traffic from one Endpoint. */
 export type TrafficCapture<Events extends object = {}, To = Endpoint> =
@@ -56,9 +56,24 @@ export interface EndpointTraffic<
   To = Endpoint,
   AskTo = Server
 > extends Subscribable<TrafficEvents<Events, To>, TrafficFallback<Events, To>> {
-  /** Observes questions originating from this Endpoint. */
-  observeAsks<Payload = unknown>(observer: AskObserver<Payload, AskTo>): Cleanup
+  /** Subscribes to questions originating from this Endpoint. */
+  subscribeAsks<Payload = unknown>(subscriber: AskSubscriber<Payload, AskTo>): Cleanup
+
+  /** Iterates questions originating from this Endpoint. */
+  asks<Payload = unknown>(options?: EventOptions): AsyncIterableIterator<AskCapture<Payload, AskTo>>
 }
+
+/** Lifecycle transitions of one permanent Endpoint handle. */
+export type EndpointLifecycleEvents = {
+  /** A fresh Endpoint incarnation became live. */
+  start: undefined
+
+  /** The live Endpoint incarnation ended. */
+  stop: undefined
+}
+
+/** Lifecycle events belonging directly to one permanent Endpoint handle. */
+export interface EndpointLifecycle extends Subscribable<EndpointLifecycleEvents, never> {}
 
 /** The shared Process endpoint represented by Server and Client. */
 export class Endpoint<Events extends object = {}> {
@@ -70,6 +85,9 @@ export interface Endpoint<Events extends object = {}>
   extends Publishable, Subscribable<Events, keyof Events extends never ? unknown : never> {
   /** Directed communication originating from this Endpoint. */
   readonly traffic: EndpointTraffic<Events>
+
+  /** Start and stop transitions of this permanent Endpoint handle. */
+  readonly lifecycle: EndpointLifecycle
 
   /** Returns the Process that owns this Endpoint. */
   process(): Promise<Process>

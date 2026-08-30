@@ -22,30 +22,21 @@ export type ServiceLifecycleEvents = {
   disable: undefined
 }
 
-/** Application events emitted by one service. */
-export interface ServiceChannel<Events extends object = {}>
-  extends Subscribable<Events, keyof Events extends never ? unknown : never> {}
-
-/** Communication surface of a service provided by a Server Endpoint. */
-export interface ServerServiceChannel<Events extends object = {}>
-  extends ServiceChannel<Events>, Askable {}
-
-/** Communication surface of a service provided by a Client Endpoint. */
-export interface ClientServiceChannel<Events extends object = {}>
-  extends ServiceChannel<Events> {}
+/** Lifecycle events of one stable Service handle. */
+export interface ServiceLifecycle extends Subscribable<ServiceLifecycleEvents, never> {}
 
 /** Stable lifecycle handle for one exact public service identity. */
-export class Service<Channel extends object = ServiceChannel> {
+export class Service<Events extends object = {}> {
   protected constructor() {}
 }
 
-export interface Service<Channel extends object = ServiceChannel>
-  extends Subscribable<ServiceLifecycleEvents, never> {
+export interface Service<Events extends object = {}>
+  extends Subscribable<Events, keyof Events extends never ? unknown : never> {
   /** Program-authored service identity. */
   readonly name: string
 
-  /** Application communication, separate from service lifecycle. */
-  readonly channel: Channel
+  /** Enable and disable transitions, separate from application events. */
+  readonly lifecycle: ServiceLifecycle
 
   /** Reads whether a live Endpoint currently provides this service. */
   enabled(): Promise<boolean>
@@ -56,27 +47,22 @@ export interface Service<Channel extends object = ServiceChannel>
 
 /** Stable handle for one Server-provided service. */
 export class ServerService<Events extends object = {}>
-  extends Service<ServerServiceChannel<Events>> {
+  extends Service<Events> {
   protected constructor() {
     super()
   }
 }
 
-export interface ServerService<Events extends object = {}> {
-  readonly channel: ServerServiceChannel<Events>
-}
+export interface ServerService<Events extends object = {}> extends Askable {}
 
 /** Stable handle for one Client-provided service. */
 export class ClientService<Events extends object = {}>
-  extends Service<ClientServiceChannel<Events>> {
+  extends Service<Events> {
   protected constructor() {
     super()
   }
 }
 
-export interface ClientService<Events extends object = {}> {
-  readonly channel: ClientServiceChannel<Events>
-}
 
 /** Returns whether a boundary value is a complete service key. */
 export function isServiceKey(value: unknown): value is ServiceKey {
