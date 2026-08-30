@@ -290,7 +290,7 @@ live Process retains only a handle to its immediate parent. `process.parent()`
 returns `null` when no accessible parent handle exists, and does not preserve
 historical lineage: calling it through an exited Process handle, or after the
 retained parent has disappeared, rejects outright, since the represented
-Process no longer exists. `current.parent()` flattens this operation
+Process no longer exists. `context.parent()` flattens this operation
 contextually but does not itself own the relationship.
 
 Client traversal is structurally confined to its current Program. A
@@ -363,7 +363,7 @@ agent implementation and does not explain generic Process, Endpoint, or tool
 mechanics.
 
 Services are independent runtime bindings. A running Endpoint may explicitly
-expose its Channel with `current.enableService(name)` without declaring or
+expose its Channel with `context.enableService(name)` without declaring or
 shipping documentation through the Program contract.
 
 Every Program also exposes its guaranteed icon without revealing hosting or
