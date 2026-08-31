@@ -77,7 +77,6 @@ export {
   type System,
   type SystemProcess,
   type SystemProcessEntity,
-  type SystemProcessEntityEvents,
   type SystemProcessEvents,
   type SystemProcessExit,
   type SystemProcessRunEvent,
@@ -85,7 +84,6 @@ export {
   type SystemProgram,
   type SystemProgramEntity,
   type SystemProgramProcess,
-  type SystemProgramProcessEvents,
   type SystemProgramStartup,
   type SystemEndpointEntity,
   type SystemServerEntity,
@@ -147,7 +145,6 @@ export {
   systemControl,
   systemControlInputIssue,
   systemControlOperation,
-  systemControlToolSchema,
   type EndpointAskInput,
   type EndpointInput,
   type EndpointPublishInput,
@@ -170,7 +167,6 @@ export {
   type SystemControlOperationMode,
   type SystemControlRequest,
   type SystemControlSchema,
-  type SystemControlToolInput,
   type WindowInput,
   type WindowWaitInput
 } from "./system-control.js"

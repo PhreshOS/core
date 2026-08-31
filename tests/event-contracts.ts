@@ -1,4 +1,16 @@
-import type { Process, Server, ServerService } from "../source/main.js"
+import type {
+  Client,
+  Endpoint,
+  Process,
+  Program,
+  Server,
+  ServerService,
+  SystemClientEntity,
+  SystemEndpointEntity,
+  SystemProcessEntity,
+  SystemProgramEntity,
+  SystemServerEntity
+} from "../source/main.js"
 
 function eventContracts(process: Process, server: Server, service: ServerService<{ change: number }>) {
   const stop = process.subscribe(capture => {
@@ -36,3 +48,32 @@ async function generatorContracts(process: Process, server: Server) {
 
 void eventContracts
 void generatorContracts
+
+function systemHandlesRemainCanonical(
+  program: SystemProgramEntity,
+  process: SystemProcessEntity,
+  endpoint: SystemEndpointEntity,
+  server: SystemServerEntity,
+  client: SystemClientEntity
+) {
+  const canonicalProgram: Program = program
+  const canonicalProcess: Process = process
+  const canonicalEndpoint: Endpoint = endpoint
+  const canonicalServer: Server = server
+  const canonicalClient: Client = client
+
+  program.data.text("state.json")
+  program.store.get("state")
+  program.logs.query("select 1")
+  program.database.query("select 1")
+  program.icon()
+  process.parent()
+  process.option("mode")
+  server.traffic.subscribeAsks(() => undefined)
+  server.traffic.subscribeAnswers(() => undefined)
+  client.traffic.subscribeAsks(() => undefined)
+
+  void [canonicalProgram, canonicalProcess, canonicalEndpoint, canonicalServer, canonicalClient]
+}
+
+void systemHandlesRemainCanonical

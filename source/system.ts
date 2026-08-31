@@ -1,15 +1,15 @@
-import type { Askable } from "./askable.js"
 import type { WritableAppearance } from "./appearance.js"
-import type { ClientDeclaration, EndpointDeclaration, ProgramCommandChunk, ProgramEvents } from "./program.js"
+import type { Client } from "./client.js"
+import type { Endpoint } from "./endpoint.js"
+import type { Program, ProgramCommandChunk, ProgramProcess } from "./program.js"
 import type { ClientLaunch, Layer, Launch, Position, ServerLaunch, Size } from "./launch.js"
-import type { Exit } from "./process.js"
-import type { Publishable } from "./publishable.js"
+import type { Exit, Process } from "./process.js"
+import type { Server } from "./server.js"
 import type { ClientService, ServerService, ServiceKey } from "./service.js"
-import type { EndpointLifecycle } from "./endpoint.js"
 import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
-import type { Window, WindowEvents } from "./window.js"
+import type { WindowEvents } from "./window.js"
 
 type ServerDefinitionBase = Readonly<{
   location: string
@@ -50,15 +50,8 @@ export type ProgramDefinition = ProgramDefinitionBase & (
   | Readonly<{ server?: ServerDefinition, client: ClientDefinition }>
 )
 
-export interface SystemProgramProcess extends Subscribable<SystemProgramProcessEvents, never> {
-  list(): Promise<SystemProcessEntity[]>
-  first(): Promise<SystemProcessEntity | null>
-  last(): Promise<SystemProcessEntity | null>
-  find(identityOrName: string): Promise<SystemProcessEntity | null>
-  create(launch?: Launch): Promise<SystemProcessEntity>
+export interface SystemProgramProcess extends ProgramProcess {
   run(launch?: Launch, options?: SystemProcessRunOptions): AsyncGenerator<SystemProcessRunEvent, void, void>
-  findOrCreate(launch: Launch & Readonly<{ name: string }>): Promise<SystemProcessEntity>
-  exitAll(): Promise<string[]>
 }
 
 /** Persistent Process launch used when the System starts. */
@@ -85,65 +78,36 @@ export type SystemProcessRunEvent =
   | (Readonly<{ event: "output" }> & ProgramCommandChunk)
   | Readonly<{ event: "exited", process: SystemProcessEntity, exit: Exit }>
 
-export type SystemProgramProcessEvents = {
-  create: SystemProcessEntity
-  exit: SystemProcessExit
-}
-
-/** Program entity exposed by the authoritative System registry. */
-export interface SystemProgramEntity extends Subscribable<ProgramEvents, never> {
-  readonly identity: string
-  readonly name: string
-  readonly version: string | null
-  readonly description: string | null
-  readonly hasAgent: boolean
-  readonly server: EndpointDeclaration | null
-  readonly client: ClientDeclaration | null
+/** Canonical Program with authoritative System-owner capabilities. */
+export interface SystemProgramEntity extends Program {
   readonly process: SystemProgramProcess
   readonly startup: SystemProgramStartup
 
-  agent(): Promise<string | null>
-  installed(): Promise<boolean>
   install(): AsyncGenerator<ProgramCommandChunk, void, void>
-  uninstall(everything?: boolean): AsyncGenerator<ProgramCommandChunk, void, void>
-  forget(): Promise<void>
 }
 
 export interface SystemEndpointEntity<Events extends object = {}>
-  extends Publishable, Subscribable<Events, keyof Events extends never ? unknown : never> {
-  readonly lifecycle: EndpointLifecycle
+  extends Endpoint<Events> {
   process(): Promise<SystemProcessEntity>
-  exists(): Promise<boolean>
-  isService(): Promise<boolean>
-  start(): Promise<void>
-  stop(): Promise<void>
 }
 
-export interface SystemServerEntity<Events extends object = {}> extends SystemEndpointEntity<Events>, Askable {
+export interface SystemServerEntity<Events extends object = {}> extends Server<Events> {
+  process(): Promise<SystemProcessEntity>
   start(launch?: ServerLaunch): Promise<void>
-  waitReady(timeout?: number): Promise<void>
 }
 
-export interface SystemClientEntity<Events extends object = {}> extends SystemEndpointEntity<Events> {
-  readonly window: Window
+export interface SystemClientEntity<Events extends object = {}> extends Client<Events> {
+  process(): Promise<SystemProcessEntity>
   start(launch?: ClientLaunch): Promise<void>
 }
 
-export type SystemProcessEntityEvents = {
-  exit: Exit
-}
-
-/** Process entity exposed by the authoritative System registry. */
-export interface SystemProcessEntity extends Subscribable<SystemProcessEntityEvents, never> {
-  readonly identity: string
-  readonly name: string | null
-  readonly startedAt: Date
+/** Canonical Process exposed by the authoritative System registry. */
+export interface SystemProcessEntity extends Process {
   readonly server: SystemServerEntity
   readonly client: SystemClientEntity
 
   program(): SystemProgramEntity
-  exit(): Promise<void>
-  exited(): Promise<boolean>
+  parent(): Promise<SystemProcessEntity | null>
 }
 
 export type SystemProgramUninstall = Readonly<{
