@@ -155,6 +155,7 @@ export {
   type EndpointPublishInput,
   type EndpointStartInput,
   type EndpointWaitInput,
+  type EndpointWaitLifecycleInput,
   type EndpointWaitReadyInput,
   type ProcessCreateInput,
   type ProcessFindOrCreateInput,
