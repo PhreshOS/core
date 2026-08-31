@@ -193,10 +193,10 @@ answer `Outcome`.
 
 Every Endpoint exposes `exists()`, `start()`, and `stop()`. Endpoint lifecycle
 is available directly through `endpoint.lifecycle` as `start` and `stop`.
-Broader Process, Program, and Server Host scopes retain `endpointStart` and
-`endpointStop`, whose payload is the same canonical `Server | Client` handle.
-Neither lifecycle surface carries process-exit details, and Endpoint root
-subscriptions remain exclusively application events emitted by that Endpoint.
+Process collections expose only child-process creation and exit, while an exact
+Process exposes only its own exit. Endpoint root subscriptions remain
+exclusively application events emitted by that Endpoint; its lifecycle is
+available only through `endpoint.lifecycle`.
 
 `Server` and `Client` are public, logic-free Endpoint specializations. Server
 adds request-response `ask()` and answer-traffic inspection. Client owns two

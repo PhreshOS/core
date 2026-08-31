@@ -48,12 +48,6 @@ export type ProgramProcessExit = Exit & Readonly<{
 
 /** Process lifecycle events scoped to one Program. */
 export type ProgramProcessEvents = {
-  /** One Process Endpoint entered a new live incarnation. */
-  endpointStart: Process["server"] | Process["client"]
-
-  /** One Process Endpoint incarnation ended. */
-  endpointStop: Process["server"] | Process["client"]
-
   /** A Process entered this Program's runtime set. */
   create: Process
 
@@ -91,19 +85,16 @@ export type ProgramEvents = {
   /** This Program left the runtime registry. */
   forget: undefined
 
-  /** This Program left the installed state. */
-  uninstall: Readonly<{
-    /** Whether every installed resource, including storage, was removed. */
-    everythingRemoved: boolean
-  }>
+  /** Whether every installed resource, including storage, was removed. */
+  uninstall: boolean
 }
 
 /** The stable domain root from which Processes are created. */
-export class Program<Events extends object = {}> {
+export class Program {
   protected constructor() {}
 }
 
-export interface Program<Events extends object = {}> extends Subscribable<ProgramEvents & Events, never> {
+export interface Program extends Subscribable<ProgramEvents, never> {
   /** Stable public identity. */
   readonly identity: string
 

@@ -19,6 +19,7 @@ export type SystemControlRequest =
   | Readonly<{ capability: "endpoint", operation: "start", input: EndpointStartInput }>
   | Readonly<{ capability: "endpoint", operation: "stop", input: EndpointInput }>
   | Readonly<{ capability: "endpoint", operation: "waitReady", input: EndpointWaitReadyInput }>
+  | Readonly<{ capability: "endpoint", operation: "waitLifecycle", input: EndpointWaitLifecycleInput }>
   | Readonly<{ capability: "endpoint", operation: "ask", input: EndpointAskInput }>
   | Readonly<{ capability: "endpoint", operation: "publish", input: EndpointPublishInput }>
   | Readonly<{ capability: "endpoint", operation: "wait", input: EndpointWaitInput }>
@@ -69,7 +70,7 @@ export interface ProcessFindOrCreateInput {
 }
 
 export interface ProcessWaitInput {
-  event: "endpointStart" | "endpointStop" | "create" | "exit"
+  event: "create" | "exit"
   process?: string
   program?: string
   timeout?: number
@@ -85,6 +86,11 @@ export interface EndpointStartInput extends EndpointInput {
 
 export interface EndpointWaitReadyInput extends ProcessInput {
   endpoint: "server"
+  timeout?: number
+}
+
+export interface EndpointWaitLifecycleInput extends EndpointInput {
+  event: "start" | "stop"
   timeout?: number
 }
 
@@ -318,7 +324,7 @@ export const systemControl = Object.freeze({
       findOrCreate: operation("write", "Atomically find the named Process or create it with the same resolved launch.", object({ program, launch }, ["program", "launch"]), processSummary, [{ program: "lemo", launch: { name: "lemo", server: true, client: false } }]),
       exit: operation("write", "Exit one Process and all of its live Endpoints.", object(processCoordinates, ["process"]), processSummary, [{ process: "process-identity" }]),
       wait: operation("wait", "Wait for one Process lifecycle event at Host, Program, or Process scope. An individual Process does not emit create.", object({
-        event: enumeration(["endpointStart", "endpointStop", "create", "exit"], "Process lifecycle event."),
+        event: enumeration(["create", "exit"], "Process lifecycle event."),
         process,
         program,
         timeout
@@ -338,6 +344,11 @@ export const systemControl = Object.freeze({
       start: operation("write", "Start a fresh Endpoint incarnation without implicitly changing the other Endpoint.", object({ ...endpointCoordinates, client: clientLaunch }, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "client" }]),
       stop: operation("write", "Stop one Endpoint. The final live Endpoint cannot be stopped; exit the Process instead.", object(endpointCoordinates, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "client" }]),
       waitReady: operation("wait", "Wait until the current or next Server incarnation reports readiness.", object({ ...processCoordinates, endpoint: server, timeout }, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "server", timeout: 30000 }]),
+      waitLifecycle: operation("wait", "Wait for one lifecycle transition of an exact Endpoint.", object({
+        ...endpointCoordinates,
+        event: enumeration(["start", "stop"], "Endpoint lifecycle event."),
+        timeout
+      }, ["process", "endpoint", "event"]), waited, [{ process: "process-identity", endpoint: "client", event: "stop" }]),
       ask: operation("request", "Ask a Server event and return its answer. Read Program agent documentation first for event and payload policy.", object({ ...processCoordinates, endpoint: server, event, payload: any, timeout }, ["process", "endpoint", "event"]), any, [{ process: "process-identity", endpoint: "server", event: "metrics" }]),
       publish: operation("write", "Publish one event to a live Server or Client Endpoint without waiting for an answer.", object({ ...endpointCoordinates, event, payload: any }, ["process", "endpoint", "event"]), endpointSummary, [{ process: "process-identity", endpoint: "client", event: "refresh" }]),
       wait: operation("wait", "Wait for the next destinationless event emitted by one live Endpoint.", object({ ...endpointCoordinates, event, timeout }, ["process", "endpoint", "event"]), waited, [{ process: "process-identity", endpoint: "server", event: "change" }])

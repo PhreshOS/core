@@ -15,24 +15,18 @@ export type Exit = Readonly<{
   signal: string | null
 }>
 
-/** Lifecycle events emitted by one Process. */
+/** Events emitted directly by one Process. */
 export type ProcessEvents = {
-  /** One declared Endpoint entered a new live incarnation. */
-  endpointStart: Server | Client
-
-  /** One live Endpoint incarnation ended. */
-  endpointStop: Server | Client
-
   /** The complete Process ended. */
   exit: Exit
 }
 
 /** One live execution of a Program. */
-export class Process<Events extends object = {}> {
+export class Process {
   protected constructor() {}
 }
 
-export interface Process<Events extends object = {}> extends Subscribable<ProcessEvents & Events, never> {
+export interface Process extends Subscribable<ProcessEvents, never> {
   /** Immutable runtime identity. */
   readonly identity: string
 

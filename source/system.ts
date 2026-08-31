@@ -84,8 +84,6 @@ export type SystemProcessRunEvent =
   | Readonly<{ event: "exited", process: SystemProcessEntity, exit: Exit }>
 
 export type SystemProgramProcessEvents = {
-  endpointStart: SystemServerEntity | SystemClientEntity
-  endpointStop: SystemServerEntity | SystemClientEntity
   create: SystemProcessEntity
   exit: SystemProcessExit
 }
@@ -131,8 +129,6 @@ export interface SystemClientEntity<Events extends object = {}> extends SystemEn
 }
 
 export type SystemProcessEntityEvents = {
-  endpointStart: SystemServerEntity | SystemClientEntity
-  endpointStop: SystemServerEntity | SystemClientEntity
   exit: Exit
 }
 
@@ -151,7 +147,7 @@ export interface SystemProcessEntity extends Subscribable<SystemProcessEntityEve
 
 export type SystemProgramUninstall = Readonly<{
   program: SystemProgramEntity
-  everythingRemoved: boolean
+  everything: boolean
 }>
 
 export type SystemProcessExit = Exit & Readonly<{ process: SystemProcessEntity }>
@@ -164,8 +160,6 @@ export type SystemProgramEvents = {
 }
 
 export type SystemProcessEvents = {
-  endpointStart: SystemServerEntity | SystemClientEntity
-  endpointStop: SystemServerEntity | SystemClientEntity
   create: SystemProcessEntity
   exit: SystemProcessExit
 }

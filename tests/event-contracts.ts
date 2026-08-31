@@ -2,13 +2,8 @@ import type { Process, Server, ServerService } from "../source/main.js"
 
 function eventContracts(process: Process, server: Server, service: ServerService<{ change: number }>) {
   const stop = process.subscribe(capture => {
-    if (capture.event === "exit") {
-      const code: number | null = capture.message.code
-      void code
-    } else {
-      const endpoint: Server | import("../source/main.js").Client = capture.message
-      void endpoint
-    }
+    const code: number | null = capture.message.code
+    void code
   })
 
   server.lifecycle.subscribe("start", message => {

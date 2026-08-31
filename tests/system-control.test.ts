@@ -11,6 +11,7 @@ describe("System control", function () {
   it("owns one complete, immutable, hierarchical vocabulary", function () {
     expect(Object.keys(systemControl)).toEqual(["program", "process", "endpoint", "window"])
     expect(systemControlOperation("endpoint", "ask")).toBe(systemControl.endpoint.operations.ask)
+    expect(systemControlOperation("endpoint", "waitLifecycle")).toBe(systemControl.endpoint.operations.waitLifecycle)
     expect(systemControlOperation("endpoint", "missing")).toBeNull()
 
     for (const [capability, definition] of Object.entries(systemControl)) {
