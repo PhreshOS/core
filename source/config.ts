@@ -33,6 +33,9 @@ export type ServerConfig = Readonly<{
   /** Whether a default Process starts its Server. Defaults to `true`. */
   start?: boolean
 
+  /** Default service role for new Server incarnations. Defaults to `false`. */
+  service?: boolean
+
   /** Optional preparation command run from {@link location} while installing. */
   installCommand?: string
 
@@ -50,6 +53,9 @@ export type ClientConfig = Readonly<{
 
   /** Whether a default Process starts its Client. Defaults to `true`. */
   start?: boolean
+
+  /** Default service role for new Client incarnations. Defaults to `false`. */
+  service?: boolean
 
   /** Initial Window title. Defaults to the Program name. */
   title?: string

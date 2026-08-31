@@ -17,7 +17,10 @@ describe("System control", function () {
     for (const [capability, definition] of Object.entries(systemControl)) {
       const tool = systemControlToolSchema(capability as keyof typeof systemControl)
 
-      expect(tool.oneOf).toHaveLength(Object.keys(definition.operations).length)
+      expect(tool.oneOf).toHaveLength(Object.values(definition.operations).reduce(
+        (count, operation) => count + (operation.input.oneOf?.length ?? 1),
+        0
+      ))
       expect(Object.isFrozen(definition)).toBe(true)
       expect(Object.isFrozen(definition.operations)).toBe(true)
     }
@@ -42,6 +45,13 @@ describe("System control", function () {
       "boolean",
       "null"
     ])
+
+    const starts = endpoint.oneOf?.filter(branch => branch.properties?.action?.const === "start")
+    const serverStart = starts?.find(branch => branch.properties?.endpoint?.const === "server")
+    const clientStart = starts?.find(branch => branch.properties?.endpoint?.const === "client")
+
+    expect(Object.keys(serverStart?.properties?.launch?.properties ?? {})).toEqual(["service"])
+    expect(clientStart?.properties?.launch?.properties?.title?.type).toBe("string")
   })
 
   it("keeps entity-scoped wait constraints in the shared contract", function () {

@@ -21,9 +21,7 @@ export {
   ServerService,
   Service,
   isServiceKey,
-  type ServiceKey,
-  type ServiceLifecycle,
-  type ServiceLifecycleEvents
+  type ServiceKey
 } from "./service.js"
 export {
   isPermissionName,
@@ -144,7 +142,7 @@ export {
   type VisibilityTransition
 } from "./local-window.js"
 export { type Easing, type Transaction } from "./transaction.js"
-export { layers, type Launch, type LaunchClient, type Layer, type Position, type Size } from "./launch.js"
+export { layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"
 export {
   systemControl,
   systemControlInputIssue,

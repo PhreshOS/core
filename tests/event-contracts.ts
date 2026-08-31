@@ -15,7 +15,7 @@ function eventContracts(process: Process, server: Server, service: ServerService
   server.traffic.subscribeAnswers(capture => void capture.message.outcome)
 
   service.subscribe("change", value => value.toFixed(0))
-  service.lifecycle.subscribe("enable", value => void value)
+  service.lifecycle.subscribe("start", value => void value)
   service.ask("value")
   service.publish("refresh")
 

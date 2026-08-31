@@ -1,7 +1,6 @@
 import type { Process } from "./process.js"
 import type { Publishable } from "./publishable.js"
 import type { Server } from "./server.js"
-import type { Service } from "./service.js"
 import type { Captures, Cleanup, EventOptions, Subscribable } from "./subscribable.js"
 
 /** One application value observed in traffic originating from an Endpoint. */
@@ -63,7 +62,7 @@ export interface EndpointTraffic<
   asks<Payload = unknown>(options?: EventOptions): AsyncIterableIterator<AskCapture<Payload, AskTo>>
 }
 
-/** Lifecycle transitions of one permanent Endpoint handle. */
+/** Lifecycle transitions observed at one Endpoint address. */
 export type EndpointLifecycleEvents = {
   /** A fresh Endpoint incarnation became live. */
   start: undefined
@@ -72,7 +71,7 @@ export type EndpointLifecycleEvents = {
   stop: undefined
 }
 
-/** Lifecycle events belonging directly to one permanent Endpoint handle. */
+/** Start and stop events observed at one Endpoint address. */
 export interface EndpointLifecycle extends Subscribable<EndpointLifecycleEvents, never> {}
 
 /** The shared Process endpoint represented by Server and Client. */
@@ -113,7 +112,7 @@ export interface Endpoint<Events extends object = {}>
    */
   stop(): Promise<void>
 
-  /** Returns this Endpoint's current complete service handle, or `null`. */
-  service(): Promise<Service | null>
+  /** Returns whether the current Endpoint incarnation is a service. */
+  isService(): Promise<boolean>
 
 }

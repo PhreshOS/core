@@ -20,6 +20,9 @@ export type ProgramCommandChunk = Readonly<{
 export type EndpointDeclaration = Readonly<{
   /** Whether a default Process starts this declared Endpoint. */
   start: boolean
+
+  /** Default service role for new Endpoint incarnations. */
+  service: boolean
 }>
 
 /** Resolved Client declaration and its default Window state. */

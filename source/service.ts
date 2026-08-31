@@ -1,48 +1,32 @@
 import type { Askable } from "./askable.js"
+import type { EndpointLifecycle } from "./endpoint.js"
+import type { Publishable } from "./publishable.js"
 import type { Subscribable } from "./subscribable.js"
 
-/** Stable public coordinates of one explicitly named Endpoint service. */
+/** Stable public coordinates of one Endpoint service. */
 export type ServiceKey = Readonly<{
-  /** Stable identity of the Program that owns the providing Endpoint. */
-  program: string
+  /** Program identity required when {@link process} is a Program-local name. */
+  program?: string
 
-  /** Endpoint kind deliberately exposed by the service author. */
+  /** Process identity or Program-local Process name. */
+  process: string
+
+  /** Configured Endpoint kind addressed by this service. */
   endpoint: "server" | "client"
-
-  /** Program-authored service identity. */
-  name: string
 }>
 
-/** Lifecycle transitions of one exact service identity. */
-export type ServiceLifecycleEvents = {
-  /** A live Endpoint began providing this service. */
-  enable: undefined
-
-  /** The providing Endpoint stopped exposing this service. */
-  disable: undefined
-}
-
-/** Lifecycle events of one stable Service handle. */
-export interface ServiceLifecycle extends Subscribable<ServiceLifecycleEvents, never> {}
-
-/** Stable lifecycle handle for one exact public service identity. */
+/** Stable communication handle for one Endpoint service address. */
 export class Service<Events extends object = {}> {
   protected constructor() {}
 }
 
 export interface Service<Events extends object = {}>
-  extends Subscribable<Events, keyof Events extends never ? unknown : never> {
-  /** Program-authored service identity. */
-  readonly name: string
+  extends Publishable, Subscribable<Events, keyof Events extends never ? unknown : never> {
+  /** Start and stop transitions of the addressed Endpoint. */
+  readonly lifecycle: EndpointLifecycle
 
-  /** Enable and disable transitions, separate from application events. */
-  readonly lifecycle: ServiceLifecycle
-
-  /** Reads whether a live Endpoint currently provides this service. */
-  enabled(): Promise<boolean>
-
-  /** Waits until a live Endpoint provides this service. */
-  waitReady(timeout?: number): Promise<void>
+  /** Returns whether the addressed Endpoint currently has a live incarnation. */
+  exists(): Promise<boolean>
 }
 
 /** Stable handle for one Server-provided service. */
@@ -53,7 +37,10 @@ export class ServerService<Events extends object = {}>
   }
 }
 
-export interface ServerService<Events extends object = {}> extends Askable {}
+export interface ServerService<Events extends object = {}> extends Askable {
+  /** Waits until the addressed Server incarnation is ready. */
+  waitReady(timeout?: number): Promise<void>
+}
 
 /** Stable handle for one Client-provided service. */
 export class ClientService<Events extends object = {}>
@@ -70,9 +57,11 @@ export function isServiceKey(value: unknown): value is ServiceKey {
 
   const candidate = value as Partial<ServiceKey>
 
-  return typeof candidate.program === "string"
-    && candidate.program.length > 0
+  return (candidate.program === undefined || typeof candidate.program === "string" && candidate.program.length > 0)
+    && typeof candidate.process === "string"
+    && candidate.process.length > 0
+    && (candidate.program !== undefined || processIdentity.test(candidate.process))
     && (candidate.endpoint === "server" || candidate.endpoint === "client")
-    && typeof candidate.name === "string"
-    && candidate.name.length > 0
 }
+
+const processIdentity = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i

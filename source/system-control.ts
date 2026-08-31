@@ -1,4 +1,4 @@
-import type { Launch, LaunchClient, Position, Size } from "./launch.js"
+import type { ClientLaunch, Launch, Position, ServerLaunch, Size } from "./launch.js"
 
 export type SystemControlCapabilityName = "program" | "process" | "endpoint" | "window"
 export type SystemControlOperationMode = "read" | "write" | "request" | "wait"
@@ -80,9 +80,9 @@ export interface EndpointInput extends ProcessInput {
   endpoint: SystemControlEndpoint
 }
 
-export interface EndpointStartInput extends EndpointInput {
-  client?: LaunchClient
-}
+export type EndpointStartInput =
+  | (ProcessInput & Readonly<{ endpoint: "server", launch?: ServerLaunch }>)
+  | (ProcessInput & Readonly<{ endpoint: "client", launch?: ClientLaunch }>)
 
 export interface EndpointWaitReadyInput extends ProcessInput {
   endpoint: "server"
@@ -189,6 +189,7 @@ const process = text("Runtime Process identity, or Program-local Process name wh
 const timeout = integer("Maximum wait in milliseconds. Defaults to 10000.")
 const endpoint = enumeration(["server", "client"], "Endpoint kind.")
 const server = schema({ type: "string", const: "server", description: "The Server Endpoint." })
+const client = schema({ type: "string", const: "client", description: "The Client Endpoint." })
 const event = text("Event name.")
 const search = text("Case-insensitive search text.")
 const limit = integer("Maximum returned items. Defaults to 30 and never exceeds 100.", 1, 100)
@@ -202,6 +203,7 @@ const size = object({ width: value, height: value }, ["width", "height"])
 const processCoordinates = { process, program }
 const endpointCoordinates = { ...processCoordinates, endpoint }
 const clientLaunch = object({
+  service: { type: "boolean", description: "Make this Client incarnation addressable through system.service()." },
   title: { type: "string" },
   size,
   position,
@@ -209,11 +211,20 @@ const clientLaunch = object({
   location: { type: "string" },
   minimize: { type: "boolean" }
 })
+const serverLaunch = object({
+  service: { type: "boolean", description: "Make this Server incarnation addressable through system.service()." }
+})
 const launch = object({
   name: text("Stable Program-local Process name."),
-  server: { type: "boolean" },
+  server: { oneOf: [{ type: "boolean" }, serverLaunch] },
   client: { oneOf: [{ type: "boolean" }, clientLaunch] },
   options: { type: "object", additionalProperties: { type: "string" } }
+})
+const endpointStart = schema({
+  oneOf: [
+    object({ ...processCoordinates, endpoint: server, launch: serverLaunch }, ["process", "endpoint"]),
+    object({ ...processCoordinates, endpoint: client, launch: clientLaunch }, ["process", "endpoint"])
+  ]
 })
 
 const programSummary = object({
@@ -239,7 +250,8 @@ const endpointSummary = object({
   program: { type: "string" },
   endpoint: enumeration(["server", "client"], "Endpoint kind."),
   declared: { type: "boolean" },
-  running: { type: "boolean" }
+  running: { type: "boolean" },
+  service: { type: "boolean" }
 })
 const windowSummary = object({
   process: { type: "string" },
@@ -341,7 +353,7 @@ export const systemControl = Object.freeze({
     ]),
     operations: Object.freeze({
       inspect: operation("read", "Read whether one Endpoint is declared and running.", object(endpointCoordinates, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "server" }]),
-      start: operation("write", "Start a fresh Endpoint incarnation without implicitly changing the other Endpoint.", object({ ...endpointCoordinates, client: clientLaunch }, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "client" }]),
+      start: operation("write", "Start a fresh Endpoint incarnation without implicitly changing the other Endpoint.", endpointStart, endpointSummary, [{ process: "process-identity", endpoint: "client", launch: { service: false } }]),
       stop: operation("write", "Stop one Endpoint. The final live Endpoint cannot be stopped; exit the Process instead.", object(endpointCoordinates, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "client" }]),
       waitReady: operation("wait", "Wait until the current or next Server incarnation reports readiness.", object({ ...processCoordinates, endpoint: server, timeout }, ["process", "endpoint"]), endpointSummary, [{ process: "process-identity", endpoint: "server", timeout: 30000 }]),
       waitLifecycle: operation("wait", "Wait for one lifecycle transition of an exact Endpoint.", object({
@@ -383,11 +395,13 @@ export const systemControl = Object.freeze({
 export function systemControlToolSchema(capability: SystemControlCapabilityName): SystemControlSchema {
   const operations = systemControl[capability].operations
   return schema({
-    oneOf: Object.entries(operations).map(([name, definition]) => ({
-      ...definition.input,
-      properties: Object.freeze({ action: Object.freeze({ type: "string", const: name }), ...definition.input.properties }),
-      required: Object.freeze(["action", ...(definition.input.required ?? [])])
-    }))
+    oneOf: Object.entries(operations).flatMap(([name, definition]) => (
+      definition.input.oneOf ?? [definition.input]
+    ).map(input => ({
+      ...input,
+      properties: Object.freeze({ action: Object.freeze({ type: "string", const: name }), ...input.properties }),
+      required: Object.freeze(["action", ...(input.required ?? [])])
+    })))
   })
 }
 

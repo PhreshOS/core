@@ -1,10 +1,10 @@
 import type { Askable } from "./askable.js"
 import type { WritableAppearance } from "./appearance.js"
 import type { ClientDeclaration, EndpointDeclaration, ProgramCommandChunk, ProgramEvents } from "./program.js"
-import type { Layer, Launch, LaunchClient, Position, Size } from "./launch.js"
+import type { ClientLaunch, Layer, Launch, Position, ServerLaunch, Size } from "./launch.js"
 import type { Exit } from "./process.js"
 import type { Publishable } from "./publishable.js"
-import type { ClientService, ServerService, Service, ServiceKey } from "./service.js"
+import type { ClientService, ServerService, ServiceKey } from "./service.js"
 import type { EndpointLifecycle } from "./endpoint.js"
 import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
@@ -14,6 +14,7 @@ import type { Window, WindowEvents } from "./window.js"
 type ServerDefinitionBase = Readonly<{
   location: string
   start?: boolean
+  service?: boolean
   installCommand?: string
   uninstallCommand?: string
 }>
@@ -26,6 +27,7 @@ export type ServerDefinition = ServerDefinitionBase & (
 export type ClientDefinition = Readonly<{
   location: string
   start?: boolean
+  service?: boolean
   title?: string
   size?: Size
   position?: Position
@@ -112,20 +114,19 @@ export interface SystemEndpointEntity<Events extends object = {}>
   readonly lifecycle: EndpointLifecycle
   process(): Promise<SystemProcessEntity>
   exists(): Promise<boolean>
+  isService(): Promise<boolean>
   start(): Promise<void>
   stop(): Promise<void>
-  service(): Promise<Service | null>
 }
 
 export interface SystemServerEntity<Events extends object = {}> extends SystemEndpointEntity<Events>, Askable {
+  start(launch?: ServerLaunch): Promise<void>
   waitReady(timeout?: number): Promise<void>
-  service<ServiceEvents extends object = {}>(): Promise<ServerService<ServiceEvents> | null>
 }
 
 export interface SystemClientEntity<Events extends object = {}> extends SystemEndpointEntity<Events> {
   readonly window: Window
-  start(overrides?: LaunchClient): Promise<void>
-  service<ServiceEvents extends object = {}>(): Promise<ClientService<ServiceEvents> | null>
+  start(launch?: ClientLaunch): Promise<void>
 }
 
 export type SystemProcessEntityEvents = {

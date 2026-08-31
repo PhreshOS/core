@@ -3,6 +3,7 @@ import {
   Client,
   ClientService,
   type Context,
+  type Launch,
   type LocalWindow,
   type Transaction,
   Endpoint,
@@ -41,14 +42,26 @@ describe("public runtime", function () {
     expect(ServerService.prototype).toBeInstanceOf(Service)
   })
 
-  it("places service exposure on Context and lifecycle beside application events", function () {
-    expectTypeOf<Context>().toHaveProperty("enableService")
-    expectTypeOf<Context>().toHaveProperty("disableService")
-    expectTypeOf<Endpoint>().toHaveProperty("service")
+  it("shares Endpoint launch contracts across Process creation and restart", function () {
+    const launch: Launch = {
+      server: { service: true },
+      client: { service: true }
+    }
+    type ClientLaunchHasService = "service" extends keyof NonNullable<Parameters<Client["start"]>[0]> ? true : false
+    type ServerLaunchHasService = "service" extends keyof NonNullable<Parameters<Server["start"]>[0]> ? true : false
+
+    expect(launch.server).toEqual({ service: true })
+    expectTypeOf<ClientLaunchHasService>().toEqualTypeOf<true>()
+    expectTypeOf<ServerLaunchHasService>().toEqualTypeOf<true>()
+    expectTypeOf<Context>().toHaveProperty("isService")
+    expectTypeOf<Endpoint>().toHaveProperty("isService")
+    expectTypeOf<Endpoint>().not.toHaveProperty("service")
     expectTypeOf<Endpoint>().toHaveProperty("lifecycle")
-    expectTypeOf<Endpoint>().not.toHaveProperty("enableService")
-    expectTypeOf<Endpoint>().not.toHaveProperty("disableService")
     expectTypeOf<Service>().toHaveProperty("lifecycle")
+    expectTypeOf<Service>().toHaveProperty("exists")
+    expectTypeOf<Service>().toHaveProperty("publish")
+    expectTypeOf<ClientService>().not.toHaveProperty("waitReady")
+    expectTypeOf<ServerService>().toHaveProperty("waitReady")
     expectTypeOf<Service>().not.toHaveProperty("channel")
   })
 
@@ -88,9 +101,11 @@ describe("public runtime", function () {
   })
 
   it("recognizes only complete public service keys", function () {
-    expect(isServiceKey({ program: "counter", endpoint: "server", name: "state" })).toBe(true)
-    expect(isServiceKey({ program: "counter", endpoint: "process", name: "state" })).toBe(false)
-    expect(isServiceKey({ program: "counter", endpoint: "client", name: "" })).toBe(false)
+    expect(isServiceKey({ program: "counter", process: "main", endpoint: "server" })).toBe(true)
+    expect(isServiceKey({ process: "1f4b222c-25d7-4ba8-85e5-d5e59cfe0928", endpoint: "server" })).toBe(true)
+    expect(isServiceKey({ process: "main", endpoint: "server" })).toBe(false)
+    expect(isServiceKey({ program: "counter", process: "main", endpoint: "process" })).toBe(false)
+    expect(isServiceKey({ program: "counter", process: "", endpoint: "client" })).toBe(false)
   })
 
   it("accepts only finite linear geometry", function () {

@@ -232,7 +232,7 @@ lifecycle apart from its Client; its stable capability addresses the Client's cu
 presentation state and rejects reads or mutations while that Client is
 absent.
 
-`LaunchClient.title` supplies a dynamic initial title when starting a declared
+`ClientLaunch.title` supplies a dynamic initial title when starting a declared
 Client. The system resolves it with the remaining launch shape before the
 Client is announced, so the first rendered Window already has its final title.
 Omission uses the Program declaration; `window.changeTitle()` remains the live
@@ -365,13 +365,30 @@ contracts. Packaging installs it canonically as `agent.md`.
 agent implementation and does not explain generic Process, Endpoint, or tool
 mechanics.
 
-Services are independent runtime bindings. A running Endpoint may explicitly
-expose itself with `context.enableService(name)` without declaring or
-shipping documentation through the Program contract.
-Application events are subscribed to directly on the stable Service handle;
-a Server Service can also be published to or asked directly.
-`service.lifecycle` is the separate subscribable namespace for `enable` and
-`disable`, while `enabled()` and `waitReady()` remain root Service operations.
+Server and Client declarations may set `service: true`; omission resolves to
+`false`. This value is the default for every new Endpoint incarnation, and an
+Endpoint launch object may override it:
+
+```ts
+await program.process.create({
+  name: "worker",
+  server: { service: true },
+  client: false
+})
+```
+
+`server: true` uses the Server declaration's default. The object form selects
+the role for that incarnation. Client launches use the same `service` field
+alongside their Window options, and later `server.start()` and `client.start()`
+accept the same endpoint launch objects.
+
+`system.service({ program, process, endpoint })` requires `program` when
+`process` is a Program-local name. An exact globally unique Process identity
+may instead use `system.service({ process, endpoint })`. A Service provides communication,
+`exists()`, and the Endpoint's `start` and `stop` lifecycle observations, but it
+cannot control that Endpoint. A Server Service additionally provides `ask()`
+and `waitReady()`. `context.isService()` and `endpoint.isService()` report the
+current Endpoint incarnation's role without creating another access path.
 
 Every Program also exposes its guaranteed icon without revealing hosting or
 filesystem details:

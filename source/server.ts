@@ -1,8 +1,8 @@
 import type { Askable } from "./askable.js"
 import { Endpoint, type EndpointTraffic } from "./endpoint.js"
+import type { ServerLaunch } from "./launch.js"
 import type { Outcome } from "./outcome.js"
 import type { Cleanup, EventOptions } from "./subscribable.js"
-import type { ServerService } from "./service.js"
 
 /** One answer sent by this Server to the Endpoint that asked. */
 export type AnswerMessage<Result = unknown, To = Endpoint> = Readonly<{
@@ -52,6 +52,9 @@ export interface Server<Events extends object = {}> extends Askable {
   /** Directed communication originating from this Server. */
   readonly traffic: ServerTraffic<Events>
 
+  /** Starts a fresh Server incarnation using optional Process-local settings. */
+  start(launch?: ServerLaunch): Promise<void>
+
   /**
    * Waits until a Server incarnation is ready.
    *
@@ -59,8 +62,5 @@ export interface Server<Events extends object = {}> extends Askable {
    * The SDK uses its ten-second deadline unless one is supplied.
    */
   waitReady(timeout?: number): Promise<void>
-
-  /** Returns this Server's current complete service handle, or `null`. */
-  service<ServiceEvents extends object = {}>(): Promise<ServerService<ServiceEvents> | null>
 
 }

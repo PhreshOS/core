@@ -27,9 +27,6 @@ export type ContextCapture<Events extends object = {}, From = Endpoint | null> =
 /** Inbound communication and destinationless output of the executing Endpoint. */
 export interface Context<Events extends object = {}, From = Endpoint | null>
   extends Subscribable<ContextEvents<Events, From>, ContextFallback<Events, From>>, Publishable {
-  /** Exposes the executing Endpoint under one public service name. */
-  enableService(name: string): Promise<void>
-
-  /** Stops exposing the executing Endpoint as a service. */
-  disableService(): Promise<void>
+  /** Returns whether the executing Endpoint incarnation is a service. */
+  isService(): Promise<boolean>
 }
