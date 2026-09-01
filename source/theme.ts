@@ -22,9 +22,13 @@ export type DesktopPreferencesUpdate =
 
 export type DesktopPreferencesEvents = { change: DesktopPreferences }
 
-/** Mutable preferences local to one Desktop. Reads expose only effective values. */
-export interface SystemDesktopPreferences extends Subscribable<DesktopPreferencesEvents, never> {
+/** Read-only access to the effective preferences of one Desktop. */
+export interface DesktopPreferencesSource extends Subscribable<DesktopPreferencesEvents, never> {
   readonly snapshot: () => Promise<DesktopPreferences>
+}
+
+/** Mutable access to preferences local to one Desktop. */
+export interface WritableDesktopPreferencesSource extends DesktopPreferencesSource {
   readonly update: (preferences: DesktopPreferencesUpdate) => Promise<void>
 }
 

@@ -5,7 +5,7 @@ import type { Outcome } from "./outcome.js"
 import type { Cleanup, EventOptions } from "./subscribable.js"
 
 /** One answer sent by this Server to the Endpoint that asked. */
-export type AnswerMessage<Result = unknown, To = Endpoint> = Readonly<{
+export type AnswerMessage<Result = unknown, To = Endpoint | null> = Readonly<{
   /** Destination Endpoint, or `null` when its identity is outside this boundary. */
   to: To
 
@@ -14,7 +14,7 @@ export type AnswerMessage<Result = unknown, To = Endpoint> = Readonly<{
 }>
 
 /** One observed answer sent by this Server. */
-export type AnswerCapture<Result = unknown, To = Endpoint> = Readonly<{
+export type AnswerCapture<Result = unknown, To = Endpoint | null> = Readonly<{
   /** Event originally addressed by the question. */
   event: string
 
@@ -26,13 +26,13 @@ export type AnswerCapture<Result = unknown, To = Endpoint> = Readonly<{
 }>
 
 /** A callback subscribed to answers sent by this Server. */
-export type AnswerSubscriber<Result = unknown, To = Endpoint> = (capture: AnswerCapture<Result, To>) => unknown
+export type AnswerSubscriber<Result = unknown, To = Endpoint | null> = (capture: AnswerCapture<Result, To>) => unknown
 
 /** Directed communication originating from one Server, including its answers. */
 export interface ServerTraffic<
   Events extends object = {},
-  To = Endpoint,
-  AskTo = Server
+  To = Endpoint | null,
+  AskTo = Server | null
 > extends EndpointTraffic<Events, To, AskTo> {
   /** Subscribes to answers originating from this Server. */
   subscribeAnswers<Result = unknown>(subscriber: AnswerSubscriber<Result, To>): Cleanup

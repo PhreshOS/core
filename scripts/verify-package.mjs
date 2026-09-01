@@ -68,7 +68,7 @@ assert.equal(standardAppearance.background.light, "#fffff5")
 
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { defineConfig, isUploadFile, type ContextMessage, type Config, type LocalWindow, type Program, type SystemUploads, type Transaction, type Upload, type VisibilityTransition, type Window, type WindowGeometry } from "@phreshos/core"
+    `import { defineConfig, isUploadFile, type ContextMessage, type Config, type DesktopPointerSource, type DesktopPreferencesSource, type DesktopSurfaceSource, type LocalWindow, type Program, type SystemUploads, type TrafficMessage, type Transaction, type Upload, type VisibilityTransition, type Window, type WindowGeometry, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
 const config: Config = defineConfig({
   identity: "package-consumer",
@@ -88,10 +88,19 @@ const geometry: WindowGeometry = {
 declare const window: Window
 const setGeometry: Promise<void> = window.setGeometry(geometry)
 const outside: ContextMessage<string> = { from: null, payload: "owner-local" }
+const hiddenDestination: TrafficMessage<string> = { to: null, payload: "boundary-local" }
 declare const uploads: SystemUploads
+declare const desktopSurface: DesktopSurfaceSource
+declare const desktopPointer: DesktopPointerSource
+declare const desktopPreferences: DesktopPreferencesSource
+declare const writableDesktopPreferences: WritableDesktopPreferencesSource
 const written: Promise<Upload> = uploads.write("hello")
 const read: Promise<string> = uploads.text("00000000-0000-0000-0000-000000000000.txt")
 const uploadKey: boolean = isUploadFile("00000000-0000-0000-0000-000000000000.txt")
+const surfaceWidth: Promise<number> = desktopSurface.snapshot().then(snapshot => snapshot.size.width)
+const pointerX: Promise<number | undefined> = desktopPointer.snapshot().then(snapshot => snapshot.position?.x)
+const theme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
+const updateTheme = writableDesktopPreferences.update({ theme: "default" })
 void config
 void program.identity
 void transaction
@@ -99,9 +108,14 @@ void localWindow.surface.set(visibility)
 void localWindow.surface.remove(visibility)
 void setGeometry
 void outside
+void hiddenDestination
 void written
 void read
 void uploadKey
+void surfaceWidth
+void pointerX
+void theme
+void updateTheme
 void windowHasSurface
 `
   )

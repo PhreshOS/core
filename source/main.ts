@@ -40,8 +40,9 @@ export {
   type AnimationsPreference,
   type DesktopPreferences,
   type DesktopPreferencesEvents,
+  type DesktopPreferencesSource,
   type DesktopPreferencesUpdate,
-  type SystemDesktopPreferences,
+  type WritableDesktopPreferencesSource,
   type Theme,
   type ThemePreference,
   type Colorable,
@@ -50,6 +51,16 @@ export {
   type Sizable,
   type Variantable
 } from "./theme.js"
+export {
+  type DesktopPointerEvents,
+  type DesktopPointerPosition,
+  type DesktopPointerSnapshot,
+  type DesktopPointerSource,
+  type DesktopSize,
+  type DesktopSurfaceEvents,
+  type DesktopSurfaceSnapshot,
+  type DesktopSurfaceSource
+} from "./desktop.js"
 export {
   appearanceLimits,
   createAppearanceSnapshot,

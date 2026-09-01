@@ -6,8 +6,8 @@ import type { Window } from "./window.js"
 /** Directed communication originating from one Client. */
 export interface ClientTraffic<
   Events extends object = {},
-  To = Endpoint,
-  AskTo = Server
+  To = Endpoint | null,
+  AskTo = Server | null
 > extends EndpointTraffic<Events, To, AskTo> {}
 
 /** The client Endpoint of a Process. */

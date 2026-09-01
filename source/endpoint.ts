@@ -4,7 +4,7 @@ import type { Server } from "./server.js"
 import type { Captures, Cleanup, EventOptions, Subscribable } from "./subscribable.js"
 
 /** One application value observed in traffic originating from an Endpoint. */
-export type TrafficMessage<Payload = unknown, To = Endpoint> = Readonly<{
+export type TrafficMessage<Payload = unknown, To = Endpoint | null> = Readonly<{
   /** Destination Endpoint, or `null` when its identity is outside this boundary. */
   to: To
 
@@ -13,7 +13,7 @@ export type TrafficMessage<Payload = unknown, To = Endpoint> = Readonly<{
 }>
 
 /** Applies destination metadata to every observed ordinary event. */
-export type TrafficEvents<Events extends object, To = Endpoint> = {
+export type TrafficEvents<Events extends object, To = Endpoint | null> = {
   readonly [Event in keyof Events]: TrafficMessage<Events[Event], To>
 }
 
@@ -22,7 +22,7 @@ type TrafficFallback<Events extends object, To> = keyof Events extends never
   : never
 
 /** One question sent by this Endpoint to a Server. */
-export type AskMessage<Payload = unknown, To = Server> = Readonly<{
+export type AskMessage<Payload = unknown, To = Server | null> = Readonly<{
   /** Destination Server, or `null` when its identity is outside this boundary. */
   to: To
 
@@ -31,7 +31,7 @@ export type AskMessage<Payload = unknown, To = Server> = Readonly<{
 }>
 
 /** One observed question sent by this Endpoint. */
-export type AskCapture<Payload = unknown, To = Server> = Readonly<{
+export type AskCapture<Payload = unknown, To = Server | null> = Readonly<{
   /** Event addressed by the question. */
   event: string
 
@@ -43,17 +43,17 @@ export type AskCapture<Payload = unknown, To = Server> = Readonly<{
 }>
 
 /** A callback subscribed to questions sent by this Endpoint. */
-export type AskSubscriber<Payload = unknown, To = Server> = (capture: AskCapture<Payload, To>) => unknown
+export type AskSubscriber<Payload = unknown, To = Server | null> = (capture: AskCapture<Payload, To>) => unknown
 
 /** Every ordinary publication observable in traffic from one Endpoint. */
-export type TrafficCapture<Events extends object = {}, To = Endpoint> =
+export type TrafficCapture<Events extends object = {}, To = Endpoint | null> =
   Captures<TrafficEvents<Events, To>, TrafficFallback<Events, To>>
 
 /** Directed communication originating from one Endpoint. */
 export interface EndpointTraffic<
   Events extends object = {},
-  To = Endpoint,
-  AskTo = Server
+  To = Endpoint | null,
+  AskTo = Server | null
 > extends Subscribable<TrafficEvents<Events, To>, TrafficFallback<Events, To>> {
   /** Subscribes to questions originating from this Endpoint. */
   subscribeAsks<Payload = unknown>(subscriber: AskSubscriber<Payload, AskTo>): Cleanup

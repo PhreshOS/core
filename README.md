@@ -96,13 +96,20 @@ a consumer has the effective Theme and needs one particular value. React UI
 owns that resolution and any semantic levels derived from concrete Appearance
 values.
 
+`DesktopSurfaceSource`, `DesktopPointerSource`, and
+`DesktopPreferencesSource` are runtime-neutral live sources. Their immutable
+snapshots carry the complete state observed by React and other adapters;
+surface `resize`, pointer `move`, and preferences `change` events carry those
+same snapshot shapes. `WritableDesktopPreferencesSource` adds mutation without
+making every consumer writable.
+
 `Colorable`, `Sizable`, `Shapeable`, `Variantable`, and `Elevatable` are
 independent element capabilities whose concrete value vocabularies are defined
 separately. An element composes only the capabilities it actually supports.
 
 These contracts contain no React types, component names, presentation levels,
 or mutable implementation. Environment and interface SDKs implement the
-neutral Appearance and Desktop-preferences contracts in their own domains.
+neutral Appearance and Desktop contracts in their own domains.
 
 ## Messaging primitives
 
