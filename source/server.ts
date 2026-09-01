@@ -56,12 +56,4 @@ export interface Server<Events extends object = {}, Fallback = unknown> extends 
   /** Starts a fresh Server incarnation using optional Process-local settings. */
   start(launch?: ServerLaunch): Promise<void>
 
-  /**
-   * Waits until a Server incarnation is ready.
-   *
-   * Temporary absence remains waitable when the Program declares a Server.
-   * The SDK uses its ten-second deadline unless one is supplied.
-   */
-  waitReady(timeout?: number): Promise<void>
-
 }

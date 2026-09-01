@@ -96,6 +96,16 @@ export interface Endpoint<Events extends object = {}, Fallback = unknown>
   exists(): Promise<boolean>
 
   /**
+   * Waits until this Endpoint can be used.
+   *
+   * A Client is ready when it has a live incarnation. A Server additionally
+   * has to announce readiness. Temporary absence remains waitable while the
+   * owning Process exists. The SDK uses its ten-second deadline unless one is
+   * supplied.
+   */
+  waitReady(timeout?: number): Promise<void>
+
+  /**
    * Starts a fresh incarnation without waiting for Server readiness.
    *
    * Rejects when the Process is gone or inaccessible, the Program did not

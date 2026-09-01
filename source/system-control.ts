@@ -85,7 +85,7 @@ export type EndpointStartInput =
   | (ProcessInput & Readonly<{ endpoint: "client", launch?: ClientLaunch }>)
 
 export interface EndpointWaitReadyInput extends ProcessInput {
-  endpoint: "server"
+  endpoint: SystemControlEndpoint
   timeout?: number
 }
 
@@ -318,7 +318,7 @@ export const systemControl = Object.freeze({
       inspect: operation("read", object(endpointCoordinates, ["process", "endpoint"]), endpointSummary),
       start: operation("write", endpointStart, endpointSummary),
       stop: operation("write", object(endpointCoordinates, ["process", "endpoint"]), endpointSummary),
-      waitReady: operation("wait", object({ ...processCoordinates, endpoint: server, timeout }, ["process", "endpoint"]), endpointSummary),
+      waitReady: operation("wait", object({ ...endpointCoordinates, timeout }, ["process", "endpoint"]), endpointSummary),
       waitLifecycle: operation("wait", object({
         ...endpointCoordinates,
         event: enumeration(["start", "stop"], "Endpoint lifecycle event."),

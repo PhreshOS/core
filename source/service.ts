@@ -27,6 +27,15 @@ export interface Service<Events extends object = {}, Fallback = unknown>
 
   /** Returns whether the addressed Endpoint currently has a live incarnation. */
   exists(): Promise<boolean>
+
+  /**
+   * Waits until the addressed Endpoint service can be used.
+   *
+   * A Client service is ready when its Client incarnation exists. A Server
+   * service additionally has to announce readiness. The SDK uses its
+   * ten-second deadline unless one is supplied.
+   */
+  waitReady(timeout?: number): Promise<void>
 }
 
 /** Stable handle for one Server-provided service. */
@@ -37,10 +46,7 @@ export class ServerService<Events extends object = {}, Fallback = unknown>
   }
 }
 
-export interface ServerService<Events extends object = {}, Fallback = unknown> extends Askable {
-  /** Waits until the addressed Server incarnation is ready. */
-  waitReady(timeout?: number): Promise<void>
-}
+export interface ServerService<Events extends object = {}, Fallback = unknown> extends Askable {}
 
 /** Stable handle for one Client-provided service. */
 export class ClientService<Events extends object = {}, Fallback = unknown>

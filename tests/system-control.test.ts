@@ -25,6 +25,9 @@ describe("System control", function () {
   })
 
   it("keeps entity-scoped wait constraints in the shared contract", function () {
+    expect(systemControl.endpoint.operations.waitReady.input).toMatchObject({
+      properties: { endpoint: { enum: ["server", "client"] } }
+    })
     expect(systemControlInputIssue("program", "wait", { program: "theme", event: "install" })).toBe(
       "An individual Program emits only forget and uninstall"
     )
