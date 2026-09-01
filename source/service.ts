@@ -16,12 +16,12 @@ export type ServiceKey = Readonly<{
 }>
 
 /** Stable communication handle for one Endpoint service address. */
-export class Service<Events extends object = {}> {
+export class Service<Events extends object = {}, Fallback = never> {
   protected constructor() {}
 }
 
-export interface Service<Events extends object = {}>
-  extends Publishable, Subscribable<Events, keyof Events extends never ? unknown : never> {
+export interface Service<Events extends object = {}, Fallback = never>
+  extends Publishable, Subscribable<Events, Fallback> {
   /** Start and stop transitions of the addressed Endpoint. */
   readonly lifecycle: EndpointLifecycle
 
@@ -30,21 +30,21 @@ export interface Service<Events extends object = {}>
 }
 
 /** Stable handle for one Server-provided service. */
-export class ServerService<Events extends object = {}>
-  extends Service<Events> {
+export class ServerService<Events extends object = {}, Fallback = never>
+  extends Service<Events, Fallback> {
   protected constructor() {
     super()
   }
 }
 
-export interface ServerService<Events extends object = {}> extends Askable {
+export interface ServerService<Events extends object = {}, Fallback = never> extends Askable {
   /** Waits until the addressed Server incarnation is ready. */
   waitReady(timeout?: number): Promise<void>
 }
 
 /** Stable handle for one Client-provided service. */
-export class ClientService<Events extends object = {}>
-  extends Service<Events> {
+export class ClientService<Events extends object = {}, Fallback = never>
+  extends Service<Events, Fallback> {
   protected constructor() {
     super()
   }

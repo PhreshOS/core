@@ -17,10 +17,6 @@ export type TrafficEvents<Events extends object, To = Endpoint | null> = {
   readonly [Event in keyof Events]: TrafficMessage<Events[Event], To>
 }
 
-type TrafficFallback<Events extends object, To> = keyof Events extends never
-  ? TrafficMessage<unknown, To>
-  : never
-
 /** One question sent by this Endpoint to a Server. */
 export type AskMessage<Payload = unknown, To = Server | null> = Readonly<{
   /** Destination Server, or `null` when its identity is outside this boundary. */
@@ -47,14 +43,14 @@ export type AskSubscriber<Payload = unknown, To = Server | null> = (capture: Ask
 
 /** Every ordinary publication observable in traffic from one Endpoint. */
 export type TrafficCapture<Events extends object = {}, To = Endpoint | null> =
-  Captures<TrafficEvents<Events, To>, TrafficFallback<Events, To>>
+  Captures<TrafficEvents<Events, To>>
 
 /** Directed communication originating from one Endpoint. */
 export interface EndpointTraffic<
   Events extends object = {},
   To = Endpoint | null,
   AskTo = Server | null
-> extends Subscribable<TrafficEvents<Events, To>, TrafficFallback<Events, To>> {
+> extends Subscribable<TrafficEvents<Events, To>, never> {
   /** Subscribes to questions originating from this Endpoint. */
   subscribeAsks<Payload = unknown>(subscriber: AskSubscriber<Payload, AskTo>): Cleanup
 
@@ -81,7 +77,7 @@ export class Endpoint<Events extends object = {}> {
 
 /** An Endpoint address that can also be followed as a destinationless source. */
 export interface Endpoint<Events extends object = {}>
-  extends Publishable, Subscribable<Events, keyof Events extends never ? unknown : never> {
+  extends Publishable, Subscribable<Events, never> {
   /** Directed communication originating from this Endpoint. */
   readonly traffic: EndpointTraffic<Events>
 

@@ -1,9 +1,11 @@
 import type {
   Client,
+  Context,
   Endpoint,
   Process,
   Program,
   Server,
+  Service,
   ServerService,
   SystemClientEntity,
   SystemEndpointEntity,
@@ -11,6 +13,91 @@ import type {
   SystemProgramEntity,
   SystemServerEntity
 } from "../source/main.js"
+
+type DeclaredEvents = {
+  changed: { value: number }
+  closed: undefined
+}
+
+async function declaredEventNames(endpoint: Endpoint<DeclaredEvents>) {
+  endpoint.subscribe("changed", message => {
+    const value: number = message.value
+    void value
+  })
+
+  const changed = await endpoint.waitFor("changed")
+  const value: number = changed.value
+  void value
+
+  for await (const message of endpoint.events("changed")) {
+    const streamed: number = message.value
+    void streamed
+  }
+
+  endpoint.traffic.subscribe("changed", message => {
+    const observed: number = message.payload.value
+    void observed
+  })
+
+  // @ts-expect-error A closed event contract rejects undeclared subscriptions.
+  endpoint.subscribe("unknown", () => undefined)
+
+  // @ts-expect-error A closed event contract rejects undeclared waits.
+  await endpoint.waitFor("unknown")
+
+  // @ts-expect-error A closed event contract rejects undeclared streams.
+  endpoint.events("unknown")
+}
+
+void declaredEventNames
+
+function undeclaredHandleEvents(endpoint: Endpoint, service: Service) {
+  // @ts-expect-error An Endpoint with no event declaration exposes no event names.
+  endpoint.subscribe("unknown", () => undefined)
+
+  // @ts-expect-error An Endpoint with no event declaration exposes no event names.
+  endpoint.waitFor("unknown")
+
+  // @ts-expect-error An Endpoint with no event declaration exposes no event names.
+  endpoint.events("unknown")
+
+  // @ts-expect-error Undeclared Endpoint traffic exposes no ordinary event names.
+  endpoint.traffic.subscribe("unknown", () => undefined)
+
+  // @ts-expect-error Undeclared Endpoint traffic exposes no ordinary event names.
+  endpoint.traffic.waitFor("unknown")
+
+  // @ts-expect-error Undeclared Endpoint traffic exposes no ordinary event names.
+  endpoint.traffic.events("unknown")
+
+  // @ts-expect-error A Service with no event declaration exposes no event names.
+  service.subscribe("unknown", () => undefined)
+
+  // @ts-expect-error A Service with no event declaration exposes no event names.
+  service.waitFor("unknown")
+
+  // @ts-expect-error A Service with no event declaration exposes no event names.
+  service.events("unknown")
+}
+
+void undeclaredHandleEvents
+
+async function openContextEvents(context: Context) {
+  context.subscribe("application-event", message => void message.payload)
+  await context.waitFor("application-event")
+  context.events("application-event")
+}
+
+void openContextEvents
+
+function explicitlyOpenService(service: Service<{ changed: number }, unknown>) {
+  service.subscribe("changed", message => message.toFixed(0))
+  service.subscribe("application-event", message => void message)
+  service.waitFor("application-event")
+  service.events("application-event")
+}
+
+void explicitlyOpenService
 
 function eventContracts(process: Process, server: Server, service: ServerService<{ change: number }>) {
   const stop = process.subscribe(capture => {

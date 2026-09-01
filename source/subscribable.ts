@@ -99,9 +99,6 @@ interface WaitFor<Events extends object, Fallback> {
 }
 
 interface EventStream<Events extends object, Fallback> {
-  /** Iterates every event as a correlated capture until closed, aborted, or impossible. */
-  (options?: EventOptions): AsyncIterableIterator<Captures<Events, Fallback>>
-
   /** Iterates matching messages until closed, aborted, or impossible. */
   <Narrowed>(event: CompatibleEvent<Events, Fallback, Narrowed>, options?: EventOptions): AsyncIterableIterator<Narrowed>
 
@@ -110,6 +107,9 @@ interface EventStream<Events extends object, Fallback> {
 
   /** Iterates matching messages until closed, aborted, or impossible. */
   (event: [Fallback] extends [never] ? never : OpenEvent, options?: EventOptions): AsyncIterableIterator<Fallback>
+
+  /** Iterates every event as a correlated capture until closed, aborted, or impossible. */
+  (options?: EventOptions): AsyncIterableIterator<Captures<Events, Fallback>>
 }
 
 /**

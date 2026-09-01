@@ -1,6 +1,6 @@
 {
   "name": "@phreshos/core",
-  "version": "0.1.32",
+  "version": "0.1.33",
   "description": "Environment-neutral contracts and domain objects for PhreshOS Programs.",
   "type": "module",
   "sideEffects": false,
@@ -40,10 +40,11 @@
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "check": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "verify:completions": "node scripts/verify-completions.mjs",
     "test": "vitest run",
     "build": "node --run clean && tsc --noEmit false --outDir dist --rootDir source",
     "verify:package": "node scripts/verify-package.mjs",
-    "verify": "node --run check && node --run test && node --run build && node --run verify:package",
+    "verify": "node --run check && node --run verify:completions && node --run test && node --run build && node --run verify:package",
     "prepack": "node --run test && node --run build"
   },
   "devDependencies": {
