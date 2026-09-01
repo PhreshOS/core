@@ -5,6 +5,8 @@ import {
   type Context,
   type Launch,
   type LocalWindow,
+  type SystemProcessEntity,
+  type SystemProgramEntity,
   type Transaction,
   Endpoint,
   Server,
@@ -40,6 +42,14 @@ describe("public runtime", function () {
     expect(Server.prototype).toBeInstanceOf(Endpoint)
     expect(ClientService.prototype).toBeInstanceOf(Service)
     expect(ServerService.prototype).toBeInstanceOf(Service)
+  })
+
+  it("refines Program Process operations at the System boundary", function () {
+    type Processes = Awaited<ReturnType<SystemProgramEntity["process"]["list"]>>
+    type Found = Awaited<ReturnType<SystemProgramEntity["process"]["find"]>>
+
+    expectTypeOf<Processes>().toEqualTypeOf<SystemProcessEntity[]>()
+    expectTypeOf<Found>().toEqualTypeOf<SystemProcessEntity | null>()
   })
 
   it("shares Endpoint launch contracts across Process creation and restart", function () {

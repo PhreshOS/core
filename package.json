@@ -1,6 +1,6 @@
 {
   "name": "@phreshos/core",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "description": "Environment-neutral contracts and domain objects for PhreshOS Programs.",
   "type": "module",
   "sideEffects": false,

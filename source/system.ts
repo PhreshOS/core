@@ -51,6 +51,12 @@ export type ProgramDefinition = ProgramDefinitionBase & (
 )
 
 export interface SystemProgramProcess extends ProgramProcess {
+  list(): Promise<SystemProcessEntity[]>
+  first(): Promise<SystemProcessEntity | null>
+  last(): Promise<SystemProcessEntity | null>
+  find(identityOrName: string): Promise<SystemProcessEntity | null>
+  create(launch?: Launch): Promise<SystemProcessEntity>
+  findOrCreate(launch: Launch & Readonly<{ name: string }>): Promise<SystemProcessEntity>
   run(launch?: Launch, options?: SystemProcessRunOptions): AsyncGenerator<SystemProcessRunEvent, void, void>
 }
 
