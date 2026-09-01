@@ -7,19 +7,20 @@ import type { Window } from "./window.js"
 export interface ClientTraffic<
   Events extends object = {},
   To = Endpoint | null,
-  AskTo = Server | null
-> extends EndpointTraffic<Events, To, AskTo> {}
+  AskTo = Server | null,
+  Fallback = never
+> extends EndpointTraffic<Events, To, AskTo, Fallback> {}
 
 /** The client Endpoint of a Process. */
-export class Client<Events extends object = {}> extends Endpoint<Events> {
+export class Client<Events extends object = {}, Fallback = never> extends Endpoint<Events, Fallback> {
   protected constructor() {
     super()
   }
 }
 
-export interface Client<Events extends object = {}> {
+export interface Client<Events extends object = {}, Fallback = never> {
   /** Directed communication originating from this Client. */
-  readonly traffic: ClientTraffic<Events>
+  readonly traffic: ClientTraffic<Events, Endpoint | null, Server | null, Fallback>
 
   /** Presentation capability permanently owned by this Client handle. */
   readonly window: Window

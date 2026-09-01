@@ -17,6 +17,10 @@ export type TrafficEvents<Events extends object, To = Endpoint | null> = {
   readonly [Event in keyof Events]: TrafficMessage<Events[Event], To>
 }
 
+type TrafficFallback<Fallback, To> = [Fallback] extends [never]
+  ? never
+  : TrafficMessage<Fallback, To>
+
 /** One question sent by this Endpoint to a Server. */
 export type AskMessage<Payload = unknown, To = Server | null> = Readonly<{
   /** Destination Server, or `null` when its identity is outside this boundary. */
@@ -42,15 +46,16 @@ export type AskCapture<Payload = unknown, To = Server | null> = Readonly<{
 export type AskSubscriber<Payload = unknown, To = Server | null> = (capture: AskCapture<Payload, To>) => unknown
 
 /** Every ordinary publication observable in traffic from one Endpoint. */
-export type TrafficCapture<Events extends object = {}, To = Endpoint | null> =
-  Captures<TrafficEvents<Events, To>>
+export type TrafficCapture<Events extends object = {}, To = Endpoint | null, Fallback = never> =
+  Captures<TrafficEvents<Events, To>, TrafficFallback<Fallback, To>>
 
 /** Directed communication originating from one Endpoint. */
 export interface EndpointTraffic<
   Events extends object = {},
   To = Endpoint | null,
-  AskTo = Server | null
-> extends Subscribable<TrafficEvents<Events, To>, never> {
+  AskTo = Server | null,
+  Fallback = never
+> extends Subscribable<TrafficEvents<Events, To>, TrafficFallback<Fallback, To>> {
   /** Subscribes to questions originating from this Endpoint. */
   subscribeAsks<Payload = unknown>(subscriber: AskSubscriber<Payload, AskTo>): Cleanup
 
@@ -71,15 +76,15 @@ export type EndpointLifecycleEvents = {
 export interface EndpointLifecycle extends Subscribable<EndpointLifecycleEvents, never> {}
 
 /** The shared Process endpoint represented by Server and Client. */
-export class Endpoint<Events extends object = {}> {
+export class Endpoint<Events extends object = {}, Fallback = never> {
   protected constructor() {}
 }
 
 /** An Endpoint address that can also be followed as a destinationless source. */
-export interface Endpoint<Events extends object = {}>
-  extends Publishable, Subscribable<Events, never> {
+export interface Endpoint<Events extends object = {}, Fallback = never>
+  extends Publishable, Subscribable<Events, Fallback> {
   /** Directed communication originating from this Endpoint. */
-  readonly traffic: EndpointTraffic<Events>
+  readonly traffic: EndpointTraffic<Events, Endpoint | null, Server | null, Fallback>
 
   /** Start and stop transitions of this permanent Endpoint handle. */
   readonly lifecycle: EndpointLifecycle

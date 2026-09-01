@@ -32,8 +32,9 @@ export type AnswerSubscriber<Result = unknown, To = Endpoint | null> = (capture:
 export interface ServerTraffic<
   Events extends object = {},
   To = Endpoint | null,
-  AskTo = Server | null
-> extends EndpointTraffic<Events, To, AskTo> {
+  AskTo = Server | null,
+  Fallback = never
+> extends EndpointTraffic<Events, To, AskTo, Fallback> {
   /** Subscribes to answers originating from this Server. */
   subscribeAnswers<Result = unknown>(subscriber: AnswerSubscriber<Result, To>): Cleanup
 
@@ -42,15 +43,15 @@ export interface ServerTraffic<
 }
 
 /** The server Endpoint of a Process. */
-export class Server<Events extends object = {}> extends Endpoint<Events> {
+export class Server<Events extends object = {}, Fallback = never> extends Endpoint<Events, Fallback> {
   protected constructor() {
     super()
   }
 }
 
-export interface Server<Events extends object = {}> extends Askable {
+export interface Server<Events extends object = {}, Fallback = never> extends Askable {
   /** Directed communication originating from this Server. */
-  readonly traffic: ServerTraffic<Events>
+  readonly traffic: ServerTraffic<Events, Endpoint | null, Server | null, Fallback>
 
   /** Starts a fresh Server incarnation using optional Process-local settings. */
   start(launch?: ServerLaunch): Promise<void>

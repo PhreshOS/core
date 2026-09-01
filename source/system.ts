@@ -92,17 +92,17 @@ export interface SystemProgramEntity extends Program {
   install(): AsyncGenerator<ProgramCommandChunk, void, void>
 }
 
-export interface SystemEndpointEntity<Events extends object = {}>
-  extends Endpoint<Events> {
+export interface SystemEndpointEntity<Events extends object = {}, Fallback = never>
+  extends Endpoint<Events, Fallback> {
   process(): Promise<SystemProcessEntity>
 }
 
-export interface SystemServerEntity<Events extends object = {}> extends Server<Events> {
+export interface SystemServerEntity<Events extends object = {}, Fallback = never> extends Server<Events, Fallback> {
   process(): Promise<SystemProcessEntity>
   start(launch?: ServerLaunch): Promise<void>
 }
 
-export interface SystemClientEntity<Events extends object = {}> extends Client<Events> {
+export interface SystemClientEntity<Events extends object = {}, Fallback = never> extends Client<Events, Fallback> {
   process(): Promise<SystemProcessEntity>
   start(launch?: ClientLaunch): Promise<void>
 }

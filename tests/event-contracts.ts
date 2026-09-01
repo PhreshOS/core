@@ -100,6 +100,16 @@ function explicitlyOpenService(service: Service<{ changed: number }, unknown>) {
 
 void explicitlyOpenService
 
+function explicitlyOpenEndpoint(endpoint: Endpoint<{ changed: number }, unknown>) {
+  endpoint.subscribe("changed", message => message.toFixed(0))
+  endpoint.subscribe("application-event", message => void message)
+  endpoint.waitFor("application-event")
+  endpoint.events("application-event")
+  endpoint.traffic.subscribe("application-event", message => void message.payload)
+}
+
+void explicitlyOpenEndpoint
+
 function explicitlyOpenSystemService(system: System) {
   const service = system.service<{ changed: number }, unknown>({
     program: "application",
