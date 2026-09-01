@@ -4,12 +4,22 @@ import type { Endpoint } from "./endpoint.js"
 import type { Program, ProgramCommandChunk, ProgramProcess } from "./program.js"
 import type { ClientLaunch, Layer, Launch, Position, ServerLaunch, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
+import type { ProgramPermission } from "./permissions.js"
 import type { Server } from "./server.js"
 import type { ClientService, ServerService, ServiceKey } from "./service.js"
 import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
+
+/** Native filesystem storage exposed by an authoritative System. */
+export interface SystemStorage extends Storage {
+  /** Returns the absolute directory represented by this storage handle. */
+  path(): Promise<string>
+
+  /** Resolves path segments within this storage directory. */
+  resolve(...path: string[]): Promise<string>
+}
 
 type ServerDefinitionBase = Readonly<{
   location: string
@@ -86,10 +96,14 @@ export type SystemProcessRunEvent =
 
 /** Canonical Program with authoritative System-owner capabilities. */
 export interface SystemProgramEntity extends Program {
+  readonly data: SystemStorage
+  readonly cache: SystemStorage
+  readonly permission: ProgramPermission
   readonly process: SystemProgramProcess
   readonly startup: SystemProgramStartup
 
   install(): AsyncGenerator<ProgramCommandChunk, void, void>
+  fork(identity: string): Promise<SystemProgramEntity>
 }
 
 export interface SystemEndpointEntity<Events extends object = {}, Fallback = unknown>
@@ -148,7 +162,7 @@ export interface SystemProcess extends Subscribable<SystemProcessEvents, never> 
 
 /** Transport-neutral authoritative System contract shared by environment adapters. */
 export interface System {
-  readonly storage: Storage
+  readonly storage: SystemStorage
   readonly appearance: WritableAppearance
   readonly program: SystemProgram
   readonly process: SystemProcess

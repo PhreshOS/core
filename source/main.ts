@@ -96,6 +96,7 @@ export {
   type SystemProgramEntity,
   type SystemProgramProcess,
   type SystemProgramStartup,
+  type SystemStorage,
   type SystemEndpointEntity,
   type SystemServerEntity,
   type SystemClientEntity,

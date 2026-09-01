@@ -7,6 +7,7 @@ import {
   type LocalWindow,
   type SystemProcessEntity,
   type SystemProgramEntity,
+  type SystemStorage,
   type Transaction,
   Endpoint,
   Server,
@@ -50,6 +51,9 @@ describe("public runtime", function () {
 
     expectTypeOf<Processes>().toEqualTypeOf<SystemProcessEntity[]>()
     expectTypeOf<Found>().toEqualTypeOf<SystemProcessEntity | null>()
+    expectTypeOf<SystemProgramEntity>().toHaveProperty("permission")
+    expectTypeOf<SystemProgramEntity>().toHaveProperty("fork")
+    expectTypeOf<SystemProgramEntity["data"]>().toEqualTypeOf<SystemStorage>()
   })
 
   it("shares Endpoint launch contracts across Process creation and restart", function () {
