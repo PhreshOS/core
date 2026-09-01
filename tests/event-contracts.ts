@@ -9,6 +9,7 @@ import type {
   ServerService,
   SystemClientEntity,
   SystemEndpointEntity,
+  System,
   SystemProcessEntity,
   SystemProgramEntity,
   SystemServerEntity
@@ -98,6 +99,19 @@ function explicitlyOpenService(service: Service<{ changed: number }, unknown>) {
 }
 
 void explicitlyOpenService
+
+function explicitlyOpenSystemService(system: System) {
+  const service = system.service<{ changed: number }, unknown>({
+    program: "application",
+    process: "main",
+    endpoint: "server"
+  })
+
+  service.subscribe("changed", message => message.toFixed(0))
+  service.subscribe("application-event", message => void message)
+}
+
+void explicitlyOpenSystemService
 
 function eventContracts(process: Process, server: Server, service: ServerService<{ change: number }>) {
   const stop = process.subscribe(capture => {

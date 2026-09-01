@@ -163,8 +163,8 @@ export interface System {
    */
   forceCreateProgram(source: ProgramDefinition | string): Promise<SystemProgramEntity>
 
-  service<Events extends object = {}>(key: ServiceKey & { endpoint: "server" }): ServerService<Events>
-  service<Events extends object = {}>(key: ServiceKey & { endpoint: "client" }): ClientService<Events>
+  service<Events extends object = {}, Fallback = never>(key: ServiceKey & { endpoint: "server" }): ServerService<Events, Fallback>
+  service<Events extends object = {}, Fallback = never>(key: ServiceKey & { endpoint: "client" }): ClientService<Events, Fallback>
 }
 
 // Keep Window's event vocabulary explicitly reachable from this contract.
