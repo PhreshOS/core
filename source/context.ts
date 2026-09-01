@@ -16,17 +16,15 @@ export type ContextEvents<Events extends object, From = Endpoint | null> = {
   readonly [Event in keyof Events]: ContextMessage<Events[Event], From>
 }
 
-type ContextFallback<Events extends object, From> = keyof Events extends never
-  ? ContextMessage<unknown, From>
-  : never
+type ContextFallback<From> = ContextMessage<unknown, From>
 
 /** Every application event observable through an executing Context. */
 export type ContextCapture<Events extends object = {}, From = Endpoint | null> =
-  Captures<ContextEvents<Events, From>, ContextFallback<Events, From>>
+  Captures<ContextEvents<Events, From>, ContextFallback<From>>
 
 /** Inbound communication and destinationless output of the executing Endpoint. */
 export interface Context<Events extends object = {}, From = Endpoint | null>
-  extends Subscribable<ContextEvents<Events, From>, ContextFallback<Events, From>>, Publishable {
+  extends Subscribable<ContextEvents<Events, From>, ContextFallback<From>>, Publishable {
   /** Returns whether the executing Endpoint incarnation is a service. */
   isService(): Promise<boolean>
 }

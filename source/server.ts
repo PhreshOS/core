@@ -33,7 +33,7 @@ export interface ServerTraffic<
   Events extends object = {},
   To = Endpoint | null,
   AskTo = Server | null,
-  Fallback = never
+  Fallback = unknown
 > extends EndpointTraffic<Events, To, AskTo, Fallback> {
   /** Subscribes to answers originating from this Server. */
   subscribeAnswers<Result = unknown>(subscriber: AnswerSubscriber<Result, To>): Cleanup
@@ -43,13 +43,13 @@ export interface ServerTraffic<
 }
 
 /** The server Endpoint of a Process. */
-export class Server<Events extends object = {}, Fallback = never> extends Endpoint<Events, Fallback> {
+export class Server<Events extends object = {}, Fallback = unknown> extends Endpoint<Events, Fallback> {
   protected constructor() {
     super()
   }
 }
 
-export interface Server<Events extends object = {}, Fallback = never> extends Askable {
+export interface Server<Events extends object = {}, Fallback = unknown> extends Askable {
   /** Directed communication originating from this Server. */
   readonly traffic: ServerTraffic<Events, Endpoint | null, Server | null, Fallback>
 

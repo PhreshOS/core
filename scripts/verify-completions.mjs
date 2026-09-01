@@ -15,6 +15,7 @@ type Events = {
 
 declare const endpoint: Endpoint<Events>
 
+endpoint.subscribe("")
 endpoint.subscribe("", () => undefined)
 endpoint.waitFor("")
 endpoint.events("")
@@ -41,7 +42,18 @@ const host = {
 }
 const service = ts.createLanguageService(host)
 
-for (const method of ["subscribe", "waitFor", "events"]) {
+const subscribeMarker = `subscribe("`
+const firstSubscribe = source.indexOf(subscribeMarker)
+
+for (const position of [
+  firstSubscribe + subscribeMarker.length,
+  source.indexOf(subscribeMarker, firstSubscribe + 1) + subscribeMarker.length
+]) {
+  const completions = service.getCompletionsAtPosition(file, position, {})?.entries.map(entry => entry.name)
+  assert.deepEqual(completions, ["changed", "closed"], "subscribe() event completions diverged")
+}
+
+for (const method of ["waitFor", "events"]) {
   const marker = `${method}("`
   const position = source.indexOf(marker) + marker.length
   const completions = service.getCompletionsAtPosition(file, position, {})?.entries.map(entry => entry.name)

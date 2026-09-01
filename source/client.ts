@@ -8,17 +8,17 @@ export interface ClientTraffic<
   Events extends object = {},
   To = Endpoint | null,
   AskTo = Server | null,
-  Fallback = never
+  Fallback = unknown
 > extends EndpointTraffic<Events, To, AskTo, Fallback> {}
 
 /** The client Endpoint of a Process. */
-export class Client<Events extends object = {}, Fallback = never> extends Endpoint<Events, Fallback> {
+export class Client<Events extends object = {}, Fallback = unknown> extends Endpoint<Events, Fallback> {
   protected constructor() {
     super()
   }
 }
 
-export interface Client<Events extends object = {}, Fallback = never> {
+export interface Client<Events extends object = {}, Fallback = unknown> {
   /** Directed communication originating from this Client. */
   readonly traffic: ClientTraffic<Events, Endpoint | null, Server | null, Fallback>
 

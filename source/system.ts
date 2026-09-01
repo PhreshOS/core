@@ -92,17 +92,17 @@ export interface SystemProgramEntity extends Program {
   install(): AsyncGenerator<ProgramCommandChunk, void, void>
 }
 
-export interface SystemEndpointEntity<Events extends object = {}, Fallback = never>
+export interface SystemEndpointEntity<Events extends object = {}, Fallback = unknown>
   extends Endpoint<Events, Fallback> {
   process(): Promise<SystemProcessEntity>
 }
 
-export interface SystemServerEntity<Events extends object = {}, Fallback = never> extends Server<Events, Fallback> {
+export interface SystemServerEntity<Events extends object = {}, Fallback = unknown> extends Server<Events, Fallback> {
   process(): Promise<SystemProcessEntity>
   start(launch?: ServerLaunch): Promise<void>
 }
 
-export interface SystemClientEntity<Events extends object = {}, Fallback = never> extends Client<Events, Fallback> {
+export interface SystemClientEntity<Events extends object = {}, Fallback = unknown> extends Client<Events, Fallback> {
   process(): Promise<SystemProcessEntity>
   start(launch?: ClientLaunch): Promise<void>
 }
@@ -163,8 +163,8 @@ export interface System {
    */
   forceCreateProgram(source: ProgramDefinition | string): Promise<SystemProgramEntity>
 
-  service<Events extends object = {}, Fallback = never>(key: ServiceKey & { endpoint: "server" }): ServerService<Events, Fallback>
-  service<Events extends object = {}, Fallback = never>(key: ServiceKey & { endpoint: "client" }): ClientService<Events, Fallback>
+  service<Events extends object = {}, Fallback = unknown>(key: ServiceKey & { endpoint: "server" }): ServerService<Events, Fallback>
+  service<Events extends object = {}, Fallback = unknown>(key: ServiceKey & { endpoint: "client" }): ClientService<Events, Fallback>
 }
 
 // Keep Window's event vocabulary explicitly reachable from this contract.

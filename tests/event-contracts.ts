@@ -40,48 +40,42 @@ async function declaredEventNames(endpoint: Endpoint<DeclaredEvents>) {
     void observed
   })
 
-  // @ts-expect-error A closed event contract rejects undeclared subscriptions.
-  endpoint.subscribe("unknown", () => undefined)
-
-  // @ts-expect-error A closed event contract rejects undeclared waits.
-  await endpoint.waitFor("unknown")
-
-  // @ts-expect-error A closed event contract rejects undeclared streams.
+  endpoint.subscribe("unknown", message => void message)
+  const unknownMessage: unknown = await endpoint.waitFor("unknown")
+  void unknownMessage
   endpoint.events("unknown")
 }
 
 void declaredEventNames
 
-function undeclaredHandleEvents(endpoint: Endpoint, service: Service) {
-  // @ts-expect-error An Endpoint with no event declaration exposes no event names.
-  endpoint.subscribe("unknown", () => undefined)
-
-  // @ts-expect-error An Endpoint with no event declaration exposes no event names.
+function openHandleEvents(endpoint: Endpoint, service: Service) {
+  endpoint.subscribe("unknown", message => void message)
   endpoint.waitFor("unknown")
-
-  // @ts-expect-error An Endpoint with no event declaration exposes no event names.
   endpoint.events("unknown")
 
-  // @ts-expect-error Undeclared Endpoint traffic exposes no ordinary event names.
-  endpoint.traffic.subscribe("unknown", () => undefined)
-
-  // @ts-expect-error Undeclared Endpoint traffic exposes no ordinary event names.
+  endpoint.traffic.subscribe("unknown", message => void message.payload)
   endpoint.traffic.waitFor("unknown")
-
-  // @ts-expect-error Undeclared Endpoint traffic exposes no ordinary event names.
   endpoint.traffic.events("unknown")
 
-  // @ts-expect-error A Service with no event declaration exposes no event names.
-  service.subscribe("unknown", () => undefined)
-
-  // @ts-expect-error A Service with no event declaration exposes no event names.
+  service.subscribe("unknown", message => void message)
   service.waitFor("unknown")
-
-  // @ts-expect-error A Service with no event declaration exposes no event names.
   service.events("unknown")
 }
 
-void undeclaredHandleEvents
+void openHandleEvents
+
+function explicitlyClosedHandles(endpoint: Endpoint<{}, never>, service: Service<{}, never>) {
+  // @ts-expect-error An explicitly closed Endpoint rejects undeclared events.
+  endpoint.subscribe("unknown", () => undefined)
+
+  // @ts-expect-error An explicitly closed Endpoint rejects undeclared events.
+  endpoint.waitFor("unknown")
+
+  // @ts-expect-error An explicitly closed Service rejects undeclared events.
+  service.events("unknown")
+}
+
+void explicitlyClosedHandles
 
 async function openContextEvents(context: Context) {
   context.subscribe("application-event", message => void message.payload)

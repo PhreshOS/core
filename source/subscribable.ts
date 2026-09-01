@@ -58,41 +58,34 @@ export type EventOptions = Readonly<{
   signal?: AbortSignal
 }>
 
-// Preserves declared string literals in editor completion while still
-// accepting application-defined event names.
+// Accepts application-defined event names without hiding declared names from
+// editor completion.
 type OpenEvent = string & {}
-
-type AvailableEvent<Events extends object, Fallback> = EventName<Events> | ([Fallback] extends [never] ? never : OpenEvent)
-
-// An explicit `<string>` must never be mistaken for a narrowed message type.
-// Inferred literals still select the event-aware overload, while the separate
-// non-generic overload below accepts genuinely dynamic event names.
-type InferredEvent<Event extends string> = string extends Event ? never : Event
 
 type CompatibleEvent<Events extends object, Fallback, Narrowed> = {
   [Event in EventName<Events>]: Narrowed extends Events[Event] ? Event : never
 }[EventName<Events>] | ([Fallback] extends [never] ? never : Narrowed extends Fallback ? OpenEvent : never)
 
 interface Subscribe<Events extends object, Fallback> {
-  /** Registers one persistent subscription across every event and returns its cleanup. */
-  (subscriber: CaptureSubscriber<Events, Fallback>): Cleanup
-
   /** Registers one persistent named-event subscription and returns its cleanup. */
-  <Event extends AvailableEvent<Events, Fallback>>(event: InferredEvent<Event>, subscriber: EventSubscriber<EventMessage<Events, Fallback, Event>>): Cleanup
+  <Event extends EventName<Events>>(event: Event, subscriber: EventSubscriber<Events[Event]>): Cleanup
 
   /** Registers one persistent named-event subscription and returns its cleanup. */
   <Narrowed>(event: CompatibleEvent<Events, Fallback, Narrowed>, subscriber: EventSubscriber<Narrowed>): Cleanup
 
   /** Registers one persistent named-event subscription and returns its cleanup. */
   (event: [Fallback] extends [never] ? never : OpenEvent, subscriber: EventSubscriber<Fallback>): Cleanup
+
+  /** Registers one persistent subscription across every event and returns its cleanup. */
+  (subscriber: CaptureSubscriber<Events, Fallback>): Cleanup
 }
 
 interface WaitFor<Events extends object, Fallback> {
   /** Waits for the next matching message. */
-  <Narrowed>(event: CompatibleEvent<Events, Fallback, Narrowed>, timeout?: number): Promise<Narrowed>
+  <Event extends EventName<Events>>(event: Event, timeout?: number): Promise<Events[Event]>
 
   /** Waits for the next matching message. */
-  <Event extends AvailableEvent<Events, Fallback>>(event: InferredEvent<Event>, timeout?: number): Promise<EventMessage<Events, Fallback, Event>>
+  <Narrowed>(event: CompatibleEvent<Events, Fallback, Narrowed>, timeout?: number): Promise<Narrowed>
 
   /** Waits for the next matching message. */
   (event: [Fallback] extends [never] ? never : OpenEvent, timeout?: number): Promise<Fallback>
@@ -100,10 +93,10 @@ interface WaitFor<Events extends object, Fallback> {
 
 interface EventStream<Events extends object, Fallback> {
   /** Iterates matching messages until closed, aborted, or impossible. */
-  <Narrowed>(event: CompatibleEvent<Events, Fallback, Narrowed>, options?: EventOptions): AsyncIterableIterator<Narrowed>
+  <Event extends EventName<Events>>(event: Event, options?: EventOptions): AsyncIterableIterator<Events[Event]>
 
   /** Iterates matching messages until closed, aborted, or impossible. */
-  <Event extends AvailableEvent<Events, Fallback>>(event: InferredEvent<Event>, options?: EventOptions): AsyncIterableIterator<EventMessage<Events, Fallback, Event>>
+  <Narrowed>(event: CompatibleEvent<Events, Fallback, Narrowed>, options?: EventOptions): AsyncIterableIterator<Narrowed>
 
   /** Iterates matching messages until closed, aborted, or impossible. */
   (event: [Fallback] extends [never] ? never : OpenEvent, options?: EventOptions): AsyncIterableIterator<Fallback>
