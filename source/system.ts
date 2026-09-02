@@ -12,12 +12,12 @@ import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
 import type { ClientPermissionDeclarations } from "./permissions.js"
 
-/** Native filesystem storage exposed by an authoritative System. */
+/** Native filesystem access whose relative entry point is the user's home. */
 export interface SystemStorage extends Storage {
-  /** Returns the absolute directory represented by this storage handle. */
+  /** Returns the absolute user home used as the relative entry point. */
   path(): Promise<string>
 
-  /** Resolves path segments within this storage directory. */
+  /** Resolves filesystem paths from that entry point without confining them to it. */
   resolve(...path: string[]): Promise<string>
 }
 
