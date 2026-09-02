@@ -18,13 +18,21 @@ export type ServerExecution =
 export type ServerDevelopment = ServerExecution
 
 /** Development settings for a Program's Client. */
-export type ClientDevelopment = Readonly<{
-  /** HTTP(S) URL served by the Client's development server. */
-  url: string
+export type ClientDevelopment =
+  | Readonly<{
+    /** HTTP(S) URL served by an external or explicitly addressed development server. */
+    url: string
 
-  /** Optional command that starts the Client's development server. */
-  startCommand?: string
-}>
+    /** Optional command that starts the Client's development server. */
+    startCommand?: string
+  }>
+  | Readonly<{
+    /** Omit the URL to let the Project assign an available local port. */
+    url?: never
+
+    /** Command that starts the Client's development server. */
+    startCommand: string
+  }>
 
 /** Authoring declaration for a Program's Server. */
 export type ServerConfig = Readonly<{
@@ -139,7 +147,7 @@ export type Config = ServerProgramConfig | ClientProgramConfig
  * Defines a Program authoring description with contextual typing.
  *
  * This helper performs no work and returns the supplied description unchanged.
- * The CLI validates and derives it for development, production, or packaging.
+ * Project validates and derives it for development, production, or packaging.
  */
 export function defineConfig(config: ServerProgramConfig): Config
 
