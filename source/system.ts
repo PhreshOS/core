@@ -1,25 +1,13 @@
 import type { WritableAppearance } from "./appearance.js"
-import type { Client } from "./client.js"
-import type { Endpoint } from "./endpoint.js"
-import type { Program, ProgramCommandChunk, ProgramProcess } from "./program.js"
-import type { ClientLaunch, Layer, Launch, Position, ServerLaunch, Size } from "./launch.js"
+import type { Program } from "./program.js"
+import type { Layer, Position, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
-import type { Server } from "./server.js"
 import type { ClientService, ServerService, ServiceKey } from "./service.js"
 import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
 import type { ClientPermissionDeclarations } from "./permissions.js"
-
-/** Native filesystem access whose relative entry point is the user's home. */
-export interface SystemStorage extends Storage {
-  /** Returns the absolute user home used as the relative entry point. */
-  path(): Promise<string>
-
-  /** Resolves filesystem paths from that entry point without confining them to it. */
-  resolve(...path: string[]): Promise<string>
-}
 
 type ServerDefinitionBase = Readonly<{
   location: string
@@ -61,108 +49,39 @@ export type ProgramDefinition = ProgramDefinitionBase & (
   | Readonly<{ server?: ServerDefinition, client: ClientDefinition }>
 )
 
-export interface SystemProgramProcess extends ProgramProcess {
-  list(): Promise<SystemProcessEntity[]>
-  first(): Promise<SystemProcessEntity | null>
-  last(): Promise<SystemProcessEntity | null>
-  find(identityOrName: string): Promise<SystemProcessEntity | null>
-  create(launch?: Launch): Promise<SystemProcessEntity>
-  findOrCreate(launch: Launch & Readonly<{ name: string }>): Promise<SystemProcessEntity>
-  run(launch?: Launch, options?: SystemProcessRunOptions): AsyncGenerator<SystemProcessRunEvent, void, void>
-}
-
-/** Persistent Process launch used when the System starts. */
-export interface SystemProgramStartup {
-  /** Returns the configured launch, or `null` when startup is disabled. */
-  get(): Promise<Launch | null>
-
-  /** Enables startup with one validated Process launch. */
-  enable(launch?: Launch): Promise<void>
-
-  /** Disables startup without changing the Program or its Processes. */
-  disable(): Promise<void>
-}
-
-/** Cancellation controls for one Process whose lifetime belongs to its iterator. */
-export type SystemProcessRunOptions = Readonly<{
-  /** Exits the Process and aborts iteration with this signal's reason. */
-  signal?: AbortSignal
-}>
-
-/** Ordered lifecycle information produced by an attached Process run. */
-export type SystemProcessRunEvent =
-  | Readonly<{ event: "started", process: SystemProcessEntity }>
-  | (Readonly<{ event: "output" }> & ProgramCommandChunk)
-  | Readonly<{ event: "exited", process: SystemProcessEntity, exit: Exit }>
-
-/** Canonical Program with authoritative System-owner capabilities. */
-export interface SystemProgramEntity extends Program {
-  readonly data: SystemStorage
-  readonly cache: SystemStorage
-  readonly process: SystemProgramProcess
-  readonly startup: SystemProgramStartup
-
-  install(): AsyncGenerator<ProgramCommandChunk, void, void>
-  fork(identity: string): Promise<SystemProgramEntity>
-}
-
-export interface SystemEndpointEntity<Events extends object = {}, Fallback = unknown>
-  extends Endpoint<Events, Fallback> {
-  process(): Promise<SystemProcessEntity>
-}
-
-export interface SystemServerEntity<Events extends object = {}, Fallback = unknown> extends Server<Events, Fallback> {
-  process(): Promise<SystemProcessEntity>
-  start(launch?: ServerLaunch): Promise<void>
-}
-
-export interface SystemClientEntity<Events extends object = {}, Fallback = unknown> extends Client<Events, Fallback> {
-  process(): Promise<SystemProcessEntity>
-  start(launch?: ClientLaunch): Promise<void>
-}
-
-/** Canonical Process exposed by the authoritative System registry. */
-export interface SystemProcessEntity extends Process {
-  readonly server: SystemServerEntity
-  readonly client: SystemClientEntity
-
-  program(): SystemProgramEntity
-  parent(): Promise<SystemProcessEntity | null>
-}
-
 export type SystemProgramUninstall = Readonly<{
-  program: SystemProgramEntity
+  program: Program
   everything: boolean
 }>
 
-export type SystemProcessExit = Exit & Readonly<{ process: SystemProcessEntity }>
+export type SystemProcessExit = Exit & Readonly<{ process: Process }>
 
 export type SystemProgramEvents = {
-  create: SystemProgramEntity
-  forget: SystemProgramEntity
-  install: SystemProgramEntity
+  create: Program
+  forget: Program
+  install: Program
   uninstall: SystemProgramUninstall
 }
 
 export type SystemProcessEvents = {
-  create: SystemProcessEntity
+  create: Process
   exit: SystemProcessExit
 }
 
 export interface SystemProgram extends Subscribable<SystemProgramEvents, never> {
-  list(onlyInstalled?: boolean): Promise<SystemProgramEntity[]>
-  find(identity: string): Promise<SystemProgramEntity | null>
-  create(source: ProgramDefinition | string): Promise<SystemProgramEntity>
+  list(onlyInstalled?: boolean): Promise<Program[]>
+  find(identity: string): Promise<Program | null>
+  create(source: ProgramDefinition | string): Promise<Program>
 }
 
 export interface SystemProcess extends Subscribable<SystemProcessEvents, never> {
-  list(): Promise<SystemProcessEntity[]>
-  find(identity: string): Promise<SystemProcessEntity | null>
+  list(): Promise<Process[]>
+  find(identity: string): Promise<Process | null>
 }
 
 /** Transport-neutral authoritative System contract shared by environment adapters. */
 export interface System {
-  readonly storage: SystemStorage
+  readonly storage: Storage
   readonly appearance: WritableAppearance
   readonly program: SystemProgram
   readonly process: SystemProcess
@@ -178,7 +97,7 @@ export interface System {
    * files and storage remain untouched; invalid incoming definitions are
    * rejected before the current entity is changed.
    */
-  forceCreateProgram(source: ProgramDefinition | string): Promise<SystemProgramEntity>
+  forceCreateProgram(source: ProgramDefinition | string): Promise<Program>
 
   service<Endpoint extends ServiceKey["endpoint"]>(key: Omit<ServiceKey, "endpoint"> & Readonly<{ endpoint: Endpoint }>): Endpoint extends "server" ? ServerService : ClientService
   service<Events extends object = {}, Fallback = unknown>(key: ServiceKey & { endpoint: "server" }): ServerService<Events, Fallback>

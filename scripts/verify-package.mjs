@@ -56,10 +56,10 @@ try {
   writeFileSync(
     join(consumer, "runtime.mjs"),
     `import assert from "node:assert/strict"
-import { Client, Endpoint, Server, standardAppearance } from "@phreshos/core"
+import { ClientEndpoint, Endpoint, ServerEndpoint, standardAppearance } from "@phreshos/core"
 
-assert(Client.prototype instanceof Endpoint)
-assert(Server.prototype instanceof Endpoint)
+assert(ClientEndpoint.prototype instanceof Endpoint)
+assert(ServerEndpoint.prototype instanceof Endpoint)
 assert.equal(standardAppearance.background.light, "#fffff5")
 `
   )

@@ -18,7 +18,7 @@ implementation.
 Import through the package root:
 
 ```ts
-import { defineConfig, Program, Process, Server, Client } from "@phreshos/core"
+import { defineConfig, Program, Process, ServerEndpoint, ClientEndpoint } from "@phreshos/core"
 ```
 
 ## Model
@@ -28,11 +28,11 @@ The Program is the domain root:
 ```text
 Program
 └── Process
-    ├── Server
-    └── Client
+    ├── ServerEndpoint
+    └── ClientEndpoint
 ```
 
-`Program`, `Process`, `Endpoint`, `Server`, and `Client` are shared
+`Program`, `Process`, `Endpoint`, `ServerEndpoint`, and `ClientEndpoint` are shared
 runtime classes. Core also owns their contracts for lifecycle, Traffic,
 Services, storage, Appearance, desktop capabilities, and Windows.
 

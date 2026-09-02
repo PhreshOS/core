@@ -1,19 +1,14 @@
 import type {
-  Client,
+  ClientEndpoint,
   ClientContext,
   Context,
   Endpoint,
   Process,
   Program,
-  Server,
+  ServerEndpoint,
   Service,
   ServerService,
-  SystemClientEntity,
-  SystemEndpointEntity,
   System,
-  SystemProcessEntity,
-  SystemProgramEntity,
-  SystemServerEntity
 } from "../source/main.js"
 
 type DeclaredEvents = {
@@ -129,7 +124,7 @@ function explicitlyOpenSystemService(system: System) {
 
 void explicitlyOpenSystemService
 
-function eventContracts(process: Process, server: Server, service: ServerService<{ change: number }>) {
+function eventContracts(process: Process, server: ServerEndpoint, service: ServerService<{ change: number }>) {
   const stop = process.subscribe(capture => {
     const code: number | null = capture.message.code
     void code
@@ -151,7 +146,7 @@ function eventContracts(process: Process, server: Server, service: ServerService
   stop()
 }
 
-async function generatorContracts(process: Process, server: Server) {
+async function generatorContracts(process: Process, server: ServerEndpoint) {
   for await (const capture of process.events()) {
     if (capture.event === "exit") {
       const status: "exited" | "signaled" = capture.message.status
@@ -167,17 +162,17 @@ void eventContracts
 void generatorContracts
 
 function systemHandlesRemainCanonical(
-  program: SystemProgramEntity,
-  process: SystemProcessEntity,
-  endpoint: SystemEndpointEntity,
-  server: SystemServerEntity,
-  client: SystemClientEntity
+  program: Program,
+  process: Process,
+  endpoint: Endpoint,
+  server: ServerEndpoint,
+  client: ClientEndpoint
 ) {
   const canonicalProgram: Program = program
   const canonicalProcess: Process = process
   const canonicalEndpoint: Endpoint = endpoint
-  const canonicalServer: Server = server
-  const canonicalClient: Client = client
+  const canonicalServer: ServerEndpoint = server
+  const canonicalClient: ClientEndpoint = client
 
   program.permissions.get("files")
   program.permissions.all()

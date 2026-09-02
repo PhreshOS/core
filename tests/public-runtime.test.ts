@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest"
 import {
-  Client,
+  ClientEndpoint,
   ClientService,
   type ClientContext,
   type Desktop,
@@ -9,13 +9,13 @@ import {
   type LocalWindow,
   type Permission,
   type PermissionChange,
+  type Process,
+  type Program,
+  type Storage,
   type System,
-  type SystemProcessEntity,
-  type SystemProgramEntity,
-  type SystemStorage,
   type Transaction,
   Endpoint,
-  Server,
+  ServerEndpoint,
   ServerService,
   Service,
   defineConfig,
@@ -49,20 +49,21 @@ describe("public runtime", function () {
   })
 
   it("preserves the domain class hierarchy", function () {
-    expect(Client.prototype).toBeInstanceOf(Endpoint)
-    expect(Server.prototype).toBeInstanceOf(Endpoint)
+    expect(ClientEndpoint.prototype).toBeInstanceOf(Endpoint)
+    expect(ServerEndpoint.prototype).toBeInstanceOf(Endpoint)
     expect(ClientService.prototype).toBeInstanceOf(Service)
     expect(ServerService.prototype).toBeInstanceOf(Service)
   })
 
-  it("refines Program Process operations at the System boundary", function () {
-    type Processes = Awaited<ReturnType<SystemProgramEntity["process"]["list"]>>
-    type Found = Awaited<ReturnType<SystemProgramEntity["process"]["find"]>>
+  it("keeps one complete Program and Process contract", function () {
+    type Processes = Awaited<ReturnType<Program["process"]["list"]>>
+    type Found = Awaited<ReturnType<Program["process"]["find"]>>
 
-    expectTypeOf<Processes>().toEqualTypeOf<SystemProcessEntity[]>()
-    expectTypeOf<Found>().toEqualTypeOf<SystemProcessEntity | null>()
-    expectTypeOf<SystemProgramEntity>().toHaveProperty("fork")
-    expectTypeOf<SystemProgramEntity["data"]>().toEqualTypeOf<SystemStorage>()
+    expectTypeOf<Processes>().toEqualTypeOf<Process[]>()
+    expectTypeOf<Found>().toEqualTypeOf<Process | null>()
+    expectTypeOf<Program>().toHaveProperty("fork")
+    expectTypeOf<Program>().toHaveProperty("assetId")
+    expectTypeOf<Program["data"]>().toEqualTypeOf<Storage>()
   })
 
   it("shares Endpoint launch contracts across Process creation and restart", function () {
@@ -70,8 +71,8 @@ describe("public runtime", function () {
       server: { service: true },
       client: { service: true }
     }
-    type ClientLaunchHasService = "service" extends keyof NonNullable<Parameters<Client["start"]>[0]> ? true : false
-    type ServerLaunchHasService = "service" extends keyof NonNullable<Parameters<Server["start"]>[0]> ? true : false
+    type ClientLaunchHasService = "service" extends keyof NonNullable<Parameters<ClientEndpoint["start"]>[0]> ? true : false
+    type ServerLaunchHasService = "service" extends keyof NonNullable<Parameters<ServerEndpoint["start"]>[0]> ? true : false
 
     expect(launch.server).toEqual({ service: true })
     expectTypeOf<ClientLaunchHasService>().toEqualTypeOf<true>()
@@ -118,7 +119,7 @@ describe("public runtime", function () {
       permission: Permission
       needReload: boolean
     }>>()
-    expectTypeOf<SystemProgramEntity>().toHaveProperty("permissions")
+    expectTypeOf<Program>().toHaveProperty("permissions")
     expect(parsePermission(["read"])).toEqual(["read"])
     expect(parsePermissionChange({ permission: false, needReload: true })).toEqual({ permission: false, needReload: true })
     expect(parsePermissions({ files: ["read"], environment: null })).toEqual({ files: ["read"], environment: null })

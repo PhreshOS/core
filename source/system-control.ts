@@ -217,6 +217,7 @@ const endpointStart = schema({
 
 const programSummary = object({
   identity: { type: "string" },
+  assetId: { type: "string" },
   name: { type: "string" },
   version: { type: ["string", "null"] },
   description: { type: ["string", "null"] },

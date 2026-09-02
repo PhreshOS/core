@@ -1,6 +1,6 @@
 import type { Process } from "./process.js"
 import type { Publishable } from "./publishable.js"
-import type { Server } from "./server.js"
+import type { ServerEndpoint } from "./server-endpoint.js"
 import type { Captures, Cleanup, EventOptions, Subscribable } from "./subscribable.js"
 
 /** One application value observed in traffic originating from an Endpoint. */
@@ -21,9 +21,9 @@ type TrafficFallback<Fallback, To> = [Fallback] extends [never]
   ? never
   : TrafficMessage<Fallback, To>
 
-/** One question sent by this Endpoint to a Server. */
-export type AskMessage<Payload = unknown, To = Server | null> = Readonly<{
-  /** Destination Server, or `null` when its identity is outside this boundary. */
+/** One question sent by this Endpoint to a Server Endpoint. */
+export type AskMessage<Payload = unknown, To = ServerEndpoint | null> = Readonly<{
+  /** Destination Server Endpoint, or `null` when its identity is outside this boundary. */
   to: To
 
   /** Single question value supplied by the asker. */
@@ -31,7 +31,7 @@ export type AskMessage<Payload = unknown, To = Server | null> = Readonly<{
 }>
 
 /** One observed question sent by this Endpoint. */
-export type AskCapture<Payload = unknown, To = Server | null> = Readonly<{
+export type AskCapture<Payload = unknown, To = ServerEndpoint | null> = Readonly<{
   /** Event addressed by the question. */
   event: string
 
@@ -43,7 +43,7 @@ export type AskCapture<Payload = unknown, To = Server | null> = Readonly<{
 }>
 
 /** A callback subscribed to questions sent by this Endpoint. */
-export type AskSubscriber<Payload = unknown, To = Server | null> = (capture: AskCapture<Payload, To>) => unknown
+export type AskSubscriber<Payload = unknown, To = ServerEndpoint | null> = (capture: AskCapture<Payload, To>) => unknown
 
 /** Every ordinary publication observable in traffic from one Endpoint. */
 export type TrafficCapture<Events extends object = {}, To = Endpoint | null, Fallback = unknown> =
@@ -53,7 +53,7 @@ export type TrafficCapture<Events extends object = {}, To = Endpoint | null, Fal
 export interface EndpointTraffic<
   Events extends object = {},
   To = Endpoint | null,
-  AskTo = Server | null,
+  AskTo = ServerEndpoint | null,
   Fallback = unknown
 > extends Subscribable<TrafficEvents<Events, To>, TrafficFallback<Fallback, To>> {
   /** Subscribes to questions originating from this Endpoint. */
@@ -75,7 +75,7 @@ export type EndpointLifecycleEvents = {
 /** Start and stop events observed at one Endpoint address. */
 export interface EndpointLifecycle extends Subscribable<EndpointLifecycleEvents, never> {}
 
-/** The shared Process endpoint represented by Server and Client. */
+/** The shared base of a Process's Server Endpoint and Client Endpoint. */
 export class Endpoint<Events extends object = {}, Fallback = unknown> {
   protected constructor() {}
 }
@@ -84,7 +84,7 @@ export class Endpoint<Events extends object = {}, Fallback = unknown> {
 export interface Endpoint<Events extends object = {}, Fallback = unknown>
   extends Publishable, Subscribable<Events, Fallback> {
   /** Directed communication originating from this Endpoint. */
-  readonly traffic: EndpointTraffic<Events, Endpoint | null, Server | null, Fallback>
+  readonly traffic: EndpointTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
 
   /** Start and stop transitions of this permanent Endpoint handle. */
   readonly lifecycle: EndpointLifecycle
@@ -98,7 +98,7 @@ export interface Endpoint<Events extends object = {}, Fallback = unknown>
   /**
    * Waits until this Endpoint can be used.
    *
-   * A Client is ready when it has a live incarnation. A Server additionally
+   * A Client Endpoint is ready when it has a live incarnation. A Server Endpoint additionally
    * has to announce readiness. Temporary absence remains waitable while the
    * owning Process exists. The SDK uses its ten-second deadline unless one is
    * supplied.
@@ -106,7 +106,7 @@ export interface Endpoint<Events extends object = {}, Fallback = unknown>
   waitReady(timeout?: number): Promise<void>
 
   /**
-   * Starts a fresh incarnation without waiting for Server readiness.
+   * Starts a fresh incarnation without waiting for Server Endpoint readiness.
    *
    * Rejects when the Process is gone or inaccessible, the Program did not
    * declare this endpoint kind, the Endpoint is already starting or live, or

@@ -85,6 +85,33 @@ export interface ProgramProcess extends Subscribable<ProgramProcessEvents, never
 
   /** Ends every live Process and returns their identities. */
   exitAll(): Promise<string[]>
+
+  /** Creates a Process whose lifetime belongs to the returned iterator. */
+  run(launch?: Launch, options?: ProgramProcessRunOptions): AsyncGenerator<ProgramProcessRunEvent, void, void>
+}
+
+/** Cancellation controls for one Process whose lifetime belongs to its iterator. */
+export type ProgramProcessRunOptions = Readonly<{
+  /** Exits the Process and aborts iteration with this signal's reason. */
+  signal?: AbortSignal
+}>
+
+/** Ordered lifecycle information produced by an attached Process run. */
+export type ProgramProcessRunEvent =
+  | Readonly<{ event: "started", process: Process }>
+  | (Readonly<{ event: "output" }> & ProgramCommandChunk)
+  | Readonly<{ event: "exited", process: Process, exit: Exit }>
+
+/** Persistent Process launch used when the System starts. */
+export interface ProgramStartup {
+  /** Returns the configured launch, or `null` when startup is disabled. */
+  get(): Promise<Launch | null>
+
+  /** Enables startup with one validated Process launch. */
+  enable(launch?: Launch): Promise<void>
+
+  /** Disables startup without changing the Program or its Processes. */
+  disable(): Promise<void>
 }
 
 /** Lifecycle events belonging to one Program entity. */
@@ -104,6 +131,9 @@ export class Program {
 export interface Program extends Subscribable<ProgramEvents, never> {
   /** Stable public identity. */
   readonly identity: string
+
+  /** Runtime identity used to address this Program's browser assets. */
+  readonly assetId: string
 
   /** Human-readable name. */
   readonly name: string
@@ -141,6 +171,9 @@ export interface Program extends Subscribable<ProgramEvents, never> {
   /** Operations and lifecycle observation for this Program's Processes. */
   readonly process: ProgramProcess
 
+  /** Persistent Process launch applied when the System starts. */
+  readonly startup: ProgramStartup
+
   /** Stored user grants managed for this Program. */
   readonly permissions: ProgramPermissions
 
@@ -158,10 +191,15 @@ export interface Program extends Subscribable<ProgramEvents, never> {
   /** Returns whether this Program currently has an installed form. */
   installed(): Promise<boolean>
 
+  /** Installs this Program while yielding command output. */
+  install(): AsyncGenerator<ProgramCommandChunk, void, void>
+
   /** Removes this Program's installed form while yielding cleanup output. */
   uninstall(everything?: boolean): AsyncGenerator<ProgramCommandChunk, void, void>
 
   /** Ends all Processes and removes this Program from the runtime registry. */
   forget(): Promise<void>
 
+  /** Creates another Program from this Program under a new identity. */
+  fork(identity: string): Promise<Program>
 }

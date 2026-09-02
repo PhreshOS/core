@@ -1,13 +1,11 @@
 import type { Endpoint } from "./endpoint.js"
+import type { ClientEndpoint } from "./client-endpoint.js"
 import type { LocalWindow } from "./local-window.js"
 import type { Publishable } from "./publishable.js"
+import type { Process } from "./process.js"
+import type { Program } from "./program.js"
+import type { ServerEndpoint } from "./server-endpoint.js"
 import type { Captures, Subscribable } from "./subscribable.js"
-import type {
-  SystemClientEntity,
-  SystemProcessEntity,
-  SystemProgramEntity,
-  SystemServerEntity
-} from "./system.js"
 import type { ContextPermissions } from "./permissions.js"
 
 /** One application value arriving through the executing Endpoint's Context. */
@@ -40,28 +38,28 @@ export interface Context<Events extends object = {}, From = Endpoint | null>
 /** Shared operations belonging to one executing Program endpoint. */
 export interface EndpointContext<Events extends object = {}>
   extends Context<Events, Endpoint | null> {
-  process(): Promise<SystemProcessEntity>
+  process(): Promise<Process>
   name(): Promise<string | null>
-  parent(): Promise<SystemProcessEntity | null>
-  program(): Promise<SystemProgramEntity>
+  parent(): Promise<Process | null>
+  program(): Promise<Program>
   option(name: string): Promise<string | undefined>
   stop(): Promise<void>
 }
 
-/** Runtime context of the currently executing Client endpoint. */
+/** Runtime context of the currently executing Client Endpoint. */
 export interface ClientContext<Events extends object = {}> extends EndpointContext<Events> {
-  readonly server: SystemServerEntity
+  readonly server: ServerEndpoint
   readonly localWindow: LocalWindow
   readonly permissions: ContextPermissions
 }
 
-/** Handles one question addressed to the currently executing Server. */
+/** Handles one question addressed to the currently executing Server Endpoint. */
 export type Answerer<Payload = unknown, Result = undefined> = (
   message: ContextMessage<Payload, Endpoint | null>
 ) => Result | Promise<Result>
 
-/** Runtime context of the currently executing Server endpoint. */
+/** Runtime context of the currently executing Server Endpoint. */
 export interface ServerContext<Events extends object = {}> extends EndpointContext<Events> {
-  readonly client: SystemClientEntity
+  readonly client: ClientEndpoint
   answer<Payload = unknown, Result = undefined>(event: string, answerer: Answerer<Payload, Result>): () => void
 }

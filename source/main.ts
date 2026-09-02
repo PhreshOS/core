@@ -90,19 +90,9 @@ export {
   type ServerDefinition,
   type System,
   type SystemProcess,
-  type SystemProcessEntity,
   type SystemProcessEvents,
   type SystemProcessExit,
-  type SystemProcessRunEvent,
-  type SystemProcessRunOptions,
   type SystemProgram,
-  type SystemProgramEntity,
-  type SystemProgramProcess,
-  type SystemProgramStartup,
-  type SystemStorage,
-  type SystemEndpointEntity,
-  type SystemServerEntity,
-  type SystemClientEntity,
   type SystemWindowEvents,
   type SystemProgramEvents,
   type SystemProgramUninstall
@@ -132,13 +122,13 @@ export {
   type ServerContext
 } from "./context.js"
 export {
-  Server,
+  ServerEndpoint,
   type AnswerCapture,
   type AnswerMessage,
   type AnswerSubscriber,
   type ServerTraffic
-} from "./server.js"
-export { Client, type ClientTraffic } from "./client.js"
+} from "./server-endpoint.js"
+export { ClientEndpoint, type ClientTraffic } from "./client-endpoint.js"
 export { Process, type Exit, type ProcessEvents } from "./process.js"
 export {
   Program,
@@ -149,7 +139,10 @@ export {
   type ProgramCommandChunk,
   type ProgramProcess,
   type ProgramProcessEvents,
-  type ProgramProcessExit
+  type ProgramProcessExit,
+  type ProgramProcessRunEvent,
+  type ProgramProcessRunOptions,
+  type ProgramStartup
 } from "./program.js"
 export {
   type Window,

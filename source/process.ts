@@ -1,6 +1,6 @@
-import type { Client } from "./client.js"
+import type { ClientEndpoint } from "./client-endpoint.js"
 import type { Program } from "./program.js"
-import type { Server } from "./server.js"
+import type { ServerEndpoint } from "./server-endpoint.js"
 import type { Subscribable } from "./subscribable.js"
 
 /** How an operating-system-backed endpoint or Process finished. */
@@ -36,11 +36,11 @@ export interface Process extends Subscribable<ProcessEvents, never> {
   /** Instant at which this Process was created. */
   readonly startedAt: Date
 
-  /** Permanent handle to this Process's Server. */
-  readonly server: Server
+  /** Permanent handle to this Process's Server Endpoint. */
+  readonly server: ServerEndpoint
 
-  /** Permanent handle to this Process's Client. */
-  readonly client: Client
+  /** Permanent handle to this Process's Client Endpoint. */
+  readonly client: ClientEndpoint
 
   /** Returns the Program that owns this Process. */
   program(): Program

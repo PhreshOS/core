@@ -31,8 +31,14 @@ export type OtherStat = Readonly<{
   modifiedAt: number
 }>
 
-/** Filesystem operations confined to one configured directory. */
+/** Filesystem operations rooted at one configured entry point. */
 export interface Storage {
+  /** Returns the absolute configured entry point. */
+  path(): Promise<string>
+
+  /** Resolves filesystem paths according to this Storage's boundary policy. */
+  resolve(...path: string[]): Promise<string>
+
   /** Reads one file as bytes. */
   bytes(...path: [string, ...string[]]): Promise<Uint8Array>
 
