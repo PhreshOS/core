@@ -1,4 +1,5 @@
 import type { Subscribable } from "./subscribable.js"
+import type { WritableDesktopPreferencesSource } from "./theme.js"
 
 /** Measured dimensions of one Desktop surface in CSS pixels. */
 export type DesktopSize = Readonly<{
@@ -21,23 +22,8 @@ export interface DesktopSurfaceSource extends Subscribable<DesktopSurfaceEvents,
   snapshot(): Promise<DesktopSurfaceSnapshot>
 }
 
-/** Coordinates relative to one Desktop surface in CSS pixels. */
-export type DesktopPointerPosition = Readonly<{
-  x: number
-  y: number
-}>
-
-/** Complete current pointer state of one Desktop. */
-export type DesktopPointerSnapshot = Readonly<{
-  position: DesktopPointerPosition | null
-}>
-
-/** Changes published by a Desktop pointer. */
-export type DesktopPointerEvents = {
-  move: DesktopPointerSnapshot
-}
-
-/** Permission-guarded access to one Desktop pointer and its future movement. */
-export interface DesktopPointerSource extends Subscribable<DesktopPointerEvents, never> {
-  snapshot(): Promise<DesktopPointerSnapshot>
+/** The Desktop environment containing one Client endpoint. */
+export interface Desktop {
+  readonly surface: DesktopSurfaceSource
+  readonly preferences: WritableDesktopPreferencesSource
 }

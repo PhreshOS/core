@@ -15,6 +15,23 @@ export {
 
 export { type Publishable } from "./publishable.js"
 export { type Timeoutable } from "./timeout.js"
+export {
+  parsePermission,
+  parsePermissionChange,
+  parsePermissions,
+  type ClientPermissionDeclarations,
+  type ClientPermissions,
+  type ContextPermissions,
+  type Permission,
+  type PermissionActivation,
+  type PermissionChange,
+  type PermissionDefinition,
+  type PermissionInput,
+  type PermissionRequest,
+  type Permissions,
+  type ProgramPermissions,
+  type TimedContextPermissions
+} from "./permissions.js"
 export { type Askable, type TimedAskable } from "./askable.js"
 export {
   ClientService,
@@ -23,16 +40,6 @@ export {
   isServiceKey,
   type ServiceKey
 } from "./service.js"
-export {
-  isPermissionName,
-  permissionNames,
-  type PermissionDecision,
-  type PermissionDecisions,
-  type PermissionName,
-  type Permission,
-  type ProgramPermission,
-  type TimedPermission
-} from "./permissions.js"
 export { type Outcome } from "./outcome.js"
 export { isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
@@ -52,10 +59,7 @@ export {
   type Variantable
 } from "./theme.js"
 export {
-  type DesktopPointerEvents,
-  type DesktopPointerPosition,
-  type DesktopPointerSnapshot,
-  type DesktopPointerSource,
+  type Desktop,
   type DesktopSize,
   type DesktopSurfaceEvents,
   type DesktopSurfaceSnapshot,
@@ -118,7 +122,16 @@ export {
   type TrafficEvents,
   type TrafficMessage
 } from "./endpoint.js"
-export { type Context, type ContextCapture, type ContextEvents, type ContextMessage } from "./context.js"
+export {
+  type Answerer,
+  type ClientContext,
+  type Context,
+  type ContextCapture,
+  type ContextEvents,
+  type ContextMessage,
+  type EndpointContext,
+  type ServerContext
+} from "./context.js"
 export {
   Server,
   type AnswerCapture,
@@ -148,8 +161,7 @@ export {
 } from "./window.js"
 export {
   type LocalWindow,
-  type LocalWindowSurface,
-  type VisibilityTransition
+  type LocalWindowOperations
 } from "./local-window.js"
 export { type Easing, type Transaction } from "./transaction.js"
 export { layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"

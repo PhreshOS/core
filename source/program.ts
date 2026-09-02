@@ -3,6 +3,7 @@ import type { Exit, Process } from "./process.js"
 import type { ProgramSql } from "./sql.js"
 import type { ProgramStore, Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
+import type { ClientPermissions, ProgramPermissions } from "./permissions.js"
 
 /** Standard rendered sizes available for every Program icon. */
 export type ProgramIconSize = "small" | "medium" | "large"
@@ -41,6 +42,9 @@ export type ClientDeclaration = EndpointDeclaration & Readonly<{
 
   /** Default minimized state, or `null` for the system default. */
   minimize: boolean | null
+
+  /** Immutable permissions granted by this Program declaration. */
+  permissions: ClientPermissions
 }>
 
 /** A Process exit scoped to its owning Program. */
@@ -136,6 +140,9 @@ export interface Program extends Subscribable<ProgramEvents, never> {
 
   /** Operations and lifecycle observation for this Program's Processes. */
   readonly process: ProgramProcess
+
+  /** Stored user grants managed for this Program. */
+  readonly permissions: ProgramPermissions
 
   /**
    * Returns one standard PNG representation of this Program's icon.

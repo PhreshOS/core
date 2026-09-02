@@ -34,7 +34,7 @@ Program
 
 `Program`, `Process`, `Endpoint`, `Server`, and `Client` are shared
 runtime classes. Core also owns their contracts for lifecycle, Traffic,
-Services, storage, permissions, Appearance, desktop capabilities, and Windows.
+Services, storage, Appearance, desktop capabilities, and Windows.
 
 Environment SDKs adapt authority and communication without redefining these
 objects. Repeated lookup of one live object within an SDK context therefore

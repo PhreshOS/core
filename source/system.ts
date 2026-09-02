@@ -4,13 +4,13 @@ import type { Endpoint } from "./endpoint.js"
 import type { Program, ProgramCommandChunk, ProgramProcess } from "./program.js"
 import type { ClientLaunch, Layer, Launch, Position, ServerLaunch, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
-import type { ProgramPermission } from "./permissions.js"
 import type { Server } from "./server.js"
 import type { ClientService, ServerService, ServiceKey } from "./service.js"
 import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
+import type { ClientPermissionDeclarations } from "./permissions.js"
 
 /** Native filesystem storage exposed by an authoritative System. */
 export interface SystemStorage extends Storage {
@@ -43,6 +43,7 @@ export type ClientDefinition = Readonly<{
   position?: Position
   layer?: Layer
   minimize?: boolean
+  permissions?: ClientPermissionDeclarations
 }>
 
 type ProgramDefinitionBase = Readonly<{
@@ -98,7 +99,6 @@ export type SystemProcessRunEvent =
 export interface SystemProgramEntity extends Program {
   readonly data: SystemStorage
   readonly cache: SystemStorage
-  readonly permission: ProgramPermission
   readonly process: SystemProgramProcess
   readonly startup: SystemProgramStartup
 
@@ -168,6 +168,9 @@ export interface System {
   readonly process: SystemProcess
   readonly uploads: SystemUploads
 
+  /** Performs one outbound request through this environment's System adapter. */
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>
+
   /**
    * Atomically claims a Program identity for a new uninstalled runtime entity.
    *
@@ -177,6 +180,7 @@ export interface System {
    */
   forceCreateProgram(source: ProgramDefinition | string): Promise<SystemProgramEntity>
 
+  service<Endpoint extends ServiceKey["endpoint"]>(key: Omit<ServiceKey, "endpoint"> & Readonly<{ endpoint: Endpoint }>): Endpoint extends "server" ? ServerService : ClientService
   service<Events extends object = {}, Fallback = unknown>(key: ServiceKey & { endpoint: "server" }): ServerService<Events, Fallback>
   service<Events extends object = {}, Fallback = unknown>(key: ServiceKey & { endpoint: "client" }): ClientService<Events, Fallback>
 }

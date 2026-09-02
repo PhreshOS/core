@@ -1,4 +1,5 @@
 import type { Layer, Position, Size } from "./launch.js"
+import type { ClientPermissionDeclarations } from "./permissions.js"
 
 /** One explicit way to execute a Program's Server. */
 export type ServerExecution =
@@ -71,6 +72,9 @@ export type ClientConfig = Readonly<{
 
   /** Whether the Window initially opens minimized. */
   minimize?: boolean
+
+  /** Immutable permissions declared for this Program's Client. */
+  permissions?: ClientPermissionDeclarations
 
   /** Settings used only by the development command. */
   development?: ClientDevelopment

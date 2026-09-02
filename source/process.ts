@@ -48,9 +48,8 @@ export interface Process extends Subscribable<ProcessEvents, never> {
   /**
    * Returns the Process whose `program.process.create()` call created this Process.
    *
-   * Returns `null` when this Process has no accessible parent handle. Rejects
-   * when this Process or its retained parent no longer exists. Client
-   * environments never expose a parent belonging to another Program.
+   * Returns `null` when this Process has no parent. Rejects when this Process
+   * or its retained parent no longer exists.
    */
   parent(): Promise<Process | null>
 

@@ -1,39 +1,31 @@
 import type { Position, Size } from "./launch.js"
 import type { Transaction } from "./transaction.js"
-import type { WindowGeometry, WindowLayer } from "./window.js"
+import type { WindowGeometry } from "./window.js"
 
-/** Timing applied while a local representation becomes visible or disappears. */
-export type VisibilityTransition = Transaction
+/** Commands that change one Client Window's physical representation. */
+export interface LocalWindowOperations {
+  /** Adds the host Surface. */
+  addSurface(): Promise<void>
 
-/** Local Surface commands for one Client Window representation. */
-export interface LocalWindowSurface {
-  /** Makes the host Surface visible using the requested transition. */
-  set(transition: VisibilityTransition): Promise<void>
+  /** Removes the host Surface. */
+  removeSurface(): Promise<void>
 
-  /** Removes the host Surface using the requested transition. */
-  remove(transition: VisibilityTransition): Promise<void>
+  /** Moves the local representation. */
+  move(position: Position): Promise<void>
+
+  /** Resizes the local representation. */
+  resize(size: Size): Promise<void>
+
+  /** Changes local position and size as one operation. */
+  setGeometry(geometry: WindowGeometry): Promise<void>
 }
 
 /**
- * One Client Window's physical representation on the current desktop. It has
+ * One Client Window's physical representation on the current Desktop. It has
  * no events: its commands neither change authoritative state nor broadcast
  * anything.
  */
-export interface LocalWindow {
-  readonly surface: LocalWindowSurface
-
-  title(): Promise<string>
-  position(): Promise<Position>
-  size(): Promise<Size>
-  minimized(): Promise<boolean>
-  front(): Promise<boolean>
-  layer(): Promise<WindowLayer>
-  location(): Promise<string>
-
-  move(position: Position, transaction?: Transaction): Promise<void>
-  resize(size: Size, transaction?: Transaction): Promise<void>
-  setGeometry(geometry: WindowGeometry, transaction?: Transaction): Promise<void>
-  minimize(minimized?: boolean): Promise<void>
-  changeTitle(title: string): Promise<void>
-  raise(): Promise<void>
+export interface LocalWindow extends LocalWindowOperations {
+  /** Returns the same commands bound to one visual transaction. */
+  transaction(transaction: Transaction): LocalWindowOperations
 }

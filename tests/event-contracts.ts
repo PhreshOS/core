@@ -1,5 +1,6 @@
 import type {
   Client,
+  ClientContext,
   Context,
   Endpoint,
   Process,
@@ -85,6 +86,17 @@ async function openContextEvents(context: Context) {
 
 void openContextEvents
 
+function clientContextContract(context: ClientContext) {
+  const local = context.localWindow
+  local.addSurface()
+  local.transaction({ duration: 120 }).setGeometry({ position: { x: 0, y: 0 }, size: { width: 800, height: 600 } })
+  context.permissions.get("files")
+  context.permissions.request("files", ["read"])
+  context.permissions.timeout(120_000).request("environment")
+}
+
+void clientContextContract
+
 function explicitlyOpenService(service: Service<{ changed: number }, unknown>) {
   service.subscribe("changed", message => message.toFixed(0))
   service.subscribe("application-event", message => void message)
@@ -167,6 +179,10 @@ function systemHandlesRemainCanonical(
   const canonicalServer: Server = server
   const canonicalClient: Client = client
 
+  program.permissions.get("files")
+  program.permissions.all()
+  program.permissions.set("files", true)
+  program.permissions.delete("files")
   program.data.text("state.json")
   program.store.get("state")
   program.logs.query("select 1")

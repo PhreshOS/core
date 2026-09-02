@@ -2,9 +2,14 @@ import { describe, expect, expectTypeOf, it } from "vitest"
 import {
   Client,
   ClientService,
+  type ClientContext,
+  type Desktop,
   type Context,
   type Launch,
   type LocalWindow,
+  type Permission,
+  type PermissionChange,
+  type System,
   type SystemProcessEntity,
   type SystemProgramEntity,
   type SystemStorage,
@@ -14,18 +19,23 @@ import {
   ServerService,
   Service,
   defineConfig,
-  isPermissionName,
   isRelativeValue,
   isServiceKey,
   layers,
+  parsePermission,
+  parsePermissionChange,
+  parsePermissions,
   parseRelativeValue
 } from "../source/main.js"
 
 describe("public runtime", function () {
   it("keeps local representation commands separate from subscriptions", function () {
     expectTypeOf<LocalWindow>().toHaveProperty("setGeometry")
-    expectTypeOf<LocalWindow>().toHaveProperty("surface")
+    expectTypeOf<LocalWindow>().toHaveProperty("addSurface")
+    expectTypeOf<LocalWindow>().toHaveProperty("removeSurface")
+    expectTypeOf<LocalWindow>().toHaveProperty("transaction")
     expectTypeOf<LocalWindow>().not.toHaveProperty("subscribe")
+    expectTypeOf<LocalWindow>().not.toHaveProperty("title")
 
     const duration: Transaction = { duration: 180 }
     const easing: Transaction = { easing: "ease-out", wait: true }
@@ -51,7 +61,6 @@ describe("public runtime", function () {
 
     expectTypeOf<Processes>().toEqualTypeOf<SystemProcessEntity[]>()
     expectTypeOf<Found>().toEqualTypeOf<SystemProcessEntity | null>()
-    expectTypeOf<SystemProgramEntity>().toHaveProperty("permission")
     expectTypeOf<SystemProgramEntity>().toHaveProperty("fork")
     expectTypeOf<SystemProgramEntity["data"]>().toEqualTypeOf<SystemStorage>()
   })
@@ -79,23 +88,56 @@ describe("public runtime", function () {
     expectTypeOf<ClientService>().toHaveProperty("waitReady")
     expectTypeOf<ServerService>().toHaveProperty("waitReady")
     expectTypeOf<Service>().not.toHaveProperty("channel")
+
+    const immutableProgramPermissions: Launch = {
+      client: {
+        // @ts-expect-error Process launches cannot override Program permissions.
+        permissions: { files: true }
+      }
+    }
+    void immutableProgramPermissions
   })
 
   it("keeps the finite public registries narrow", function () {
     expect(layers).toEqual(["window", "under", "over"])
-    expect(isPermissionName("pointer")).toBe(true)
-    expect(isPermissionName("pointerMove")).toBe(false)
+  })
+
+  it("separates the Client context, Desktop, and global System contracts", function () {
+    expectTypeOf<ClientContext>().toHaveProperty("localWindow")
+    expectTypeOf<ClientContext>().toHaveProperty("server")
+    expectTypeOf<ClientContext>().toHaveProperty("permissions")
+    expectTypeOf<Desktop>().toHaveProperty("surface")
+    expectTypeOf<Desktop>().toHaveProperty("preferences")
+    expectTypeOf<Desktop>().not.toHaveProperty("pointer")
+    expectTypeOf<System["fetch"]>().returns.toEqualTypeOf<Promise<Response>>()
+  })
+
+  it("keeps permission values canonical after input resolution", function () {
+    expectTypeOf<Permission>().toEqualTypeOf<string[] | false | null>()
+    expectTypeOf<PermissionChange>().toEqualTypeOf<Readonly<{
+      permission: Permission
+      needReload: boolean
+    }>>()
+    expectTypeOf<SystemProgramEntity>().toHaveProperty("permissions")
+    expect(parsePermission(["read"])).toEqual(["read"])
+    expect(parsePermissionChange({ permission: false, needReload: true })).toEqual({ permission: false, needReload: true })
+    expect(parsePermissions({ files: ["read"], environment: null })).toEqual({ files: ["read"], environment: null })
+    expect(() => parsePermission(true)).toThrow(/invalid permission/)
   })
 
   it("returns the exact authored Program configuration", function () {
     const config = {
       identity: "public-contract",
       agent: "./agent-guide.md",
-      client: { location: "./client" }
+      client: {
+        location: "./client",
+        permissions: { files: true, environment: [] }
+      }
     } as const
 
     expect(defineConfig(config)).toBe(config)
     expect(config.agent).toBe("./agent-guide.md")
+    expect(config.client.permissions.files).toBe(true)
   })
 
   it("requires exactly one Server execution declaration", function () {
