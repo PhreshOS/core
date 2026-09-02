@@ -1,6 +1,6 @@
 import type { Timeoutable } from "./timeout.js"
 
-/** Canonical stored value of one permission. */
+/** Canonical stored value of one permission. Lists represent unordered sets. */
 export type Permission = string[] | false | null
 
 /** Values accepted where a permission is assigned. */
@@ -54,7 +54,7 @@ export interface ProgramPermissions {
 /** Reads one transport value against the general permission contract. */
 export function parsePermission(value: unknown): Permission {
   if (value === false || value === null) return value
-  if (Array.isArray(value) && value.every(entry => typeof entry === "string")) return [...value]
+  if (Array.isArray(value) && value.every(entry => typeof entry === "string")) return [...new Set(value)]
 
   throw new Error("The System returned an invalid permission")
 }
