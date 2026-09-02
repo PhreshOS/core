@@ -18,14 +18,10 @@ export type ClientPermissionDeclarations = Readonly<Record<string, true | readon
 /** Immutable resolved permission grants declared by one Client. */
 export type ClientPermissions = Readonly<Record<string, readonly string[]>>
 
-/** How one system-defined permission becomes effective in a Client document. */
-export type PermissionActivation = "live" | "reload"
-
 /** One permission known by a System implementation. */
 export type PermissionDefinition = Readonly<{
   values: readonly string[]
   default: readonly string[]
-  activation: PermissionActivation
   title: string
   description: string
 }>

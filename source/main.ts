@@ -23,7 +23,6 @@ export {
   type ClientPermissions,
   type ContextPermissions,
   type Permission,
-  type PermissionActivation,
   type PermissionChange,
   type PermissionDefinition,
   type PermissionInput,
