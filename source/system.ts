@@ -138,6 +138,9 @@ export interface System {
   /** Performs one outbound request through this environment's System adapter. */
   fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>
 
+  /** Opens one outbound connection and returns the platform-standard WebSocket. */
+  websocket(url: string | URL, protocols?: string | string[]): Promise<WebSocket>
+
   /** Runs one shell command whose complete process tree belongs to the returned iterator. */
   shell(command: string, options?: ShellOptions): AsyncGenerator<ShellEvent, void, void>
 

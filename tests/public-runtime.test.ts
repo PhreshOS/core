@@ -132,6 +132,7 @@ describe("public runtime", function () {
     expectTypeOf<Desktop>().toHaveProperty("preferences")
     expectTypeOf<Desktop>().not.toHaveProperty("pointer")
     expectTypeOf<System["fetch"]>().returns.toEqualTypeOf<Promise<Response>>()
+    expectTypeOf<System["websocket"]>().returns.toEqualTypeOf<Promise<WebSocket>>()
   })
 
   it("keeps permission values canonical after input resolution", function () {
