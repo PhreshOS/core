@@ -80,6 +80,10 @@ describe("public runtime", function () {
     expect(() => parseShellEvent({ event: "started", pid: 0 })).toThrow(/invalid shell event/)
   })
 
+  it("exposes the System uploads directory through the shared contract", function () {
+    expectTypeOf<System["uploads"]["path"]>().returns.toEqualTypeOf<Promise<string>>()
+  })
+
   it("shares Endpoint launch contracts across Process creation and restart", function () {
     const launch: Launch = {
       server: { service: true },

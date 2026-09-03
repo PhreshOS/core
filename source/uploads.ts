@@ -13,12 +13,15 @@ export type Upload = Readonly<{
   time: number
 }>
 
-/** Flat System-owned uploads capability shared by Server and Client endpoints. */
+/** Flat System-owned uploads capability shared by every System adapter. */
 export interface SystemUploads {
+  /** Returns the absolute directory containing the System's uploads. */
+  path(): Promise<string>
+
   /** Writes one value and returns its generated upload record. */
   write(value: unknown): Promise<Upload>
 
-  /** Opens one upload as bytes without exposing its filesystem path. */
+  /** Opens one upload as bytes through its opaque key. */
   stream(file: string): Promise<ReadableStream<Uint8Array>>
 
   /** Reads one upload completely as bytes. */

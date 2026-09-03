@@ -97,6 +97,7 @@ declare const desktopPreferences: DesktopPreferencesSource
 declare const writableDesktopPreferences: WritableDesktopPreferencesSource
 declare const desktop: Desktop
 const written: Promise<Upload> = uploads.write("hello")
+const uploadsPath: Promise<string> = uploads.path()
 const read: Promise<string> = uploads.text("00000000-0000-0000-0000-000000000000.txt")
 const uploadKey: boolean = isUploadFile("00000000-0000-0000-0000-000000000000.txt")
 const surfaceWidth: Promise<number> = desktopSurface.snapshot().then(snapshot => snapshot.size.width)
