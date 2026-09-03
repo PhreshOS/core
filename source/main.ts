@@ -169,35 +169,6 @@ export {
 export { type Easing, type Transaction } from "./transaction.js"
 export { layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"
 export {
-  systemControl,
-  systemControlInputIssue,
-  systemControlOperation,
-  type EndpointAskInput,
-  type EndpointInput,
-  type EndpointPublishInput,
-  type EndpointStartInput,
-  type EndpointWaitInput,
-  type EndpointWaitLifecycleInput,
-  type EndpointWaitReadyInput,
-  type ProcessCreateInput,
-  type ProcessFindOrCreateInput,
-  type ProcessInput,
-  type ProcessListInput,
-  type ProcessWaitInput,
-  type ProgramInput,
-  type ProgramListInput,
-  type ProgramWaitInput,
-  type SystemControlCapability,
-  type SystemControlCapabilityName,
-  type SystemControlEndpoint,
-  type SystemControlOperation,
-  type SystemControlOperationMode,
-  type SystemControlRequest,
-  type SystemControlSchema,
-  type WindowInput,
-  type WindowWaitInput
-} from "./system-control.js"
-export {
   defineConfig,
   type ClientConfig,
   type ClientDevelopment,
