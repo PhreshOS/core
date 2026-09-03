@@ -88,9 +88,15 @@ function clientContextContract(context: ClientContext) {
   const local = context.localWindow
   local.addSurface()
   local.transaction({ duration: 120 }).setGeometry({ position: { x: 0, y: 0 }, size: { width: 800, height: 600 } })
+  context.permissions.get("all")
+  context.permissions.request("all", [])
+  context.permissions.timeout(120_000).request("all")
+
+  // @ts-expect-error Permission names are closed by the Core catalog.
   context.permissions.get("files")
-  context.permissions.request("files", ["read"])
-  context.permissions.timeout(120_000).request("environment")
+
+  // @ts-expect-error A value-less permission accepts no string values.
+  context.permissions.request("all", ["read"])
 }
 
 void clientContextContract
@@ -177,10 +183,16 @@ function systemHandlesRemainCanonical(
   const canonicalServer: ServerEndpoint = server
   const canonicalClient: ClientEndpoint = client
 
-  program.permissions.get("files")
+  program.permissions.get("all")
   program.permissions.all()
-  program.permissions.set("files", true)
+  program.permissions.set("all", true)
+  program.permissions.delete("all")
+
+  // @ts-expect-error Program permission names are closed by the Core catalog.
   program.permissions.delete("files")
+
+  // @ts-expect-error Assignment values belong to the selected permission.
+  program.permissions.set("all", ["read"])
   program.data.text("state.json")
   program.store.get("state")
   program.logs.query("select 1")

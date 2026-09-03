@@ -16,8 +16,12 @@ export {
 export { type Publishable } from "./publishable.js"
 export { type Timeoutable } from "./timeout.js"
 export {
+  clientPermissionCatalog,
+  isPermissionName,
+  parseClientPermissions,
   parsePermission,
   parsePermissionChange,
+  parsePermissionName,
   parsePermissions,
   type ClientPermissionDeclarations,
   type ClientPermissions,
@@ -25,8 +29,11 @@ export {
   type Permission,
   type PermissionChange,
   type PermissionDefinition,
+  type PermissionDefinitions,
   type PermissionInput,
+  type PermissionName,
   type PermissionRequest,
+  type PermissionValue,
   type Permissions,
   type ProgramPermissions,
   type TimedContextPermissions

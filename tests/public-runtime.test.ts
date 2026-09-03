@@ -9,6 +9,8 @@ import {
   type LocalWindow,
   type Permission,
   type PermissionChange,
+  type PermissionName,
+  type PermissionValue,
   type Process,
   type Program,
   type Storage,
@@ -111,7 +113,7 @@ describe("public runtime", function () {
     const immutableProgramPermissions: Launch = {
       client: {
         // @ts-expect-error Process launches cannot override Program permissions.
-        permissions: { files: true }
+        permissions: { all: true }
       }
     }
     void immutableProgramPermissions
@@ -133,16 +135,20 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<Permission>().toEqualTypeOf<string[] | false | null>()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all">()
+    expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
+    expectTypeOf<Permission>().toEqualTypeOf<never[] | false | null>()
+    expectTypeOf<PermissionChange<"all">["permission"]>().toEqualTypeOf<Permission<"all">>()
     expectTypeOf<PermissionChange>().toEqualTypeOf<Readonly<{
       permission: Permission
       needReload: boolean
     }>>()
     expectTypeOf<Program>().toHaveProperty("permissions")
-    expect(parsePermission(["read"])).toEqual(["read"])
-    expect(parsePermissionChange({ permission: false, needReload: true })).toEqual({ permission: false, needReload: true })
-    expect(parsePermissions({ files: ["read"], environment: null })).toEqual({ files: ["read"], environment: null })
-    expect(() => parsePermission(true)).toThrow(/invalid permission/)
+    expect(parsePermission("all", [])).toEqual([])
+    expect(parsePermissionChange("all", { permission: false, needReload: true })).toEqual({ permission: false, needReload: true })
+    expect(parsePermissions({ all: null })).toEqual({ all: null })
+    expect(() => parsePermission("all", true)).toThrow(/invalid "all" permission/)
+    expect(() => parsePermissions({ files: [] })).toThrow(/does not know the permission/)
   })
 
   it("returns the exact authored Program configuration", function () {
@@ -151,13 +157,35 @@ describe("public runtime", function () {
       agent: "./agent-guide.md",
       client: {
         location: "./client",
-        permissions: { files: true, environment: [] }
+        permissions: { all: true }
       }
     } as const
 
     expect(defineConfig(config)).toBe(config)
     expect(config.agent).toBe("./agent-guide.md")
-    expect(config.client.permissions.files).toBe(true)
+    expect(config.client.permissions.all).toBe(true)
+
+    defineConfig({
+      identity: "unknown-permission",
+      client: {
+        location: "./client",
+        permissions: {
+          // @ts-expect-error Permission declarations accept only Core catalog names.
+          files: true
+        }
+      }
+    })
+
+    defineConfig({
+      identity: "unknown-permission-value",
+      client: {
+        location: "./client",
+        permissions: {
+          // @ts-expect-error The value-less all permission accepts no string values.
+          all: ["read"]
+        }
+      }
+    })
   })
 
   it("requires exactly one Server execution declaration", function () {
