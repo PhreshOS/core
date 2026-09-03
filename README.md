@@ -1,10 +1,21 @@
 # `@phreshos/core`
 
-Environment-neutral contracts and domain objects for PhreshOS Programs.
+The environment-neutral contracts and domain objects shared across PhreshOS.
 
-Core defines the shared model used by the Client, Server, Node, React, CLI, and
-System repositories. It contains no transport, persistence, or visual
-implementation.
+[Documentation](https://docs.phreshos.com/sdks/core) ·
+[Runtime model](https://docs.phreshos.com/runtime) ·
+[Source](https://github.com/PhreshOS/core)
+
+## Role
+
+Core is the single source of truth for the System, Program, Process, Endpoint,
+Service, Context, Desktop, Window, communication, storage, Appearance, and
+permission contracts. It also provides the runtime classes whose references are
+preserved by the environment SDKs.
+
+Core contains no transport, persistence, command-line, or visual
+implementation. Those implementations consume its contracts without redefining
+them.
 
 ## Installation
 
@@ -15,55 +26,19 @@ implementation.
 | Bun | `bun add @phreshos/core` |
 | Yarn | `yarn add @phreshos/core` |
 
-Import through the package root:
-
 ```ts
-import { defineConfig, Program, Process, ServerEndpoint, ClientEndpoint } from "@phreshos/core"
+import {
+  ClientEndpoint,
+  defineConfig,
+  Process,
+  Program,
+  ServerEndpoint,
+} from "@phreshos/core"
 ```
 
-## Model
-
-The Program is the domain root:
-
-```text
-Program
-└── Process
-    ├── ServerEndpoint
-    └── ClientEndpoint
-```
-
-`Program`, `Process`, `Endpoint`, `ServerEndpoint`, and `ClientEndpoint` are shared
-runtime classes. Core also owns their contracts for lifecycle, Traffic,
-Services, storage, Appearance, desktop capabilities, and Windows.
-
-Environment SDKs adapt authority and communication without redefining these
-objects. Repeated lookup of one live object within an SDK context therefore
-preserves its canonical handle and runtime class.
-
-## Program configuration
-
-Program projects use `defineConfig()` for their authoring declaration:
-
-```ts
-import { defineConfig } from "@phreshos/core"
-
-export default defineConfig({
-  identity: "my-program",
-  name: "My Program",
-  version: "0.1.0",
-  description: "My PhreshOS Program.",
-  server: {
-    location: "dist/server",
-    entryFile: "main.js",
-  },
-  client: {
-    location: "dist/client",
-  },
-})
-```
-
-The CLI and Node SDK derive concrete development, production, installation, and
-packaging definitions from this declaration.
+See [Program configuration](https://docs.phreshos.com/sdks/core#program-configuration)
+for the configuration contract and
+[Runtime](https://docs.phreshos.com/runtime) for the shared domain model.
 
 ## Development
 
@@ -72,17 +47,23 @@ bun install --frozen-lockfile
 bun run verify
 ```
 
-`verify` checks the contracts, runs the tests, builds the package, and
-validates its public artifact.
+`verify` checks the contracts and completions, runs the tests, builds the
+package, and validates the published artifact.
 
-See the [PhreshOS documentation](https://github.com/PhreshOS/docs) for the
-complete runtime model.
+## Related repositories
 
-## Repository boundary
+- [`@phreshos/client`](https://github.com/PhreshOS/client),
+  [`@phreshos/server`](https://github.com/PhreshOS/server), and
+  [`@phreshos/node`](https://github.com/PhreshOS/node) implement the shared
+  contracts at their respective boundaries.
+- [`@phreshos/react`](https://github.com/PhreshOS/react) adapts live Core
+  contracts to React.
+- [PhreshOS System](https://github.com/PhreshOS/system) owns the authoritative
+  runtime implementation.
+- [PhreshOS Documentation](https://github.com/PhreshOS/docs) owns the canonical
+  public explanation of these contracts.
 
-This repository owns the canonical shared contracts and domain classes. Runtime
-adapters, transport, persistence, presentation, and command-line behavior
-belong to their respective repositories.
+## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository workflow and
 [SECURITY.md](SECURITY.md) for private vulnerability reporting.
