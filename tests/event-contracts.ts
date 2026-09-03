@@ -91,6 +91,13 @@ function clientContextContract(context: ClientContext) {
   context.permissions.get("all")
   context.permissions.request("all", [])
   context.permissions.timeout(120_000).request("all")
+  context.permissions.request("services", ["flambo"])
+  context.permissions.request("programs")
+  context.permissions.request("appearance")
+  context.permissions.request("desktopPreferences", [])
+
+  // @ts-expect-error Value-less permissions do not accept Program identities.
+  context.permissions.request("appearance", ["flambo"])
 
   // @ts-expect-error Permission names are closed by the Core catalog.
   context.permissions.get("files")
@@ -184,8 +191,19 @@ function systemHandlesRemainCanonical(
   const canonicalClient: ClientEndpoint = client
 
   program.permissions.get("all")
+  program.permissions.get("services")
   program.permissions.all()
   program.permissions.set("all", true)
+  program.permissions.set("services", ["flambo"])
+  program.permissions.set("programs", true)
+  program.permissions.set("appearance", [])
+  program.permissions.set("desktopPreferences", true)
+
+  // @ts-expect-error Program-scoped permission values are Program identities.
+  program.permissions.set("services", [42])
+
+  // @ts-expect-error Value-less permissions do not accept Program identities.
+  program.permissions.set("desktopPreferences", ["settings"])
   program.permissions.delete("all")
 
   // @ts-expect-error Program permission names are closed by the Core catalog.

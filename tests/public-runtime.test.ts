@@ -135,9 +135,10 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "appearance" | "desktopPreferences">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
-    expectTypeOf<Permission>().toEqualTypeOf<never[] | false | null>()
+    expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
+    expectTypeOf<Permission>().toEqualTypeOf<string[] | false | null>()
     expectTypeOf<PermissionChange<"all">["permission"]>().toEqualTypeOf<Permission<"all">>()
     expectTypeOf<PermissionChange>().toEqualTypeOf<Readonly<{
       permission: Permission
@@ -145,9 +146,15 @@ describe("public runtime", function () {
     }>>()
     expectTypeOf<Program>().toHaveProperty("permissions")
     expect(parsePermission("all", [])).toEqual([])
+    expect(parsePermission("services", ["flambo", "terminal", "flambo"])).toEqual(["flambo", "terminal"])
+    expect(parsePermission("programs", [])).toEqual([])
+    expect(parsePermission("appearance", [])).toEqual([])
+    expect(parsePermission("desktopPreferences", [])).toEqual([])
     expect(parsePermissionChange("all", { permission: false, needReload: true })).toEqual({ permission: false, needReload: true })
     expect(parsePermissions({ all: null })).toEqual({ all: null })
     expect(() => parsePermission("all", true)).toThrow(/invalid "all" permission/)
+    expect(() => parsePermission("programs", ["Not an identity"])).toThrow(/invalid "programs" permission/)
+    expect(() => parsePermission("files" as never, [])).toThrow(/does not know the permission/)
     expect(() => parsePermissions({ files: [] })).toThrow(/does not know the permission/)
   })
 
@@ -164,6 +171,19 @@ describe("public runtime", function () {
     expect(defineConfig(config)).toBe(config)
     expect(config.agent).toBe("./agent-guide.md")
     expect(config.client.permissions.all).toBe(true)
+
+    defineConfig({
+      identity: "selected-permissions",
+      client: {
+        location: "./client",
+        permissions: {
+          services: ["flambo"],
+          programs: true,
+          appearance: [],
+          desktopPreferences: true
+        }
+      }
+    })
 
     defineConfig({
       identity: "unknown-permission",

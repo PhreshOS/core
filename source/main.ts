@@ -34,6 +34,7 @@ export {
   type PermissionName,
   type PermissionRequest,
   type PermissionValue,
+  type PermissionValueDomain,
   type Permissions,
   type ProgramPermissions,
   type TimedContextPermissions

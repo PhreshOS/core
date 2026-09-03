@@ -1,15 +1,24 @@
 import type { Timeoutable } from "./timeout.js"
 
-/** Every Client permission and the complete value domain accepted by it. */
+/** Every Client permission and the value domain accepted by it. */
 export const clientPermissionCatalog = Object.freeze({
-  all: Object.freeze([])
-})
+  all: "none",
+  services: "program",
+  programs: "program",
+  appearance: "none",
+  desktopPreferences: "none"
+} as const)
 
 /** One permission name recognized by every PhreshOS environment. */
 export type PermissionName = keyof typeof clientPermissionCatalog
 
+/** The domain from which one permission accepts values. */
+export type PermissionValueDomain<Name extends PermissionName = PermissionName> = (typeof clientPermissionCatalog)[Name]
+
 /** One selectable value belonging to an exact permission. */
-export type PermissionValue<Name extends PermissionName> = (typeof clientPermissionCatalog)[Name][number]
+export type PermissionValue<Name extends PermissionName> = Name extends PermissionName
+  ? PermissionValueDomain<Name> extends "program" ? string : never
+  : never
 
 /** Canonical stored value of one permission. Lists represent unordered sets. */
 export type Permission<Name extends PermissionName = PermissionName> = PermissionValue<Name>[] | false | null
@@ -43,7 +52,7 @@ export type ClientPermissions = Readonly<{
 
 /** Presentation and default assignment belonging to one exact permission. */
 export type PermissionDefinition<Name extends PermissionName = PermissionName> = Readonly<{
-  values: readonly PermissionValue<Name>[]
+  valueDomain: PermissionValueDomain<Name>
   default: readonly PermissionValue<Name>[]
   title: string
   description: string
@@ -95,14 +104,24 @@ export function parsePermissionName(value: unknown): PermissionName {
 export function parsePermission<Name extends PermissionName>(name: Name, value: unknown): Permission<Name> {
   if (value === false || value === null) return value
 
-  const allowed = clientPermissionCatalog[name] as readonly string[]
-
-  if (
-    Array.isArray(value)
-    && value.every(entry => typeof entry === "string" && allowed.includes(entry))
-  ) return [...new Set(value)] as PermissionValue<Name>[]
+  if (Array.isArray(value) && validPermissionValues(name, value)) {
+    return [...new Set(value)] as PermissionValue<Name>[]
+  }
 
   throw new Error(`The System returned an invalid "${name}" permission`)
+}
+
+function validPermissionValues<Name extends PermissionName>(name: Name, values: readonly unknown[]) {
+  const domain = clientPermissionCatalog[parsePermissionName(name)]
+
+  if (domain === "none") return values.length === 0
+  if (domain === "program") {
+    return values.every(value => typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))
+  }
+
+  domain satisfies never
+
+  return false
 }
 
 /** Reads one transport result against one exact permission-change contract. */
