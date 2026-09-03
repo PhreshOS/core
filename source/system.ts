@@ -56,6 +56,54 @@ export type SystemProgramUninstall = Readonly<{
 
 export type SystemProcessExit = Exit & Readonly<{ process: Process }>
 
+/** Options for one operating-system shell command owned by its result stream. */
+export type ShellOptions = Readonly<{
+  /** Working directory. Omission starts from the operating-system user's home. */
+  cwd?: string
+
+  /** Environment values merged over the System process environment. */
+  env?: Readonly<Record<string, string>>
+
+  /** Ends the command tree and aborts iteration with this signal's reason. */
+  signal?: AbortSignal
+}>
+
+/** Ordered lifecycle information produced by one System shell command. */
+export type ShellEvent =
+  | Readonly<{ event: "started", pid: number }>
+  | Readonly<{ event: "output", stream: "stdout" | "stderr", text: string }>
+  | Readonly<{ event: "exited", exit: Exit }>
+
+/** Validate and canonicalize one value from a System shell stream. */
+export function parseShellEvent(value: unknown): ShellEvent {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("The System returned an invalid shell event")
+
+  const event = value as Record<string, unknown>
+
+  if (event.event === "started" && typeof event.pid === "number" && Number.isInteger(event.pid) && event.pid > 0) {
+    return Object.freeze({ event: "started", pid: event.pid })
+  }
+
+  if (event.event === "output" && (event.stream === "stdout" || event.stream === "stderr") && typeof event.text === "string") {
+    return Object.freeze({ event: "output", stream: event.stream, text: event.text })
+  }
+
+  if (event.event === "exited" && event.exit && typeof event.exit === "object" && !Array.isArray(event.exit)) {
+    const exit = event.exit as Record<string, unknown>
+
+    if (exit.status !== "exited" && exit.status !== "signaled") throw new Error("The System returned an invalid shell exit")
+    if (exit.code !== null && typeof exit.code !== "number") throw new Error("The System returned an invalid shell exit code")
+    if (exit.signal !== null && typeof exit.signal !== "string") throw new Error("The System returned an invalid shell exit signal")
+
+    return Object.freeze({
+      event: "exited",
+      exit: Object.freeze({ status: exit.status, code: exit.code, signal: exit.signal })
+    })
+  }
+
+  throw new Error("The System returned an invalid shell event")
+}
+
 export type SystemProgramEvents = {
   create: Program
   forget: Program
@@ -89,6 +137,9 @@ export interface System {
 
   /** Performs one outbound request through this environment's System adapter. */
   fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>
+
+  /** Runs one shell command whose complete process tree belongs to the returned iterator. */
+  shell(command: string, options?: ShellOptions): AsyncGenerator<ShellEvent, void, void>
 
   /**
    * Atomically claims a Program identity for a new uninstalled runtime entity.

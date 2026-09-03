@@ -56,11 +56,15 @@ try {
   writeFileSync(
     join(consumer, "runtime.mjs"),
     `import assert from "node:assert/strict"
-import { ClientEndpoint, Endpoint, ServerEndpoint, standardAppearance } from "@phreshos/core"
+import { ClientEndpoint, Endpoint, ServerEndpoint, parseShellEvent, standardAppearance } from "@phreshos/core"
 
 assert(ClientEndpoint.prototype instanceof Endpoint)
 assert(ServerEndpoint.prototype instanceof Endpoint)
 assert.equal(standardAppearance.background.light, "#fffff5")
+assert.deepEqual(parseShellEvent({ event: "started", pid: 42 }), { event: "started", pid: 42 })
+/** @type {import("@phreshos/core").System} */
+const system = null
+void system?.shell("printf hello")
 `
   )
   execFileSync(process.execPath, [join(consumer, "runtime.mjs")], { stdio: "inherit" })

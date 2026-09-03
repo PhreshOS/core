@@ -12,6 +12,8 @@ import {
   type Process,
   type Program,
   type Storage,
+  type ShellEvent,
+  type ShellOptions,
   type System,
   type Transaction,
   Endpoint,
@@ -25,7 +27,8 @@ import {
   parsePermission,
   parsePermissionChange,
   parsePermissions,
-  parseRelativeValue
+  parseRelativeValue,
+  parseShellEvent
 } from "../source/main.js"
 
 describe("public runtime", function () {
@@ -64,6 +67,17 @@ describe("public runtime", function () {
     expectTypeOf<Program>().toHaveProperty("fork")
     expectTypeOf<Program>().toHaveProperty("assetId")
     expectTypeOf<Program["data"]>().toEqualTypeOf<Storage>()
+  })
+
+  it("defines shell execution once on the shared System contract", function () {
+    type Shell = System["shell"]
+    type Options = NonNullable<Parameters<Shell>[1]>
+    type Event = Awaited<ReturnType<ReturnType<Shell>["next"]>>["value"]
+
+    expectTypeOf<Options>().toEqualTypeOf<ShellOptions>()
+    expectTypeOf<Event>().toEqualTypeOf<ShellEvent | void>()
+    expect(parseShellEvent({ event: "output", stream: "stdout", text: "hello" })).toEqual({ event: "output", stream: "stdout", text: "hello" })
+    expect(() => parseShellEvent({ event: "started", pid: 0 })).toThrow(/invalid shell event/)
   })
 
   it("shares Endpoint launch contracts across Process creation and restart", function () {

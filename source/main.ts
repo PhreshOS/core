@@ -85,9 +85,12 @@ export {
   type Storage
 } from "./storage.js"
 export {
+  parseShellEvent,
   type ClientDefinition,
   type ProgramDefinition,
   type ServerDefinition,
+  type ShellEvent,
+  type ShellOptions,
   type System,
   type SystemProcess,
   type SystemProcessEvents,
