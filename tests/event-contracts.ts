@@ -82,6 +82,9 @@ async function openContextEvents(context: Context) {
 void openContextEvents
 
 function clientContextContract(context: ClientContext) {
+  const authoritative = context.window
+  authoritative.subscribe("move", position => void position.x)
+  authoritative.position()
   const local = context.localWindow
   local.addSurface()
   local.transaction({ duration: 120 }).setGeometry({ position: { x: 0, y: 0 }, size: { width: 800, height: 600 } })

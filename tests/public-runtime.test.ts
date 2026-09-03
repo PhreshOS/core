@@ -122,6 +122,7 @@ describe("public runtime", function () {
   })
 
   it("separates the Client context, Desktop, and global System contracts", function () {
+    expectTypeOf<ClientContext>().toHaveProperty("window")
     expectTypeOf<ClientContext>().toHaveProperty("localWindow")
     expectTypeOf<ClientContext>().toHaveProperty("server")
     expectTypeOf<ClientContext>().toHaveProperty("permissions")

@@ -7,6 +7,7 @@ import type { Program } from "./program.js"
 import type { ServerEndpoint } from "./server-endpoint.js"
 import type { Captures, Subscribable } from "./subscribable.js"
 import type { ContextPermissions } from "./permissions.js"
+import type { Window } from "./window.js"
 
 /** One application value arriving through the executing Endpoint's Context. */
 export type ContextMessage<Payload = unknown, From = Endpoint | null> = Readonly<{
@@ -49,6 +50,7 @@ export interface EndpointContext<Events extends object = {}>
 /** Runtime context of the currently executing Client Endpoint. */
 export interface ClientContext<Events extends object = {}> extends EndpointContext<Events> {
   readonly server: ServerEndpoint
+  readonly window: Window
   readonly localWindow: LocalWindow
   readonly permissions: ContextPermissions
 }
