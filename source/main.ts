@@ -47,7 +47,6 @@ export {
   isServiceKey,
   type ServiceKey
 } from "./service.js"
-export { type Outcome } from "./outcome.js"
 export { isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
 export {
@@ -136,6 +135,7 @@ export {
   ServerEndpoint,
   type AnswerCapture,
   type AnswerMessage,
+  type AnswerOutcome,
   type AnswerSubscriber,
   type ServerTraffic
 } from "./server-endpoint.js"

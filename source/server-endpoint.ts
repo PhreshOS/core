@@ -1,16 +1,26 @@
 import type { Askable } from "./askable.js"
 import { Endpoint, type EndpointTraffic } from "./endpoint.js"
 import type { ServerLaunch } from "./launch.js"
-import type { Outcome } from "./outcome.js"
 import type { Cleanup, EventOptions } from "./subscribable.js"
+
+/** The result reported by an Endpoint answer. */
+export type AnswerOutcome<Result = unknown> =
+  | Readonly<{
+    success: true
+    result: Result
+  }>
+  | Readonly<{
+    success: false
+    error: string
+  }>
 
 /** One answer sent by this Server Endpoint to the Endpoint that asked. */
 export type AnswerMessage<Result = unknown, To = Endpoint | null> = Readonly<{
   /** Destination Endpoint, or `null` when its identity is outside this boundary. */
   to: To
 
-  /** Transport-neutral success or failure returned by the answerer. */
-  outcome: Outcome<Result>
+  /** Success or failure returned by the answerer. */
+  outcome: AnswerOutcome<Result>
 }>
 
 /** One observed answer sent by this Server Endpoint. */
