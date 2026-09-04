@@ -85,12 +85,17 @@ export {
   type WritableAppearance,
 } from "./appearance.js"
 export {
+  describeStorageScope,
+  parseStorageScope,
   type DirectoryStat,
   type EntryStat,
   type FileStat,
   type OtherStat,
   type ProgramStore,
-  type Storage
+  type Storage,
+  type StoragePermissionOperation,
+  type StorageScope,
+  type StorageScopeDescription
 } from "./storage.js"
 export {
   parseShellEvent,

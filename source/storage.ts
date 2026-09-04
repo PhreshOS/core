@@ -1,6 +1,74 @@
 /** Metadata returned for an entry in Program-owned filesystem storage. */
 export type EntryStat = FileStat | DirectoryStat | OtherStat
 
+/** One operation that may be granted over a native Storage path. */
+export type StoragePermissionOperation = "read" | "write" | "delete"
+
+/** One canonical operation-and-path value belonging to the Storage permission. */
+export type StorageScope = string
+
+/** Structural meaning of one validated Storage permission value. */
+export type StorageScopeDescription = Readonly<{
+  operations: readonly StoragePermissionOperation[]
+  path: string
+  recursive: boolean
+}>
+
+const storagePermissionOperations = ["read", "write", "delete"] as const
+
+/** Validate and canonicalize one Storage permission scope. */
+export function parseStorageScope(value: unknown): StorageScope {
+  const scope = describeStorageScope(value)
+  const path = `${scope.path}${scope.recursive ? "/**" : ""}`
+
+  return scope.operations.length === storagePermissionOperations.length
+    ? path
+    : `${scope.operations.join(",")}:${path}`
+}
+
+/** Read the operation set and path region represented by one Storage scope. */
+export function describeStorageScope(value: unknown): StorageScopeDescription {
+  if (typeof value !== "string" || value.length === 0 || value !== value.trim()) {
+    throw new Error("A storage scope must be a non-empty string without surrounding whitespace")
+  }
+
+  const separator = value.indexOf(":")
+  const prefix = separator < 0 ? null : value.slice(0, separator)
+  const names = prefix?.split(",")
+  const explicit = names !== undefined && names.every(isStoragePermissionOperation)
+  const pathValue = explicit ? value.slice(separator + 1) : value
+
+  if (!pathValue) throw new Error("A storage scope needs a path")
+
+  let operations: readonly StoragePermissionOperation[] = storagePermissionOperations
+
+  if (explicit) {
+    operations = storagePermissionOperations.filter(operation => names.includes(operation))
+
+    if (!operations.length) throw new Error("A storage scope needs an operation")
+  }
+
+  else if (prefix === "all" || names?.includes("all")) {
+    throw new Error("A bare storage path is the only all-operation scope")
+  }
+
+  const recursive = pathValue.endsWith("/**")
+  const path = recursive ? pathValue.slice(0, -3) : pathValue
+
+  if (!path) throw new Error("A storage scope needs a path before /**")
+  if (path.includes("/**")) throw new Error("A storage path wildcard must be the final /** segment")
+
+  return Object.freeze({
+    operations: Object.freeze([...operations]),
+    path,
+    recursive
+  })
+}
+
+function isStoragePermissionOperation(value: string): value is StoragePermissionOperation {
+  return (storagePermissionOperations as readonly string[]).includes(value)
+}
+
 /** Metadata for one file. */
 export type FileStat = Readonly<{
   /** Discriminator for file metadata. */

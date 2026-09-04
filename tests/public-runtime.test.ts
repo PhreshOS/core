@@ -30,6 +30,8 @@ import {
   parsePermissionChange,
   parsePermissions,
   parseNetworkScope,
+  parseStorageScope,
+  describeStorageScope,
   networkScopeCovers,
   parseRelativeValue,
   parseShellEvent
@@ -138,10 +140,11 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "network" | "appearance" | "desktopPreferences">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"network">>().toEqualTypeOf<string>()
+    expectTypeOf<PermissionValue<"storage">>().toEqualTypeOf<string>()
     expectTypeOf<Permission>().toEqualTypeOf<string[] | false | null>()
     expectTypeOf<PermissionChange<"all">["permission"]>().toEqualTypeOf<Permission<"all">>()
     expectTypeOf<PermissionChange>().toEqualTypeOf<Readonly<{
@@ -156,6 +159,11 @@ describe("public runtime", function () {
       "https://api.example.com/v1/**",
       "http://localhost:*"
     ])
+    expect(parsePermission("storage", ["delete,read:Documents/**", "Downloads/report.json"])).toEqual([
+      "read,delete:Documents/**",
+      "Downloads/report.json"
+    ])
+    expect(parsePermission("uploads", [])).toEqual([])
     expect(parsePermission("appearance", [])).toEqual([])
     expect(parsePermission("desktopPreferences", [])).toEqual([])
     expect(parsePermissionChange("all", { permission: false, needReload: true })).toEqual({ permission: false, needReload: true })
@@ -165,6 +173,20 @@ describe("public runtime", function () {
     expect(() => parsePermission("network", ["api.example.com"])).toThrow(/invalid "network" permission/)
     expect(() => parsePermission("files" as never, [])).toThrow(/does not know the permission/)
     expect(() => parsePermissions({ files: [] })).toThrow(/does not know the permission/)
+  })
+
+  it("defines operation-aware native Storage scopes", function () {
+    expect(parseStorageScope("Documents/report.txt")).toBe("Documents/report.txt")
+    expect(parseStorageScope("delete,read:Documents/**")).toBe("read,delete:Documents/**")
+    expect(parseStorageScope("delete,write,read:/var/shared/**")).toBe("/var/shared/**")
+    expect(describeStorageScope("read,delete:Documents/**")).toEqual({
+      operations: ["read", "delete"],
+      path: "Documents",
+      recursive: true
+    })
+    expect(() => parseStorageScope("all:Documents")).toThrow(/bare storage path/)
+    expect(() => parseStorageScope("all,read:Documents")).toThrow(/bare storage path/)
+    expect(() => parseStorageScope("read:Documents/**/private")).toThrow(/final/)
   })
 
   it("defines deterministic hierarchical network scopes", function () {
@@ -205,6 +227,8 @@ describe("public runtime", function () {
           services: ["flambo"],
           programs: true,
           network: ["https://api.example.com/v1/**"],
+          storage: ["read:Documents/**"],
+          uploads: true,
           appearance: [],
           desktopPreferences: true
         }

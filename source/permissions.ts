@@ -1,5 +1,6 @@
 import type { Timeoutable } from "./timeout.js"
 import { parseNetworkScope, type NetworkScope } from "./network.js"
+import { parseStorageScope, type StorageScope } from "./storage.js"
 
 /** Every Client permission and the value domain accepted by it. */
 export const clientPermissionCatalog = Object.freeze({
@@ -7,6 +8,8 @@ export const clientPermissionCatalog = Object.freeze({
   services: "program",
   programs: "program",
   network: "network",
+  storage: "storage",
+  uploads: "none",
   appearance: "none",
   desktopPreferences: "none"
 } as const)
@@ -21,6 +24,7 @@ export type PermissionValueDomain<Name extends PermissionName = PermissionName> 
 export type PermissionValue<Name extends PermissionName> = Name extends PermissionName
   ? PermissionValueDomain<Name> extends "program" ? string
     : PermissionValueDomain<Name> extends "network" ? NetworkScope
+      : PermissionValueDomain<Name> extends "storage" ? StorageScope
       : never
   : never
 
@@ -126,6 +130,10 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
   }
   if (domain === "network") {
     try { return values.map(parseNetworkScope) }
+    catch { return null }
+  }
+  if (domain === "storage") {
+    try { return values.map(parseStorageScope) }
     catch { return null }
   }
 
