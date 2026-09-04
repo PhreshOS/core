@@ -91,20 +91,14 @@ export interface ContextPermissions extends TimedContextPermissions, Timeoutable
   allows<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<boolean>
 }
 
-/** Assignment operations shared by persistent Program and temporary Process permission layers. */
-export interface PermissionAssignments {
+/** Authoritative stored user grants belonging to one Program. */
+export interface ProgramPermissions {
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
   all(): Promise<Permissions>
   allows<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<boolean>
   set<Name extends PermissionName>(name: Name, permission: Exclude<PermissionInput<Name>, null>): Promise<void>
   delete<Name extends PermissionName>(name: Name): Promise<void>
 }
-
-/** Authoritative persistent user assignments belonging to one Program. */
-export type ProgramPermissions = PermissionAssignments
-
-/** Authoritative temporary user assignments belonging to one Process. */
-export type ProcessPermissions = PermissionAssignments
 
 /** Whether one unknown value names a permission in the closed Core catalog. */
 export function isPermissionName(value: unknown): value is PermissionName {

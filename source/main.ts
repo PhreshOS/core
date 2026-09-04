@@ -28,7 +28,6 @@ export {
   type ClientPermissions,
   type ContextPermissions,
   type Permission,
-  type PermissionAssignments,
   type PermissionChange,
   type PermissionDefinition,
   type PermissionDefinitions,
@@ -38,7 +37,6 @@ export {
   type PermissionValue,
   type PermissionValueDomain,
   type Permissions,
-  type ProcessPermissions,
   type ProgramPermissions,
   type TimedContextPermissions
 } from "./permissions.js"

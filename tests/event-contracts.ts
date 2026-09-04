@@ -216,11 +216,9 @@ function systemHandlesRemainCanonical(
 
   // @ts-expect-error Assignment values belong to the selected permission.
   program.permissions.set("all", ["read"])
-  process.permissions.get("network")
-  process.permissions.all()
-  process.permissions.allows("storage", ["read:Documents/**"])
-  process.permissions.set("network", ["https://api.example.com"])
-  process.permissions.delete("network")
+
+  // @ts-expect-error Permissions belong to the Program, never one Process.
+  process.permissions
   program.data.text("state.json")
   program.store.get("state")
   program.logs.query("select 1")
