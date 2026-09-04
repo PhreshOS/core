@@ -89,6 +89,7 @@ function clientContextContract(context: ClientContext) {
   local.addSurface()
   local.transaction({ duration: 120 }).setGeometry({ position: { x: 0, y: 0 }, size: { width: 800, height: 600 } })
   context.permissions.get("all")
+  context.permissions.allows("network", ["https://api.example.com"])
   context.permissions.request("all", [])
   context.permissions.timeout(120_000).request("all")
   context.permissions.request("services", ["flambo"])
@@ -104,6 +105,9 @@ function clientContextContract(context: ClientContext) {
 
   // @ts-expect-error A value-less permission accepts no string values.
   context.permissions.request("all", ["read"])
+
+  // @ts-expect-error Permission checks use the selected permission's value domain.
+  context.permissions.allows("appearance", ["flambo"])
 }
 
 void clientContextContract
@@ -193,6 +197,7 @@ function systemHandlesRemainCanonical(
   program.permissions.get("all")
   program.permissions.get("services")
   program.permissions.all()
+  program.permissions.allows("services", ["flambo"])
   program.permissions.set("all", true)
   program.permissions.set("services", ["flambo"])
   program.permissions.set("programs", true)
@@ -211,6 +216,11 @@ function systemHandlesRemainCanonical(
 
   // @ts-expect-error Assignment values belong to the selected permission.
   program.permissions.set("all", ["read"])
+  process.permissions.get("network")
+  process.permissions.all()
+  process.permissions.allows("storage", ["read:Documents/**"])
+  process.permissions.set("network", ["https://api.example.com"])
+  process.permissions.delete("network")
   program.data.text("state.json")
   program.store.get("state")
   program.logs.query("select 1")

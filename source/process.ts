@@ -1,4 +1,5 @@
 import type { ClientEndpoint } from "./client-endpoint.js"
+import type { ProcessPermissions } from "./permissions.js"
 import type { Program } from "./program.js"
 import type { ServerEndpoint } from "./server-endpoint.js"
 import type { Subscribable } from "./subscribable.js"
@@ -41,6 +42,9 @@ export interface Process extends Subscribable<ProcessEvents, never> {
 
   /** Permanent handle to this Process's Client Endpoint. */
   readonly client: ClientEndpoint
+
+  /** Temporary user grants retained only for this Process lifetime. */
+  readonly permissions: ProcessPermissions
 
   /** Returns the Program that owns this Process. */
   program(): Program

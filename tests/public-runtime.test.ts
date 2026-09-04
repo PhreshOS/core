@@ -152,6 +152,7 @@ describe("public runtime", function () {
       needReload: boolean
     }>>()
     expectTypeOf<Program>().toHaveProperty("permissions")
+    expectTypeOf<Process>().toHaveProperty("permissions")
     expect(parsePermission("all", [])).toEqual([])
     expect(parsePermission("services", ["flambo", "terminal", "flambo"])).toEqual(["flambo", "terminal"])
     expect(parsePermission("programs", [])).toEqual([])

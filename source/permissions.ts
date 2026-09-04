@@ -86,15 +86,25 @@ export interface TimedContextPermissions {
 export interface ContextPermissions extends TimedContextPermissions, Timeoutable<TimedContextPermissions> {
   /** Returns the stored user value, independently of current iframe activation. */
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
+
+  /** Returns whether the current execution context effectively holds the requested permission. */
+  allows<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<boolean>
 }
 
-/** Authoritative stored user grants belonging to one Program. */
-export interface ProgramPermissions {
+/** Assignment operations shared by persistent Program and temporary Process permission layers. */
+export interface PermissionAssignments {
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
   all(): Promise<Permissions>
-  set<Name extends PermissionName>(name: Name, permission: Exclude<PermissionInput<Name>, null>): Promise<PermissionChange<Name>>
-  delete<Name extends PermissionName>(name: Name): Promise<PermissionChange<Name>>
+  allows<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<boolean>
+  set<Name extends PermissionName>(name: Name, permission: Exclude<PermissionInput<Name>, null>): Promise<void>
+  delete<Name extends PermissionName>(name: Name): Promise<void>
 }
+
+/** Authoritative persistent user assignments belonging to one Program. */
+export type ProgramPermissions = PermissionAssignments
+
+/** Authoritative temporary user assignments belonging to one Process. */
+export type ProcessPermissions = PermissionAssignments
 
 /** Whether one unknown value names a permission in the closed Core catalog. */
 export function isPermissionName(value: unknown): value is PermissionName {
