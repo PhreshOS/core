@@ -29,6 +29,8 @@ import {
   parsePermission,
   parsePermissionChange,
   parsePermissions,
+  parseNetworkScope,
+  networkScopeCovers,
   parseRelativeValue,
   parseShellEvent
 } from "../source/main.js"
@@ -136,9 +138,10 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "appearance" | "desktopPreferences">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "network" | "appearance" | "desktopPreferences">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
+    expectTypeOf<PermissionValue<"network">>().toEqualTypeOf<string>()
     expectTypeOf<Permission>().toEqualTypeOf<string[] | false | null>()
     expectTypeOf<PermissionChange<"all">["permission"]>().toEqualTypeOf<Permission<"all">>()
     expectTypeOf<PermissionChange>().toEqualTypeOf<Readonly<{
@@ -149,14 +152,35 @@ describe("public runtime", function () {
     expect(parsePermission("all", [])).toEqual([])
     expect(parsePermission("services", ["flambo", "terminal", "flambo"])).toEqual(["flambo", "terminal"])
     expect(parsePermission("programs", [])).toEqual([])
+    expect(parsePermission("network", ["HTTPS://API.Example.com:443/v1/**", "http://localhost:*"])).toEqual([
+      "https://api.example.com/v1/**",
+      "http://localhost:*"
+    ])
     expect(parsePermission("appearance", [])).toEqual([])
     expect(parsePermission("desktopPreferences", [])).toEqual([])
     expect(parsePermissionChange("all", { permission: false, needReload: true })).toEqual({ permission: false, needReload: true })
     expect(parsePermissions({ all: null })).toEqual({ all: null })
     expect(() => parsePermission("all", true)).toThrow(/invalid "all" permission/)
     expect(() => parsePermission("programs", ["Not an identity"])).toThrow(/invalid "programs" permission/)
+    expect(() => parsePermission("network", ["api.example.com"])).toThrow(/invalid "network" permission/)
     expect(() => parsePermission("files" as never, [])).toThrow(/does not know the permission/)
     expect(() => parsePermissions({ files: [] })).toThrow(/does not know the permission/)
+  })
+
+  it("defines deterministic hierarchical network scopes", function () {
+    expect(parseNetworkScope("HTTPS://API.Example.com:443")).toBe("https://api.example.com")
+    expect(parseNetworkScope("https://api.example.com/v1/../v2/**?ignored=true")).toBe("https://api.example.com/v2/**")
+    expect(parseNetworkScope("http://localhost:*")).toBe("http://localhost:*")
+    expect(networkScopeCovers("https://api.example.com", "https://api.example.com/v1/users")).toBe(true)
+    expect(networkScopeCovers("https://*.example.com", "https://api.eu.example.com/v1")).toBe(true)
+    expect(networkScopeCovers("https://*.example.com", "https://example.com/v1")).toBe(false)
+    expect(networkScopeCovers("https://api.example.com/v1/**", "https://api.example.com/v1/users")).toBe(true)
+    expect(networkScopeCovers("https://api.example.com/v1/**", "https://api.example.com/v10/users")).toBe(false)
+    expect(networkScopeCovers("http://localhost:*", "http://localhost:5200/events")).toBe(true)
+    expect(networkScopeCovers("https://api.example.com", "wss://api.example.com/socket")).toBe(false)
+    expect(() => parseNetworkScope("https://exa*mple.com")).toThrow(/wildcard/)
+    expect(() => parseNetworkScope("https://*.*.example.com")).toThrow(/wildcard/)
+    expect(() => parseNetworkScope("https://example.com/v*/users")).toThrow(/wildcard/)
   })
 
   it("returns the exact authored Program configuration", function () {
@@ -180,6 +204,7 @@ describe("public runtime", function () {
         permissions: {
           services: ["flambo"],
           programs: true,
+          network: ["https://api.example.com/v1/**"],
           appearance: [],
           desktopPreferences: true
         }

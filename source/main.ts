@@ -15,6 +15,7 @@ export {
 
 export { type Publishable } from "./publishable.js"
 export { type Timeoutable } from "./timeout.js"
+export { networkScopeCovers, parseNetworkScope, type NetworkScope } from "./network.js"
 export {
   clientPermissionCatalog,
   isPermissionName,

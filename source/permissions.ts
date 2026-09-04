@@ -1,10 +1,12 @@
 import type { Timeoutable } from "./timeout.js"
+import { parseNetworkScope, type NetworkScope } from "./network.js"
 
 /** Every Client permission and the value domain accepted by it. */
 export const clientPermissionCatalog = Object.freeze({
   all: "none",
   services: "program",
   programs: "program",
+  network: "network",
   appearance: "none",
   desktopPreferences: "none"
 } as const)
@@ -17,7 +19,9 @@ export type PermissionValueDomain<Name extends PermissionName = PermissionName> 
 
 /** One selectable value belonging to an exact permission. */
 export type PermissionValue<Name extends PermissionName> = Name extends PermissionName
-  ? PermissionValueDomain<Name> extends "program" ? string : never
+  ? PermissionValueDomain<Name> extends "program" ? string
+    : PermissionValueDomain<Name> extends "network" ? NetworkScope
+      : never
   : never
 
 /** Canonical stored value of one permission. Lists represent unordered sets. */
@@ -104,24 +108,30 @@ export function parsePermissionName(value: unknown): PermissionName {
 export function parsePermission<Name extends PermissionName>(name: Name, value: unknown): Permission<Name> {
   if (value === false || value === null) return value
 
-  if (Array.isArray(value) && validPermissionValues(name, value)) {
-    return [...new Set(value)] as PermissionValue<Name>[]
+  if (Array.isArray(value)) {
+    const values = parsePermissionValues(name, value)
+
+    if (values) return [...new Set(values)] as PermissionValue<Name>[]
   }
 
   throw new Error(`The System returned an invalid "${name}" permission`)
 }
 
-function validPermissionValues<Name extends PermissionName>(name: Name, values: readonly unknown[]) {
+function parsePermissionValues<Name extends PermissionName>(name: Name, values: readonly unknown[]) {
   const domain = clientPermissionCatalog[parsePermissionName(name)]
 
-  if (domain === "none") return values.length === 0
+  if (domain === "none") return values.length === 0 ? [] : null
   if (domain === "program") {
-    return values.every(value => typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))
+    return values.every(value => typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) ? values : null
+  }
+  if (domain === "network") {
+    try { return values.map(parseNetworkScope) }
+    catch { return null }
   }
 
   domain satisfies never
 
-  return false
+  return null
 }
 
 /** Reads one transport result against one exact permission-change contract. */
