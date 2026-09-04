@@ -71,20 +71,15 @@ export type PermissionDefinitions = Readonly<{
   [Name in PermissionName]: PermissionDefinition<Name>
 }>
 
-/** Result of assigning or requesting one exact permission. */
-export type PermissionChange<Name extends PermissionName = PermissionName> = Readonly<{
-  permission: Permission<Name>
-  needReload: boolean
-}>
-
 /** Permission request using one caller-selected deadline. */
 export interface TimedContextPermissions {
-  request<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<PermissionChange<Name>>
+  /** Returns the requested canonical scope when granted, false when denied, or null when unresolved. */
+  request<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<Permission<Name>>
 }
 
 /** Stored permissions and owner requests belonging to the executing Client. */
 export interface ContextPermissions extends TimedContextPermissions, Timeoutable<TimedContextPermissions> {
-  /** Returns the stored user value, independently of current iframe activation. */
+  /** Returns the stored user value, independently of declared or implied grants. */
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
 
   /** Returns whether the current execution context effectively holds the requested permission. */
@@ -144,24 +139,6 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
   domain satisfies never
 
   return null
-}
-
-/** Reads one transport result against one exact permission-change contract. */
-export function parsePermissionChange<Name extends PermissionName>(name: Name, value: unknown): PermissionChange<Name> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error("The System returned an invalid permission change")
-  }
-
-  const change = value as { permission?: unknown, needReload?: unknown }
-
-  if (typeof change.needReload !== "boolean") {
-    throw new Error("The System returned an invalid permission reload state")
-  }
-
-  return Object.freeze({
-    permission: parsePermission(name, change.permission),
-    needReload: change.needReload
-  })
 }
 
 /** Reads immutable Program-declared grants against the closed permission contract. */

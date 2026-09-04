@@ -8,7 +8,6 @@ import {
   type Launch,
   type LocalWindow,
   type Permission,
-  type PermissionChange,
   type PermissionName,
   type PermissionValue,
   type Process,
@@ -27,7 +26,6 @@ import {
   isServiceKey,
   layers,
   parsePermission,
-  parsePermissionChange,
   parsePermissions,
   parseNetworkScope,
   parseStorageScope,
@@ -146,11 +144,7 @@ describe("public runtime", function () {
     expectTypeOf<PermissionValue<"network">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"storage">>().toEqualTypeOf<string>()
     expectTypeOf<Permission>().toEqualTypeOf<string[] | false | null>()
-    expectTypeOf<PermissionChange<"all">["permission"]>().toEqualTypeOf<Permission<"all">>()
-    expectTypeOf<PermissionChange>().toEqualTypeOf<Readonly<{
-      permission: Permission
-      needReload: boolean
-    }>>()
+    expectTypeOf<ClientContext["permissions"]["request"]>().returns.toEqualTypeOf<Promise<Permission>>()
     expectTypeOf<Program>().toHaveProperty("permissions")
     expect(parsePermission("all", [])).toEqual([])
     expect(parsePermission("services", ["flambo", "terminal", "flambo"])).toEqual(["flambo", "terminal"])
@@ -166,7 +160,8 @@ describe("public runtime", function () {
     expect(parsePermission("uploads", [])).toEqual([])
     expect(parsePermission("appearance", [])).toEqual([])
     expect(parsePermission("desktopPreferences", [])).toEqual([])
-    expect(parsePermissionChange("all", { permission: false, needReload: true })).toEqual({ permission: false, needReload: true })
+    expect(parsePermission("all", false)).toBe(false)
+    expect(parsePermission("all", null)).toBeNull()
     expect(parsePermissions({ all: null })).toEqual({ all: null })
     expect(() => parsePermission("all", true)).toThrow(/invalid "all" permission/)
     expect(() => parsePermission("programs", ["Not an identity"])).toThrow(/invalid "programs" permission/)
