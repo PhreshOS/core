@@ -30,7 +30,12 @@ export type AppearanceSurface = Readonly<{
 export type Appearance = Readonly<{
   background: ThemedValue<string, string>
   foreground: ThemedValue<string, string>
-  accent: ThemedValue<string, string>
+  primary: ThemedValue<string, string>
+  secondary: ThemedValue<string, string>
+  success: ThemedValue<string, string>
+  warning: ThemedValue<string, string>
+  danger: ThemedValue<string, string>
+  info: ThemedValue<string, string>
   spacing: ThemedValue<number>
   radius: ThemedValue<number>
   surface: ThemedValue<AppearanceSurface, AppearanceSurface>
@@ -75,7 +80,12 @@ const standardSurface = Object.freeze({
 export const standardAppearance = createAppearanceSnapshot({
   background: { light: "#fffff5", dark: "#101418" },
   foreground: { light: "#183447", dark: "#edf8fc" },
-  accent: { light: "#4c9cff", dark: "#4c9cff" },
+  primary: { light: "#4c9cff", dark: "#4c9cff" },
+  secondary: { light: "#8b5cf6", dark: "#a78bfa" },
+  success: { light: "#16a34a", dark: "#4ade80" },
+  warning: { light: "#d97706", dark: "#fbbf24" },
+  danger: { light: "#dc2626", dark: "#f87171" },
+  info: { light: "#0891b2", dark: "#22d3ee" },
   spacing: { light: 12 },
   radius: { light: 10 },
   surface: { light: standardSurface, dark: standardSurface },
@@ -88,7 +98,12 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
   return Object.freeze({
     background: themed(appearance.background),
     foreground: themed(appearance.foreground),
-    accent: themed(appearance.accent),
+    primary: themed(appearance.primary),
+    secondary: themed(appearance.secondary),
+    success: themed(appearance.success),
+    warning: themed(appearance.warning),
+    danger: themed(appearance.danger),
+    info: themed(appearance.info),
     spacing: single(appearance.spacing),
     radius: single(appearance.radius),
     surface: themed(appearance.surface, value => Object.freeze({ ...value })),

@@ -10,9 +10,32 @@ describe("Appearance", function () {
   it("keeps complete standard light and dark values", function () {
     expect(standardAppearance.background).toEqual({ light: "#fffff5", dark: "#101418" })
     expect(standardAppearance.foreground).toEqual({ light: "#183447", dark: "#edf8fc" })
+    expect(standardAppearance.primary).toEqual({ light: "#4c9cff", dark: "#4c9cff" })
     expect(standardAppearance.spacing).toEqual({ light: 12 })
     expect(standardAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
     expect(standardAppearance.surface.light.grain).toBe(0)
+  })
+
+  it.each(["background", "foreground", "primary", "secondary", "success", "warning", "danger", "info"] as const)(
+    "preserves independent immutable %s branches",
+    function (role) {
+      const value = { light: "oklch(60% 0.2 260)", dark: "var(--custom-color)" }
+      const appearance = createAppearanceSnapshot({ ...standardAppearance, [role]: value })
+
+      expect(appearance[role]).toEqual(value)
+      expect(Object.isFrozen(appearance[role])).toBe(true)
+      value.light = "red"
+      expect(appearance[role].light).toBe("oklch(60% 0.2 260)")
+    }
+  )
+
+  it("exposes only the current palette names", function () {
+    expect(standardAppearance).not.toHaveProperty("accent")
+
+    if (false) {
+      // @ts-expect-error The retired color name is not part of Appearance.
+      void standardAppearance.accent
+    }
   })
 
   it("makes unsupported dark branches a type error", function () {
