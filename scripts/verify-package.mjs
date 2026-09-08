@@ -60,7 +60,9 @@ import { ClientEndpoint, Endpoint, ServerEndpoint, parseShellEvent, standardAppe
 
 assert(ClientEndpoint.prototype instanceof Endpoint)
 assert(ServerEndpoint.prototype instanceof Endpoint)
-assert.equal(standardAppearance.background.light, "#fffff5")
+assert.equal(standardAppearance.background.light, "#ffffff")
+assert.equal(standardAppearance.primary.light, "#4c9cff")
+assert.equal("accent" in standardAppearance, false)
 assert.deepEqual(parseShellEvent({ event: "started", pid: 42 }), { event: "started", pid: 42 })
 /** @type {import("@phreshos/core").System} */
 const system = null
