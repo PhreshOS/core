@@ -26,6 +26,15 @@ export type AppearanceSurface = Readonly<{
   brightness: number
 }>
 
+/** Independent outer shadow geometry in CSS pixels and color opacity. */
+export type AppearanceShadow = Readonly<{
+  x: number
+  y: number
+  blur: number
+  spread: number
+  opacity: number
+}>
+
 /** Complete, unresolved visual state owned by the System. */
 export type Appearance = Readonly<{
   background: ThemedValue<string, string>
@@ -38,6 +47,7 @@ export type Appearance = Readonly<{
   info: ThemedValue<string, string>
   spacing: ThemedValue<number>
   radius: ThemedValue<number>
+  shadow: ThemedValue<AppearanceShadow, AppearanceShadow>
   surface: ThemedValue<AppearanceSurface, AppearanceSurface>
   signInWallpaper: ThemedValue<string | null, string | null>
   desktopWallpaper: ThemedValue<string | null, string | null>
@@ -47,6 +57,13 @@ export type Appearance = Readonly<{
 export const appearanceLimits = Object.freeze({
   spacing: Object.freeze({ minimum: 6, maximum: 18 }),
   radius: Object.freeze({ minimum: 6, maximum: 18 }),
+  shadow: Object.freeze({
+    x: Object.freeze({ minimum: -48, maximum: 48 }),
+    y: Object.freeze({ minimum: -48, maximum: 48 }),
+    blur: Object.freeze({ minimum: 0, maximum: 96 }),
+    spread: Object.freeze({ minimum: -24, maximum: 24 }),
+    opacity: Object.freeze({ minimum: 0, maximum: 1 })
+  }),
   surface: Object.freeze({
     grain: Object.freeze({ minimum: 0, maximum: 1 }),
     grainAmount: Object.freeze({ minimum: 0, maximum: 1 }),
@@ -61,6 +78,7 @@ export const appearanceLimits = Object.freeze({
 }) satisfies Readonly<{
   spacing: AppearanceRange
   radius: AppearanceRange
+  shadow: Readonly<Record<keyof AppearanceShadow, AppearanceRange>>
   surface: Readonly<Record<keyof AppearanceSurface, AppearanceRange>>
 }>
 
@@ -76,6 +94,8 @@ const standardSurface = Object.freeze({
   brightness: 1
 })
 
+const standardShadow = Object.freeze({ x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 })
+
 /** Complete standard Appearance available to every environment. */
 export const standardAppearance = createAppearanceSnapshot({
   background: { light: "#ffffff", dark: "#121a21" },
@@ -88,6 +108,7 @@ export const standardAppearance = createAppearanceSnapshot({
   info: { light: "#0891b2", dark: "#22d3ee" },
   spacing: { light: 12 },
   radius: { light: 10 },
+  shadow: { light: standardShadow, dark: standardShadow },
   surface: { light: standardSurface, dark: { ...standardSurface, opacity: 0.35 } },
   signInWallpaper: { light: null, dark: null },
   desktopWallpaper: { light: null, dark: null }
@@ -106,6 +127,7 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
     info: themed(appearance.info),
     spacing: single(appearance.spacing),
     radius: single(appearance.radius),
+    shadow: themed(appearance.shadow, value => Object.freeze({ ...value })),
     surface: themed(appearance.surface, value => Object.freeze({ ...value })),
     signInWallpaper: themed(appearance.signInWallpaper),
     desktopWallpaper: themed(appearance.desktopWallpaper)

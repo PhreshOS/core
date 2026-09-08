@@ -31,6 +31,19 @@ describe("Appearance", function () {
     expect(standardAppearance.surface.dark).toEqual({ ...standardAppearance.surface.light, opacity: 0.35 })
   })
 
+  it("owns independent, immutable shadow values", function () {
+    const shadow = { x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 }
+    expect(standardAppearance.shadow).toEqual({ light: shadow, dark: shadow })
+    const input = { ...shadow, y: 12 }
+    const snapshot = createAppearanceSnapshot({ ...standardAppearance, shadow: { light: input, dark: shadow } })
+    input.y = 20
+    expect(snapshot.shadow.light.y).toBe(12)
+    expect(Object.isFrozen(snapshot.shadow)).toBe(true)
+    expect(Object.isFrozen(snapshot.shadow.light)).toBe(true)
+    expect(Object.isFrozen(snapshot.shadow.dark)).toBe(true)
+    expect(snapshot.surface).toEqual(standardAppearance.surface)
+  })
+
   it.each(["background", "foreground", "primary", "secondary", "success", "warning", "danger", "info"] as const)(
     "preserves independent immutable %s branches",
     function (role) {

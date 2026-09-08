@@ -79,6 +79,7 @@ export {
   type AppearanceRange,
   type AppearanceSource,
   type AppearanceSurface,
+  type AppearanceShadow,
   type ThemedValue,
   type WritableAppearance,
 } from "./appearance.js"
