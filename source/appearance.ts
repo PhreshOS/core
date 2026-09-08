@@ -13,7 +13,7 @@ export type AppearanceRange = Readonly<{
   maximum: number
 }>
 
-/** Concrete defaults for the shared opaque Surface material. */
+/** Concrete controls for the shared Surface material. */
 export type AppearanceSurface = Readonly<{
   grain: number
   grainAmount: number
@@ -67,8 +67,8 @@ export const appearanceLimits = Object.freeze({
 const standardSurface = Object.freeze({
   grain: 0,
   grainAmount: 0,
-  backdrop: 0,
-  opacity: 1,
+  backdrop: 12,
+  opacity: 0.2,
   distortion: 0,
   waves: 0,
   ripples: 0,
@@ -78,7 +78,7 @@ const standardSurface = Object.freeze({
 
 /** Complete standard Appearance available to every environment. */
 export const standardAppearance = createAppearanceSnapshot({
-  background: { light: "#fffff5", dark: "#101418" },
+  background: { light: "#ffffff", dark: "#121a21" },
   foreground: { light: "#183447", dark: "#edf8fc" },
   primary: { light: "#4c9cff", dark: "#4c9cff" },
   secondary: { light: "#8b5cf6", dark: "#a78bfa" },
@@ -88,7 +88,7 @@ export const standardAppearance = createAppearanceSnapshot({
   info: { light: "#0891b2", dark: "#22d3ee" },
   spacing: { light: 12 },
   radius: { light: 10 },
-  surface: { light: standardSurface, dark: standardSurface },
+  surface: { light: standardSurface, dark: { ...standardSurface, opacity: 0.35 } },
   signInWallpaper: { light: null, dark: null },
   desktopWallpaper: { light: null, dark: null }
 })

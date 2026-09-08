@@ -8,12 +8,27 @@ import {
 
 describe("Appearance", function () {
   it("keeps complete standard light and dark values", function () {
-    expect(standardAppearance.background).toEqual({ light: "#fffff5", dark: "#101418" })
+    expect(standardAppearance.background).toEqual({ light: "#ffffff", dark: "#121a21" })
     expect(standardAppearance.foreground).toEqual({ light: "#183447", dark: "#edf8fc" })
     expect(standardAppearance.primary).toEqual({ light: "#4c9cff", dark: "#4c9cff" })
     expect(standardAppearance.spacing).toEqual({ light: 12 })
     expect(standardAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
     expect(standardAppearance.surface.light.grain).toBe(0)
+  })
+
+  it("uses frosted Surface defaults with independent light and dark opacity", function () {
+    expect(standardAppearance.surface.light).toEqual({
+      grain: 0,
+      grainAmount: 0,
+      backdrop: 12,
+      opacity: 0.2,
+      distortion: 0,
+      waves: 0,
+      ripples: 0,
+      saturation: 1,
+      brightness: 1
+    })
+    expect(standardAppearance.surface.dark).toEqual({ ...standardAppearance.surface.light, opacity: 0.35 })
   })
 
   it.each(["background", "foreground", "primary", "secondary", "success", "warning", "danger", "info"] as const)(
