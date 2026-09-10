@@ -2,22 +2,22 @@ import { describe, expect, it } from "vitest"
 import {
   appearanceLimits,
   createAppearanceSnapshot,
-  standardAppearance,
+  defaultAppearance,
   type ThemedValue
 } from "../source/main.js"
 
 describe("Appearance", function () {
-  it("keeps complete standard light and dark values", function () {
-    expect(standardAppearance.background).toEqual({ light: "#ffffff", dark: "#121a21" })
-    expect(standardAppearance.foreground).toEqual({ light: "#183447", dark: "#edf8fc" })
-    expect(standardAppearance.primary).toEqual({ light: "#4c9cff", dark: "#4c9cff" })
-    expect(standardAppearance.spacing).toEqual({ light: 12 })
-    expect(standardAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
-    expect(standardAppearance.surface.light.grain).toBe(0)
+  it("keeps complete default light and dark values", function () {
+    expect(defaultAppearance.background).toEqual({ light: "#ffffff", dark: "#121a21" })
+    expect(defaultAppearance.foreground).toEqual({ light: "#183447", dark: "#edf8fc" })
+    expect(defaultAppearance.primary).toEqual({ light: "#4c9cff", dark: "#4c9cff" })
+    expect(defaultAppearance.spacing).toEqual({ light: 12 })
+    expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
+    expect(defaultAppearance.material.light.grain).toBe(0)
   })
 
-  it("uses frosted Surface defaults with independent light and dark opacity", function () {
-    expect(standardAppearance.surface.light).toEqual({
+  it("uses material defaults with independent light and dark opacity", function () {
+    expect(defaultAppearance.material.light).toEqual({
       grain: 0,
       grainAmount: 0,
       backdrop: 12,
@@ -25,27 +25,27 @@ describe("Appearance", function () {
       distortion: 0,
       saturation: 1
     })
-    expect(standardAppearance.surface.dark).toEqual({ ...standardAppearance.surface.light, opacity: 0.35 })
+    expect(defaultAppearance.material.dark).toEqual({ ...defaultAppearance.material.light, opacity: 0.35 })
   })
 
   it("owns independent, immutable shadow values", function () {
     const shadow = { x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 }
-    expect(standardAppearance.shadow).toEqual({ light: shadow, dark: shadow })
+    expect(defaultAppearance.shadow).toEqual({ light: shadow, dark: shadow })
     const input = { ...shadow, y: 12 }
-    const snapshot = createAppearanceSnapshot({ ...standardAppearance, shadow: { light: input, dark: shadow } })
+    const snapshot = createAppearanceSnapshot({ ...defaultAppearance, shadow: { light: input, dark: shadow } })
     input.y = 20
     expect(snapshot.shadow.light.y).toBe(12)
     expect(Object.isFrozen(snapshot.shadow)).toBe(true)
     expect(Object.isFrozen(snapshot.shadow.light)).toBe(true)
     expect(Object.isFrozen(snapshot.shadow.dark)).toBe(true)
-    expect(snapshot.surface).toEqual(standardAppearance.surface)
+    expect(snapshot.material).toEqual(defaultAppearance.material)
   })
 
   it.each(["background", "foreground", "primary", "secondary", "success", "warning", "danger", "info"] as const)(
     "preserves independent immutable %s branches",
     function (role) {
       const value = { light: "oklch(60% 0.2 260)", dark: "var(--custom-color)" }
-      const appearance = createAppearanceSnapshot({ ...standardAppearance, [role]: value })
+      const appearance = createAppearanceSnapshot({ ...defaultAppearance, [role]: value })
 
       expect(appearance[role]).toEqual(value)
       expect(Object.isFrozen(appearance[role])).toBe(true)
@@ -55,11 +55,11 @@ describe("Appearance", function () {
   )
 
   it("exposes only the current palette names", function () {
-    expect(standardAppearance).not.toHaveProperty("accent")
+    expect(defaultAppearance).not.toHaveProperty("accent")
 
     if (false) {
       // @ts-expect-error The retired color name is not part of Appearance.
-      void standardAppearance.accent
+      void defaultAppearance.accent
     }
   })
 
@@ -76,18 +76,18 @@ describe("Appearance", function () {
 
   it("creates deeply immutable snapshots", function () {
     const appearance = createAppearanceSnapshot({
-      ...standardAppearance,
+      ...defaultAppearance,
       background: { light: "canvas", dark: "black" }
     })
 
     expect(appearance.background).toEqual({ light: "canvas", dark: "black" })
     expect(Object.isFrozen(appearance)).toBe(true)
     expect(Object.isFrozen(appearance.background)).toBe(true)
-    expect(Object.isFrozen(appearance.surface.light)).toBe(true)
+    expect(Object.isFrozen(appearance.material.light)).toBe(true)
   })
 
-  it("publishes the complete bounded Surface ranges", function () {
-    expect(appearanceLimits.surface).toEqual({
+  it("publishes the complete bounded material ranges", function () {
+    expect(appearanceLimits.material).toEqual({
       grain: { minimum: 0, maximum: 1 },
       grainAmount: { minimum: 0, maximum: 1 },
       backdrop: { minimum: 0, maximum: 24 },

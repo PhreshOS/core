@@ -56,13 +56,13 @@ try {
   writeFileSync(
     join(consumer, "runtime.mjs"),
     `import assert from "node:assert/strict"
-import { ClientEndpoint, Endpoint, ServerEndpoint, parseShellEvent, standardAppearance } from "@phreshos/core"
+import { ClientEndpoint, Endpoint, ServerEndpoint, parseShellEvent, defaultAppearance } from "@phreshos/core"
 
 assert(ClientEndpoint.prototype instanceof Endpoint)
 assert(ServerEndpoint.prototype instanceof Endpoint)
-assert.equal(standardAppearance.background.light, "#ffffff")
-assert.equal(standardAppearance.primary.light, "#4c9cff")
-assert.equal("accent" in standardAppearance, false)
+assert.equal(defaultAppearance.background.light, "#ffffff")
+assert.equal(defaultAppearance.primary.light, "#4c9cff")
+assert.equal("accent" in defaultAppearance, false)
 assert.deepEqual(parseShellEvent({ event: "started", pid: 42 }), { event: "started", pid: 42 })
 /** @type {import("@phreshos/core").System} */
 const system = null

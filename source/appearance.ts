@@ -13,8 +13,8 @@ export type AppearanceRange = Readonly<{
   maximum: number
 }>
 
-/** Concrete controls for the shared Surface material. */
-export type AppearanceSurface = Readonly<{
+/** Concrete controls for visual material, independent of any component that consumes it. */
+export type AppearanceMaterial = Readonly<{
   grain: number
   grainAmount: number
   backdrop: number
@@ -45,7 +45,7 @@ export type Appearance = Readonly<{
   spacing: ThemedValue<number>
   radius: ThemedValue<number>
   shadow: ThemedValue<AppearanceShadow, AppearanceShadow>
-  surface: ThemedValue<AppearanceSurface, AppearanceSurface>
+  material: ThemedValue<AppearanceMaterial, AppearanceMaterial>
   signInWallpaper: ThemedValue<string | null, string | null>
   desktopWallpaper: ThemedValue<string | null, string | null>
 }>
@@ -61,7 +61,7 @@ export const appearanceLimits = Object.freeze({
     spread: Object.freeze({ minimum: -24, maximum: 24 }),
     opacity: Object.freeze({ minimum: 0, maximum: 1 })
   }),
-  surface: Object.freeze({
+  material: Object.freeze({
     grain: Object.freeze({ minimum: 0, maximum: 1 }),
     grainAmount: Object.freeze({ minimum: 0, maximum: 1 }),
     backdrop: Object.freeze({ minimum: 0, maximum: 24 }),
@@ -73,10 +73,10 @@ export const appearanceLimits = Object.freeze({
   spacing: AppearanceRange
   radius: AppearanceRange
   shadow: Readonly<Record<keyof AppearanceShadow, AppearanceRange>>
-  surface: Readonly<Record<keyof AppearanceSurface, AppearanceRange>>
+  material: Readonly<Record<keyof AppearanceMaterial, AppearanceRange>>
 }>
 
-const standardSurface = Object.freeze({
+const defaultMaterial = Object.freeze({
   grain: 0,
   grainAmount: 0,
   backdrop: 12,
@@ -85,10 +85,10 @@ const standardSurface = Object.freeze({
   saturation: 1
 })
 
-const standardShadow = Object.freeze({ x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 })
+const defaultShadow = Object.freeze({ x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 })
 
-/** Complete standard Appearance available to every environment. */
-export const standardAppearance = createAppearanceSnapshot({
+/** Complete default Appearance available to every environment. */
+export const defaultAppearance = createAppearanceSnapshot({
   background: { light: "#ffffff", dark: "#121a21" },
   foreground: { light: "#183447", dark: "#edf8fc" },
   primary: { light: "#4c9cff", dark: "#4c9cff" },
@@ -99,8 +99,8 @@ export const standardAppearance = createAppearanceSnapshot({
   info: { light: "#0891b2", dark: "#22d3ee" },
   spacing: { light: 12 },
   radius: { light: 10 },
-  shadow: { light: standardShadow, dark: standardShadow },
-  surface: { light: standardSurface, dark: { ...standardSurface, opacity: 0.35 } },
+  shadow: { light: defaultShadow, dark: defaultShadow },
+  material: { light: defaultMaterial, dark: { ...defaultMaterial, opacity: 0.35 } },
   signInWallpaper: { light: null, dark: null },
   desktopWallpaper: { light: null, dark: null }
 })
@@ -119,7 +119,7 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
     spacing: single(appearance.spacing),
     radius: single(appearance.radius),
     shadow: themed(appearance.shadow, value => Object.freeze({ ...value })),
-    surface: themed(appearance.surface, value => Object.freeze({ ...value })),
+    material: themed(appearance.material, value => Object.freeze({ ...value })),
     signInWallpaper: themed(appearance.signInWallpaper),
     desktopWallpaper: themed(appearance.desktopWallpaper)
   })
