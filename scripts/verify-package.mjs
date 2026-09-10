@@ -73,7 +73,7 @@ void system?.shell("printf hello")
 
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { defineConfig, isUploadFile, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopSurfaceSource, type LocalWindow, type Program, type SystemUploads, type TrafficMessage, type Transaction, type Upload, type Window, type WindowGeometry, type WritableDesktopPreferencesSource } from "@phreshos/core"
+    `import { defineConfig, isUploadFile, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopSurfaceSource, type LocalWindow, type Program, type System, type SystemUploads, type TrafficMessage, type Transaction, type Upload, type Window, type WindowGeometry, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
 const config: Config = defineConfig({
   identity: "package-consumer",
@@ -81,6 +81,10 @@ const config: Config = defineConfig({
 })
 
 declare const program: Program
+declare const system: System
+const forcedProgram: Promise<Program> = system.program.forceCreate("./phresh.config.ts")
+// @ts-expect-error Program creation belongs to the Program capability
+system.forceCreateProgram("./phresh.config.ts")
 type WindowHasSurface = "surface" extends keyof Window ? true : false
 const windowHasSurface: WindowHasSurface = false
 const transaction: Transaction = { duration: 180, wait: true }
@@ -107,6 +111,7 @@ const theme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
 const updateTheme = writableDesktopPreferences.update({ theme: "default" })
 void config
 void program.identity
+void forcedProgram
 void transaction
 void localWindow.transaction(transaction).addSurface()
 void localWindow.removeSurface()

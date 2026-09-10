@@ -120,6 +120,15 @@ export interface SystemProgram extends Subscribable<SystemProgramEvents, never> 
   list(onlyInstalled?: boolean): Promise<Program[]>
   find(identity: string): Promise<Program | null>
   create(source: ProgramDefinition | string): Promise<Program>
+
+  /**
+   * Atomically claims a Program identity for a new uninstalled runtime entity.
+   *
+   * Any current runtime Program at the identity is forgotten first. Installed
+   * files and storage remain untouched; invalid incoming definitions are
+   * rejected before the current entity is changed.
+   */
+  forceCreate(source: ProgramDefinition | string): Promise<Program>
 }
 
 export interface SystemProcess extends Subscribable<SystemProcessEvents, never> {
@@ -143,15 +152,6 @@ export interface System {
 
   /** Runs one shell command whose complete process tree belongs to the returned iterator. */
   shell(command: string, options?: ShellOptions): AsyncGenerator<ShellEvent, void, void>
-
-  /**
-   * Atomically claims a Program identity for a new uninstalled runtime entity.
-   *
-   * Any current runtime Program at the identity is forgotten first. Installed
-   * files and storage remain untouched; invalid incoming definitions are
-   * rejected before the current entity is changed.
-   */
-  forceCreateProgram(source: ProgramDefinition | string): Promise<Program>
 
   service<Endpoint extends ServiceKey["endpoint"]>(key: Omit<ServiceKey, "endpoint"> & Readonly<{ endpoint: Endpoint }>): Endpoint extends "server" ? ServerService : ClientService
   service<Events extends object = {}, Fallback = unknown>(key: ServiceKey & { endpoint: "server" }): ServerService<Events, Fallback>
