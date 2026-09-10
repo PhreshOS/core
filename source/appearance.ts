@@ -20,10 +20,7 @@ export type AppearanceSurface = Readonly<{
   backdrop: number
   opacity: number
   distortion: number
-  waves: number
-  ripples: number
   saturation: number
-  brightness: number
 }>
 
 /** Independent outer shadow geometry in CSS pixels and color opacity. */
@@ -70,10 +67,7 @@ export const appearanceLimits = Object.freeze({
     backdrop: Object.freeze({ minimum: 0, maximum: 24 }),
     opacity: Object.freeze({ minimum: 0, maximum: 1 }),
     distortion: Object.freeze({ minimum: 0, maximum: 140 }),
-    waves: Object.freeze({ minimum: 0, maximum: 40 }),
-    ripples: Object.freeze({ minimum: 0, maximum: 40 }),
-    saturation: Object.freeze({ minimum: 1, maximum: 2.6 }),
-    brightness: Object.freeze({ minimum: 1, maximum: 1.12 })
+    saturation: Object.freeze({ minimum: 1, maximum: 2.6 })
   })
 }) satisfies Readonly<{
   spacing: AppearanceRange
@@ -88,10 +82,7 @@ const standardSurface = Object.freeze({
   backdrop: 12,
   opacity: 0.2,
   distortion: 0,
-  waves: 0,
-  ripples: 0,
-  saturation: 1,
-  brightness: 1
+  saturation: 1
 })
 
 const standardShadow = Object.freeze({ x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 })

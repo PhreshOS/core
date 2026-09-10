@@ -23,10 +23,7 @@ describe("Appearance", function () {
       backdrop: 12,
       opacity: 0.2,
       distortion: 0,
-      waves: 0,
-      ripples: 0,
-      saturation: 1,
-      brightness: 1
+      saturation: 1
     })
     expect(standardAppearance.surface.dark).toEqual({ ...standardAppearance.surface.light, opacity: 0.35 })
   })
@@ -96,10 +93,7 @@ describe("Appearance", function () {
       backdrop: { minimum: 0, maximum: 24 },
       opacity: { minimum: 0, maximum: 1 },
       distortion: { minimum: 0, maximum: 140 },
-      waves: { minimum: 0, maximum: 40 },
-      ripples: { minimum: 0, maximum: 40 },
-      saturation: { minimum: 1, maximum: 2.6 },
-      brightness: { minimum: 1, maximum: 1.12 }
+      saturation: { minimum: 1, maximum: 2.6 }
     })
   })
 })
