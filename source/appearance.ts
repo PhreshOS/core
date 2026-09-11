@@ -23,6 +23,20 @@ export type AppearanceMaterial = Readonly<{
   saturation: number
 }>
 
+/** Named colors available to every Appearance consumer. */
+export type AppearanceColors = Readonly<{
+  background: ThemedValue<string, string>
+  foreground: ThemedValue<string, string>
+  primary: ThemedValue<string, string>
+  secondary: ThemedValue<string, string>
+  success: ThemedValue<string, string>
+  warning: ThemedValue<string, string>
+  danger: ThemedValue<string, string>
+  info: ThemedValue<string, string>
+}>
+
+export type AppearanceColor = keyof AppearanceColors
+
 /** Independent outer shadow geometry in CSS pixels and color opacity. */
 export type AppearanceShadow = Readonly<{
   x: number
@@ -34,14 +48,7 @@ export type AppearanceShadow = Readonly<{
 
 /** Complete, unresolved visual state owned by the System. */
 export type Appearance = Readonly<{
-  background: ThemedValue<string, string>
-  foreground: ThemedValue<string, string>
-  primary: ThemedValue<string, string>
-  secondary: ThemedValue<string, string>
-  success: ThemedValue<string, string>
-  warning: ThemedValue<string, string>
-  danger: ThemedValue<string, string>
-  info: ThemedValue<string, string>
+  colors: AppearanceColors
   spacing: ThemedValue<number>
   radius: ThemedValue<number>
   shadow: ThemedValue<AppearanceShadow, AppearanceShadow>
@@ -89,14 +96,16 @@ const defaultShadow = Object.freeze({ x: 0, y: 8, blur: 24, spread: 0, opacity: 
 
 /** Complete default Appearance available to every environment. */
 export const defaultAppearance = createAppearanceSnapshot({
-  background: { light: "#ffffff", dark: "#121a21" },
-  foreground: { light: "#183447", dark: "#edf8fc" },
-  primary: { light: "#4c9cff", dark: "#4c9cff" },
-  secondary: { light: "#8b5cf6", dark: "#a78bfa" },
-  success: { light: "#16a34a", dark: "#4ade80" },
-  warning: { light: "#d97706", dark: "#fbbf24" },
-  danger: { light: "#dc2626", dark: "#f87171" },
-  info: { light: "#0891b2", dark: "#22d3ee" },
+  colors: {
+    background: { light: "#ffffff", dark: "#121a21" },
+    foreground: { light: "#183447", dark: "#edf8fc" },
+    primary: { light: "#4c9cff", dark: "#4c9cff" },
+    secondary: { light: "#8b5cf6", dark: "#a78bfa" },
+    success: { light: "#16a34a", dark: "#4ade80" },
+    warning: { light: "#d97706", dark: "#fbbf24" },
+    danger: { light: "#dc2626", dark: "#f87171" },
+    info: { light: "#0891b2", dark: "#22d3ee" }
+  },
   spacing: { light: 12 },
   radius: { light: 10 },
   shadow: { light: defaultShadow, dark: defaultShadow },
@@ -108,14 +117,16 @@ export const defaultAppearance = createAppearanceSnapshot({
 /** Creates a deeply immutable Appearance snapshot at the contract boundary. */
 export function createAppearanceSnapshot(appearance: Appearance): Appearance {
   return Object.freeze({
-    background: themed(appearance.background),
-    foreground: themed(appearance.foreground),
-    primary: themed(appearance.primary),
-    secondary: themed(appearance.secondary),
-    success: themed(appearance.success),
-    warning: themed(appearance.warning),
-    danger: themed(appearance.danger),
-    info: themed(appearance.info),
+    colors: Object.freeze({
+      background: themed(appearance.colors.background),
+      foreground: themed(appearance.colors.foreground),
+      primary: themed(appearance.colors.primary),
+      secondary: themed(appearance.colors.secondary),
+      success: themed(appearance.colors.success),
+      warning: themed(appearance.colors.warning),
+      danger: themed(appearance.colors.danger),
+      info: themed(appearance.colors.info)
+    }),
     spacing: single(appearance.spacing),
     radius: single(appearance.radius),
     shadow: themed(appearance.shadow, value => Object.freeze({ ...value })),

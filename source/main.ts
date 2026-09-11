@@ -79,6 +79,8 @@ export {
   createAppearanceSnapshot,
   defaultAppearance,
   type Appearance,
+  type AppearanceColor,
+  type AppearanceColors,
   type AppearanceEvents,
   type AppearanceRange,
   type AppearanceSource,

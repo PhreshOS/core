@@ -8,9 +8,9 @@ import {
 
 describe("Appearance", function () {
   it("keeps complete default light and dark values", function () {
-    expect(defaultAppearance.background).toEqual({ light: "#ffffff", dark: "#121a21" })
-    expect(defaultAppearance.foreground).toEqual({ light: "#183447", dark: "#edf8fc" })
-    expect(defaultAppearance.primary).toEqual({ light: "#4c9cff", dark: "#4c9cff" })
+    expect(defaultAppearance.colors.background).toEqual({ light: "#ffffff", dark: "#121a21" })
+    expect(defaultAppearance.colors.foreground).toEqual({ light: "#183447", dark: "#edf8fc" })
+    expect(defaultAppearance.colors.primary).toEqual({ light: "#4c9cff", dark: "#4c9cff" })
     expect(defaultAppearance.spacing).toEqual({ light: 12 })
     expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
     expect(defaultAppearance.material.light.grain).toBe(0)
@@ -45,21 +45,24 @@ describe("Appearance", function () {
     "preserves independent immutable %s branches",
     function (role) {
       const value = { light: "oklch(60% 0.2 260)", dark: "var(--custom-color)" }
-      const appearance = createAppearanceSnapshot({ ...defaultAppearance, [role]: value })
+      const appearance = createAppearanceSnapshot({
+        ...defaultAppearance,
+        colors: { ...defaultAppearance.colors, [role]: value }
+      })
 
-      expect(appearance[role]).toEqual(value)
-      expect(Object.isFrozen(appearance[role])).toBe(true)
+      expect(appearance.colors[role]).toEqual(value)
+      expect(Object.isFrozen(appearance.colors[role])).toBe(true)
       value.light = "red"
-      expect(appearance[role].light).toBe("oklch(60% 0.2 260)")
+      expect(appearance.colors[role].light).toBe("oklch(60% 0.2 260)")
     }
   )
 
   it("exposes only the current palette names", function () {
-    expect(defaultAppearance).not.toHaveProperty("accent")
+    expect(defaultAppearance.colors).not.toHaveProperty("accent")
 
     if (false) {
       // @ts-expect-error The retired color name is not part of Appearance.
-      void defaultAppearance.accent
+      void defaultAppearance.colors.accent
     }
   })
 
@@ -77,12 +80,13 @@ describe("Appearance", function () {
   it("creates deeply immutable snapshots", function () {
     const appearance = createAppearanceSnapshot({
       ...defaultAppearance,
-      background: { light: "canvas", dark: "black" }
+      colors: { ...defaultAppearance.colors, background: { light: "canvas", dark: "black" } }
     })
 
-    expect(appearance.background).toEqual({ light: "canvas", dark: "black" })
+    expect(appearance.colors.background).toEqual({ light: "canvas", dark: "black" })
     expect(Object.isFrozen(appearance)).toBe(true)
-    expect(Object.isFrozen(appearance.background)).toBe(true)
+    expect(Object.isFrozen(appearance.colors)).toBe(true)
+    expect(Object.isFrozen(appearance.colors.background)).toBe(true)
     expect(Object.isFrozen(appearance.material.light)).toBe(true)
   })
 

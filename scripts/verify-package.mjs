@@ -60,8 +60,8 @@ import { ClientEndpoint, Endpoint, ServerEndpoint, parseShellEvent, defaultAppea
 
 assert(ClientEndpoint.prototype instanceof Endpoint)
 assert(ServerEndpoint.prototype instanceof Endpoint)
-assert.equal(defaultAppearance.background.light, "#ffffff")
-assert.equal(defaultAppearance.primary.light, "#4c9cff")
+assert.equal(defaultAppearance.colors.background.light, "#ffffff")
+assert.equal(defaultAppearance.colors.primary.light, "#4c9cff")
 assert.equal("accent" in defaultAppearance, false)
 assert.deepEqual(parseShellEvent({ event: "started", pid: 42 }), { event: "started", pid: 42 })
 /** @type {import("@phreshos/core").System} */
