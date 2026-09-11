@@ -87,7 +87,10 @@ function clientContextContract(context: ClientContext) {
   authoritative.position()
   const local = context.localWindow
   local.addSurface()
+  local.minimize()
+  local.raise()
   local.transaction({ duration: 120 }).setGeometry({ position: { x: 0, y: 0 }, size: { width: 800, height: 600 } })
+  local.transaction({ duration: 120 }).minimize(false)
   context.permissions.get("all")
   context.permissions.allows("network", ["https://api.example.com"])
   context.permissions.request("all", [])
@@ -219,7 +222,13 @@ function systemHandlesRemainCanonical(
 
   // @ts-expect-error Permissions belong to the Program, never one Process.
   process.permissions
+  program.data.file("state.json").text()
+  // @ts-expect-error File content belongs to StorageFile, not Storage.
   program.data.text("state.json")
+  // @ts-expect-error A Storage's declarative boundary is private.
+  program.data.boundary()
+  // @ts-expect-error Selection replaces the old public path resolver.
+  program.data.resolve("state.json")
   program.store.get("state")
   program.logs.query("select 1")
   program.database.query("select 1")

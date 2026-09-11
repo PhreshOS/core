@@ -73,7 +73,7 @@ void system?.shell("printf hello")
 
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { defineConfig, isUploadFile, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopSurfaceSource, type LocalWindow, type Program, type System, type SystemUploads, type TrafficMessage, type Transaction, type Upload, type Window, type WindowGeometry, type WritableDesktopPreferencesSource } from "@phreshos/core"
+    `import { defineConfig, isUploadFile, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopSurfaceSource, type FileStat, type LocalWindow, type Program, type System, type SystemUploads, type TrafficMessage, type Transaction, type Upload, type Window, type WindowGeometry, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
 const config: Config = defineConfig({
   identity: "package-consumer",
@@ -103,6 +103,8 @@ declare const desktopPreferences: DesktopPreferencesSource
 declare const writableDesktopPreferences: WritableDesktopPreferencesSource
 declare const desktop: Desktop
 const written: Promise<Upload> = uploads.write("hello")
+const uploadStat: Promise<FileStat | null> = uploads.stat("00000000-0000-0000-0000-000000000000.txt")
+const writable: WritableContent = new Uint16Array([1, 2])
 const uploadsPath: Promise<string> = uploads.path()
 const read: Promise<string> = uploads.text("00000000-0000-0000-0000-000000000000.txt")
 const uploadKey: boolean = isUploadFile("00000000-0000-0000-0000-000000000000.txt")
@@ -110,10 +112,14 @@ const surfaceWidth: Promise<number> = desktopSurface.snapshot().then(snapshot =>
 const theme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
 const updateTheme = writableDesktopPreferences.update({ theme: "default" })
 void config
+void uploadStat
+void writable
 void program.identity
 void forcedProgram
 void transaction
 void localWindow.transaction(transaction).addSurface()
+void localWindow.transaction(transaction).follow(window)
+void localWindow.unfollow()
 void localWindow.removeSurface()
 void setGeometry
 void outside

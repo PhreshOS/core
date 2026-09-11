@@ -1,5 +1,4 @@
-/** Metadata returned for an entry in Program-owned filesystem storage. */
-export type EntryStat = FileStat | DirectoryStat | OtherStat
+import type { JsonValue, WritableContent } from "./content.js"
 
 /** One operation that may be granted over a native Storage path. */
 export type StoragePermissionOperation = "read" | "write" | "delete"
@@ -71,9 +70,6 @@ function isStoragePermissionOperation(value: string): value is StoragePermission
 
 /** Metadata for one file. */
 export type FileStat = Readonly<{
-  /** Discriminator for file metadata. */
-  kind: "file"
-
   /** File size in bytes. */
   size: number
 
@@ -81,58 +77,140 @@ export type FileStat = Readonly<{
   modifiedAt: number
 }>
 
-/** Metadata for one directory. */
-export type DirectoryStat = Readonly<{
-  /** Discriminator for directory metadata. */
-  kind: "directory"
-
+/** Metadata for one Storage location. */
+export type StorageStat = Readonly<{
   /** Last modification time as Unix milliseconds. */
   modifiedAt: number
 }>
 
-/** Metadata for a filesystem entry that is neither a file nor a directory. */
-export type OtherStat = Readonly<{
-  /** Discriminator for other filesystem metadata. */
-  kind: "other"
+/** A byte range within one file. */
+export type StorageReadOptions = Readonly<{
+  /** Zero-based byte offset. Defaults to `0`. */
+  offset?: number
 
-  /** Last modification time as Unix milliseconds. */
-  modifiedAt: number
+  /** Maximum number of bytes to read. Defaults to the rest of the file. */
+  length?: number
 }>
 
-/** Filesystem operations rooted at one configured entry point. */
-export interface Storage {
-  /** Returns the absolute configured entry point. */
-  path(): Promise<string>
+/** Options for replacing one file. */
+export type StorageWriteOptions = Readonly<{
+  /** Whether an existing file may be replaced. Defaults to `true`. */
+  overwrite?: boolean
+}>
 
-  /** Resolves filesystem paths according to this Storage's boundary policy. */
-  resolve(...path: string[]): Promise<string>
+/** Options for copying or moving an entry. */
+export type StorageTransferOptions = Readonly<{
+  /** Whether an existing destination may be replaced. Defaults to `false`. */
+  overwrite?: boolean
+}>
 
-  /** Reads one file as bytes. */
-  bytes(...path: [string, ...string[]]): Promise<Uint8Array>
+/** Options for listing a Storage location. */
+export type StorageListOptions = Readonly<{
+  /** Whether descendants should be included. Defaults to `false`. */
+  recursive?: boolean
 
-  /** Reads one UTF-8 text file. */
-  text(...path: [string, ...string[]]): Promise<string>
+  /** Maximum descendant depth when recursive. */
+  depth?: number
+}>
 
-  /** Reads and parses one JSON file. */
-  json<Value = unknown>(...path: [string, ...string[]]): Promise<Value>
+/** Capacity information for the filesystem containing one Storage location. */
+export type StorageSpace = Readonly<{
+  capacity: number
+  available: number
+  used: number
+}>
 
-  /** Opens one file as a byte stream. */
-  stream(...path: [string, ...string[]]): Promise<ReadableStream<Uint8Array>>
+/** One observable change beneath a Storage location. */
+export type StorageChange = Readonly<{
+  event: "change" | "rename"
+  path: string | null
+}>
 
-  /** Atomically writes one supported value, including a byte stream. */
-  write(...arguments_: [...path: [string, ...string[]], value: unknown]): Promise<void>
+/** Options for observing changes beneath one Storage location. */
+export type StorageWatchOptions = Readonly<{
+  recursive?: boolean
+  signal?: AbortSignal
+}>
 
-  /** Returns entry metadata, or `null` when the entry does not exist. */
-  stat(...path: string[]): Promise<EntryStat | null>
+/** A directory location within one immutable filesystem boundary. */
+export abstract class Storage {
+  /** Returns this location's final path component. */
+  public abstract name(): Promise<string>
 
-  /** Lists the sorted names immediately inside one directory. */
-  list(...path: string[]): Promise<string[]>
+  /** Returns this location's absolute path. */
+  public abstract path(): Promise<string>
 
-  /** Recursively removes an entry. A missing entry is accepted. */
-  delete(...path: [string, ...string[]]): Promise<void>
+  /** Selects another directory location without performing filesystem I/O. */
+  public abstract navigate(...path: string[]): Storage
 
-  /** Removes every entry below one directory while preserving that directory. */
-  clear(...path: string[]): Promise<void>
+  /** Selects a file location without performing filesystem I/O. */
+  public abstract file(...path: [string, ...string[]]): StorageFile
+
+  /** Creates this directory and any missing ancestors. */
+  public abstract create(): Promise<void>
+
+  /** Returns directory metadata, or `null` when this location does not exist. */
+  public abstract stat(): Promise<StorageStat | null>
+
+  /** Lists entries in stable path order. */
+  public abstract list(options?: StorageListOptions): Promise<Array<Storage | StorageFile>>
+
+  /** Copies this directory to an exact destination. */
+  public abstract copy(destination: Storage, options?: StorageTransferOptions): Promise<void>
+
+  /** Moves this directory to an exact destination. */
+  public abstract move(destination: Storage, options?: StorageTransferOptions): Promise<void>
+
+  /** Recursively removes this directory. A missing directory is accepted. */
+  public abstract delete(): Promise<void>
+
+  /** Removes every entry below this directory while preserving the directory. */
+  public abstract clear(): Promise<void>
+
+  /** Returns capacity information for this directory's filesystem. */
+  public abstract space(): Promise<StorageSpace>
+
+  /** Observes filesystem changes beneath this directory. */
+  public abstract watch(options?: StorageWatchOptions): AsyncGenerator<StorageChange, void, void>
+}
+
+/** A file location within one immutable filesystem boundary. */
+export abstract class StorageFile {
+  /** Returns this file's final path component. */
+  public abstract name(): Promise<string>
+
+  /** Returns this file's absolute path. */
+  public abstract path(): Promise<string>
+
+  /** Returns file metadata, or `null` when this location does not exist. */
+  public abstract stat(): Promise<FileStat | null>
+
+  /** Reads this file or a byte range as bytes. */
+  public abstract bytes(options?: StorageReadOptions): Promise<Uint8Array>
+
+  /** Reads this file or a byte range as UTF-8 text. */
+  public abstract text(options?: StorageReadOptions): Promise<string>
+
+  /** Reads and parses the complete file as JSON. */
+  public abstract json<Value = JsonValue>(): Promise<Value>
+
+  /** Opens this file or a byte range as a byte stream. */
+  public abstract stream(options?: StorageReadOptions): Promise<ReadableStream<Uint8Array>>
+
+  /** Atomically replaces this file. */
+  public abstract write(content: WritableContent, options?: StorageWriteOptions): Promise<void>
+
+  /** Appends content to this file. */
+  public abstract append(content: WritableContent): Promise<void>
+
+  /** Copies this file to an exact destination. */
+  public abstract copy(destination: StorageFile, options?: StorageTransferOptions): Promise<void>
+
+  /** Moves this file to an exact destination. */
+  public abstract move(destination: StorageFile, options?: StorageTransferOptions): Promise<void>
+
+  /** Removes this file. A missing file is accepted. */
+  public abstract delete(): Promise<void>
 }
 
 /** Persistent key-value storage owned by one Program. */

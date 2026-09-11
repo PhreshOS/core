@@ -1,4 +1,8 @@
 export {
+  type JsonValue,
+  type WritableContent
+} from "./content.js"
+export {
   type Message,
   type Cleanup,
   type Capture,
@@ -86,15 +90,21 @@ export {
 export {
   describeStorageScope,
   parseStorageScope,
-  type DirectoryStat,
-  type EntryStat,
   type FileStat,
-  type OtherStat,
   type ProgramStore,
-  type Storage,
+  Storage,
+  type StorageChange,
+  StorageFile,
+  type StorageListOptions,
   type StoragePermissionOperation,
+  type StorageReadOptions,
   type StorageScope,
-  type StorageScopeDescription
+  type StorageScopeDescription,
+  type StorageSpace,
+  type StorageStat,
+  type StorageTransferOptions,
+  type StorageWatchOptions,
+  type StorageWriteOptions
 } from "./storage.js"
 export {
   parseShellEvent,

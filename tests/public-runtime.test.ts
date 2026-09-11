@@ -4,6 +4,7 @@ import {
   ClientService,
   type ClientContext,
   type Desktop,
+  type FileStat,
   type Context,
   type Launch,
   type LocalWindow,
@@ -17,6 +18,8 @@ import {
   type ShellOptions,
   type System,
   type Transaction,
+  type Upload,
+  type WritableContent,
   Endpoint,
   ServerEndpoint,
   ServerService,
@@ -39,6 +42,10 @@ describe("public runtime", function () {
   it("keeps local representation commands separate from subscriptions", function () {
     expectTypeOf<LocalWindow>().toHaveProperty("setGeometry")
     expectTypeOf<LocalWindow>().toHaveProperty("addSurface")
+    expectTypeOf<LocalWindow>().toHaveProperty("minimize")
+    expectTypeOf<LocalWindow>().toHaveProperty("follow")
+    expectTypeOf<LocalWindow>().toHaveProperty("unfollow")
+    expectTypeOf<LocalWindow>().toHaveProperty("raise")
     expectTypeOf<LocalWindow>().toHaveProperty("removeSurface")
     expectTypeOf<LocalWindow>().toHaveProperty("transaction")
     expectTypeOf<LocalWindow>().not.toHaveProperty("subscribe")
@@ -86,6 +93,12 @@ describe("public runtime", function () {
 
   it("exposes the System uploads directory through the shared contract", function () {
     expectTypeOf<System["uploads"]["path"]>().returns.toEqualTypeOf<Promise<string>>()
+    expectTypeOf<System["uploads"]["stat"]>().returns.toEqualTypeOf<Promise<FileStat | null>>()
+    expectTypeOf<Parameters<System["uploads"]["write"]>>().toEqualTypeOf<[value: WritableContent]>()
+    expectTypeOf<Upload>().toHaveProperty("file")
+    expectTypeOf<Upload>().toHaveProperty("size")
+    expectTypeOf<Upload>().toHaveProperty("modifiedAt")
+    expectTypeOf<Upload>().not.toHaveProperty("type")
   })
 
   it("shares Endpoint launch contracts across Process creation and restart", function () {

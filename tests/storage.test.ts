@@ -1,19 +1,29 @@
 import { describe, expectTypeOf, it } from "vitest"
-import type { Storage } from "../source/main.js"
+import {
+  Storage,
+  StorageFile,
+  type StorageListOptions,
+  type StorageReadOptions,
+  type StorageTransferOptions,
+  type StorageWatchOptions,
+  type StorageWriteOptions,
+  type WritableContent
+} from "../source/main.js"
 
 describe("Storage", function () {
-  it("requires a path for file operations", function () {
-    expectTypeOf<Parameters<Storage["bytes"]>>().toEqualTypeOf<[string, ...string[]]>()
-    expectTypeOf<Parameters<Storage["text"]>>().toEqualTypeOf<[string, ...string[]]>()
-    expectTypeOf<Parameters<Storage["json"]>>().toEqualTypeOf<[string, ...string[]]>()
-    expectTypeOf<Parameters<Storage["stream"]>>().toEqualTypeOf<[string, ...string[]]>()
-    expectTypeOf<Parameters<Storage["delete"]>>().toEqualTypeOf<[string, ...string[]]>()
-    expectTypeOf<Parameters<Storage["write"]>>().toMatchTypeOf<[string, ...unknown[]]>()
+  it("separates directory selection from file access", function () {
+    expectTypeOf<ReturnType<Storage["navigate"]>>().toEqualTypeOf<Storage>()
+    expectTypeOf<Parameters<Storage["file"]>>().toEqualTypeOf<[string, ...string[]]>()
+    expectTypeOf<ReturnType<Storage["file"]>>().toEqualTypeOf<StorageFile>()
+    expectTypeOf<Parameters<Storage["list"]>>().toEqualTypeOf<[options?: StorageListOptions]>()
+    expectTypeOf<Parameters<Storage["watch"]>>().toEqualTypeOf<[options?: StorageWatchOptions]>()
   })
 
-  it("allows root metadata and clearing operations", function () {
-    expectTypeOf<Parameters<Storage["stat"]>>().toEqualTypeOf<string[]>()
-    expectTypeOf<Parameters<Storage["list"]>>().toEqualTypeOf<string[]>()
-    expectTypeOf<Parameters<Storage["clear"]>>().toEqualTypeOf<string[]>()
+  it("puts content operations only on StorageFile", function () {
+    expectTypeOf<Parameters<StorageFile["bytes"]>>().toEqualTypeOf<[options?: StorageReadOptions]>()
+    expectTypeOf<Parameters<StorageFile["text"]>>().toEqualTypeOf<[options?: StorageReadOptions]>()
+    expectTypeOf<Parameters<StorageFile["write"]>>().toEqualTypeOf<[content: WritableContent, options?: StorageWriteOptions]>()
+    expectTypeOf<Parameters<StorageFile["append"]>>().toEqualTypeOf<[content: WritableContent]>()
+    expectTypeOf<Parameters<StorageFile["copy"]>>().toEqualTypeOf<[destination: StorageFile, options?: StorageTransferOptions]>()
   })
 })
