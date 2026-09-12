@@ -17,7 +17,7 @@ declare const endpoint: Endpoint<Events>
 
 endpoint.subscribe("")
 endpoint.subscribe("", () => undefined)
-endpoint.waitFor("")
+endpoint.wait("")
 endpoint.events("")
 `
 const host = {
@@ -53,7 +53,7 @@ for (const position of [
   assert.deepEqual(completions, ["changed", "closed"], "subscribe() event completions diverged")
 }
 
-for (const method of ["waitFor", "events"]) {
+for (const method of ["wait", "events"]) {
   const marker = `${method}("`
   const position = source.indexOf(marker) + marker.length
   const completions = service.getCompletionsAtPosition(file, position, {})?.entries.map(entry => entry.name)

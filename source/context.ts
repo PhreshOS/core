@@ -43,7 +43,10 @@ export interface EndpointContext<Events extends object = {}>
   name(): Promise<string | null>
   parent(): Promise<Process | null>
   program(): Promise<Program>
-  option(name: string): Promise<string | undefined>
+  /** Returns every immutable option supplied when this Process was created. */
+  options<Options extends object = Readonly<Record<string, string>>>(): Promise<Readonly<Options>>
+  /** Returns one immutable option supplied when this Process was created. */
+  options<Option extends string = string>(name: string): Promise<Option | undefined>
   stop(): Promise<void>
 }
 

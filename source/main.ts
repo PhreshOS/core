@@ -70,9 +70,9 @@ export {
 export {
   type Desktop,
   type DesktopSize,
-  type DesktopSurfaceEvents,
-  type DesktopSurfaceSnapshot,
-  type DesktopSurfaceSource
+  type DesktopViewportEvents,
+  type DesktopViewportSnapshot,
+  type DesktopViewportSource
 } from "./desktop.js"
 export {
   appearanceLimits,

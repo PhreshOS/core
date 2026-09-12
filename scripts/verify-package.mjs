@@ -73,7 +73,7 @@ void system?.shell("printf hello")
 
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { defineConfig, isUploadFile, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopSurfaceSource, type FileStat, type LocalWindow, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type WaitedTransaction, type Window, type WindowGeometry, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
+    `import { defineConfig, isUploadFile, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type LocalWindow, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type WaitedTransaction, type Window, type WindowGeometry, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
 const config: Config = defineConfig({
   identity: "package-consumer",
@@ -81,6 +81,7 @@ const config: Config = defineConfig({
 })
 
 declare const program: Program
+declare const process: Process
 declare const system: System
 const forcedProgram: Promise<Program> = system.program.forceCreate("./phresh.config.ts")
 // @ts-expect-error Program creation belongs to the Program capability
@@ -99,7 +100,7 @@ const setGeometry: Promise<void> = window.setGeometry(geometry)
 const outside: ContextMessage<string> = { from: null, payload: "owner-local" }
 const hiddenDestination: TrafficMessage<string> = { to: null, payload: "boundary-local" }
 declare const uploads: SystemUploads
-declare const desktopSurface: DesktopSurfaceSource
+declare const desktopViewport: DesktopViewportSource
 declare const desktopPreferences: DesktopPreferencesSource
 declare const writableDesktopPreferences: WritableDesktopPreferencesSource
 declare const desktop: Desktop
@@ -109,7 +110,9 @@ const writable: WritableContent = new Uint16Array([1, 2])
 const uploadsPath: Promise<string> = uploads.path()
 const read: Promise<string> = uploads.text("00000000-0000-0000-0000-000000000000.txt")
 const uploadKey: boolean = isUploadFile("00000000-0000-0000-0000-000000000000.txt")
-const surfaceWidth: Promise<number> = desktopSurface.snapshot().then(snapshot => snapshot.size.width)
+const viewportWidth: Promise<number> = desktopViewport.snapshot().then(snapshot => snapshot.size.width)
+const processOptions: Promise<Readonly<{ mode: string }>> = process.options<{ mode: string }>()
+const processMode: Promise<"primary" | "secondary" | undefined> = process.options<"primary" | "secondary">("mode")
 const theme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
 const updateTheme = writableDesktopPreferences.update({ theme: "default" })
 void config
@@ -128,8 +131,10 @@ void hiddenDestination
 void written
 void read
 void uploadKey
-void surfaceWidth
-void desktop.surface
+void viewportWidth
+void processOptions
+void processMode
+void desktop.viewport
 void desktop.preferences
 void theme
 void updateTheme

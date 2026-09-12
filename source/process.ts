@@ -53,8 +53,11 @@ export interface Process extends Subscribable<ProcessEvents, never> {
    */
   parent(): Promise<Process | null>
 
-  /** Returns one immutable launch option. */
-  option(name: string): Promise<string | undefined>
+  /** Returns every immutable option supplied when this Process was created. */
+  options<Options extends object = Readonly<Record<string, string>>>(): Promise<Readonly<Options>>
+
+  /** Returns one immutable option supplied when this Process was created. */
+  options<Option extends string = string>(name: string): Promise<Option | undefined>
 
   /** Ends the complete Process and all live Endpoints. */
   exit(): Promise<void>

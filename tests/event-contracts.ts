@@ -22,7 +22,7 @@ async function declaredEventNames(endpoint: Endpoint<DeclaredEvents>) {
     void value
   })
 
-  const changed = await endpoint.waitFor("changed")
+  const changed = await endpoint.wait("changed")
   const value: number = changed.value
   void value
 
@@ -37,7 +37,7 @@ async function declaredEventNames(endpoint: Endpoint<DeclaredEvents>) {
   })
 
   endpoint.subscribe("unknown", message => void message)
-  const unknownMessage: unknown = await endpoint.waitFor("unknown")
+  const unknownMessage: unknown = await endpoint.wait("unknown")
   void unknownMessage
   endpoint.events("unknown")
 }
@@ -46,15 +46,15 @@ void declaredEventNames
 
 function openHandleEvents(endpoint: Endpoint, service: Service) {
   endpoint.subscribe("unknown", message => void message)
-  endpoint.waitFor("unknown")
+  endpoint.wait("unknown")
   endpoint.events("unknown")
 
   endpoint.traffic.subscribe("unknown", message => void message.payload)
-  endpoint.traffic.waitFor("unknown")
+  endpoint.traffic.wait("unknown")
   endpoint.traffic.events("unknown")
 
   service.subscribe("unknown", message => void message)
-  service.waitFor("unknown")
+  service.wait("unknown")
   service.events("unknown")
 }
 
@@ -65,7 +65,7 @@ function explicitlyClosedHandles(endpoint: Endpoint<{}, never>, service: Service
   endpoint.subscribe("unknown", () => undefined)
 
   // @ts-expect-error An explicitly closed Endpoint rejects undeclared events.
-  endpoint.waitFor("unknown")
+  endpoint.wait("unknown")
 
   // @ts-expect-error An explicitly closed Service rejects undeclared events.
   service.events("unknown")
@@ -75,7 +75,7 @@ void explicitlyClosedHandles
 
 async function openContextEvents(context: Context) {
   context.subscribe("application-event", message => void message.payload)
-  await context.waitFor("application-event")
+  await context.wait("application-event")
   context.events("application-event")
 }
 
@@ -118,7 +118,7 @@ void clientContextContract
 function explicitlyOpenService(service: Service<{ changed: number }, unknown>) {
   service.subscribe("changed", message => message.toFixed(0))
   service.subscribe("application-event", message => void message)
-  service.waitFor("application-event")
+  service.wait("application-event")
   service.events("application-event")
 }
 
@@ -127,7 +127,7 @@ void explicitlyOpenService
 function explicitlyOpenEndpoint(endpoint: Endpoint<{ changed: number }, unknown>) {
   endpoint.subscribe("changed", message => message.toFixed(0))
   endpoint.subscribe("application-event", message => void message)
-  endpoint.waitFor("application-event")
+  endpoint.wait("application-event")
   endpoint.events("application-event")
   endpoint.traffic.subscribe("application-event", message => void message.payload)
 }
@@ -234,7 +234,8 @@ function systemHandlesRemainCanonical(
   program.database.query("select 1")
   program.icon()
   process.parent()
-  process.option("mode")
+  process.options<{ mode?: "primary" | "secondary" }>()
+  process.options<"primary" | "secondary">("mode")
   server.traffic.subscribeAsks(() => undefined)
   server.traffic.subscribeAnswers(() => undefined)
   client.traffic.subscribeAsks(() => undefined)

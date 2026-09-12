@@ -144,7 +144,7 @@ describe("public runtime", function () {
     expectTypeOf<ClientContext>().toHaveProperty("localWindow")
     expectTypeOf<ClientContext>().toHaveProperty("server")
     expectTypeOf<ClientContext>().toHaveProperty("permissions")
-    expectTypeOf<Desktop>().toHaveProperty("surface")
+    expectTypeOf<Desktop>().toHaveProperty("viewport")
     expectTypeOf<Desktop>().toHaveProperty("preferences")
     expectTypeOf<Desktop>().not.toHaveProperty("pointer")
     expectTypeOf<System["fetch"]>().returns.toEqualTypeOf<Promise<Response>>()

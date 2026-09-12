@@ -80,7 +80,7 @@ interface Subscribe<Events extends object, Fallback> {
   (subscriber: CaptureSubscriber<Events, Fallback>): Cleanup
 }
 
-interface WaitFor<Events extends object, Fallback> {
+interface Wait<Events extends object, Fallback> {
   /** Waits for the next matching message. */
   <Event extends EventName<Events>>(event: Event, timeout?: number): Promise<Events[Event]>
 
@@ -112,7 +112,7 @@ interface EventStream<Events extends object, Fallback> {
  * may remain active across temporary endpoint absence and is removed only by
  * that cleanup or by destruction of its owning boundary.
  *
- * `waitFor()` uses the SDK's ten-second deadline unless one is supplied.
+ * `wait()` uses the SDK's ten-second deadline unless one is supplied.
  * `events()` is long-lived instead: it ends when iteration is closed, its
  * signal aborts, or the boundary proves that future delivery is impossible.
  */
@@ -124,7 +124,7 @@ export interface Subscribable<Events extends object = {}, Fallback = unknown> {
   subscribe: Subscribe<Events, Fallback>
 
   /** Waits for the next matching message. */
-  waitFor: WaitFor<Events, Fallback>
+  wait: Wait<Events, Fallback>
 
   /** Iterates one named event or every event until closed, aborted, or impossible. */
   events: EventStream<Events, Fallback>

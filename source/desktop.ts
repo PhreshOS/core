@@ -1,29 +1,29 @@
 import type { Subscribable } from "./subscribable.js"
 import type { WritableDesktopPreferencesSource } from "./theme.js"
 
-/** Measured dimensions of one Desktop surface in CSS pixels. */
+/** Measured dimensions of one Desktop viewport in CSS pixels. */
 export type DesktopSize = Readonly<{
   width: number
   height: number
 }>
 
-/** Complete current state of one Desktop surface. */
-export type DesktopSurfaceSnapshot = Readonly<{
+/** Complete current state of one Desktop viewport. */
+export type DesktopViewportSnapshot = Readonly<{
   size: DesktopSize
 }>
 
-/** Changes published by a Desktop surface. */
-export type DesktopSurfaceEvents = {
-  resize: DesktopSurfaceSnapshot
+/** Changes published by a Desktop viewport. */
+export type DesktopViewportEvents = {
+  resize: DesktopViewportSnapshot
 }
 
-/** Read-only access to one Desktop surface and its future resizes. */
-export interface DesktopSurfaceSource extends Subscribable<DesktopSurfaceEvents, never> {
-  snapshot(): Promise<DesktopSurfaceSnapshot>
+/** Read-only access to one Desktop viewport and its future resizes. */
+export interface DesktopViewportSource extends Subscribable<DesktopViewportEvents, never> {
+  snapshot(): Promise<DesktopViewportSnapshot>
 }
 
 /** The Desktop environment containing one Client endpoint. */
 export interface Desktop {
-  readonly surface: DesktopSurfaceSource
+  readonly viewport: DesktopViewportSource
   readonly preferences: WritableDesktopPreferencesSource
 }

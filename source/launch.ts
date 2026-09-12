@@ -47,9 +47,6 @@ export type ClientLaunch = Readonly<{
   /** Structurally isolated layer containing this Process's Window. */
   layer?: Layer
 
-  /** Initial page beneath the Client's declared location scope. */
-  location?: string
-
   /** Whether the Window initially opens minimized. */
   minimize?: boolean
 }>
@@ -65,6 +62,6 @@ export type Launch = Readonly<{
   /** Whether and how to start the declared Client. Uses its declaration when omitted. */
   client?: boolean | ClientLaunch
 
-  /** Immutable string options readable by the created Process. */
+  /** Immutable string options readable by both Endpoints of the created Process. */
   options?: Readonly<Record<string, string>>
 }>

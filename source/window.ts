@@ -54,9 +54,6 @@ export type WindowState = Readonly<{
   /** Authoritative desktop layer containing the Window. */
   layer: WindowLayer
 
-  /** Current page beneath the declared Client location. */
-  location: string
-
 }>
 
 /** Presentation capability owned by one Client handle. */
@@ -78,9 +75,6 @@ export interface Window extends Subscribable<WindowEvents, never> {
 
   /** Returns the authoritative desktop layer containing the Window. */
   layer(): Promise<WindowLayer>
-
-  /** Returns the current page rooted beneath the declared Client location. */
-  location(): Promise<string>
 
   /** Moves the authoritative Window. */
   move(position: Position): Promise<void>
