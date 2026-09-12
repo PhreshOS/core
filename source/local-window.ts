@@ -1,5 +1,5 @@
 import type { Position, Size } from "./launch.js"
-import type { Transaction } from "./transaction.js"
+import type { AppearanceTransaction, WaitedTransaction } from "./appearance-transaction.js"
 import type { Window, WindowGeometry } from "./window.js"
 
 /** Commands that change one Client Window's physical representation. */
@@ -36,7 +36,7 @@ export interface LocalWindowOperations {
  */
 export interface LocalWindow extends LocalWindowOperations {
   /** Returns the same commands bound to one visual transaction. */
-  transaction(transaction: Transaction): LocalWindowOperations
+  transaction(transaction: AppearanceTransaction | WaitedTransaction): LocalWindowOperations
 
   /** Brings the local representation to the front of its own layer. */
   raise(): Promise<void>

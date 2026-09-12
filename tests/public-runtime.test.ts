@@ -17,7 +17,8 @@ import {
   type ShellEvent,
   type ShellOptions,
   type System,
-  type Transaction,
+  type AppearanceTransaction,
+  type WaitedTransaction,
   type Upload,
   type WritableContent,
   Endpoint,
@@ -51,15 +52,15 @@ describe("public runtime", function () {
     expectTypeOf<LocalWindow>().not.toHaveProperty("subscribe")
     expectTypeOf<LocalWindow>().not.toHaveProperty("title")
 
-    const duration: Transaction = { duration: 180 }
-    const easing: Transaction = { easing: "ease-out", wait: true }
-    void duration
-    void easing
+    const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
+    const waited: WaitedTransaction = { ...transaction, wait: true }
+    void transaction
+    void waited
 
-    type EmptyRejected = {} extends Transaction ? false : true
-    type WaitOnlyRejected = { wait: true } extends Transaction ? false : true
+    type EmptyRejected = {} extends AppearanceTransaction ? false : true
+    type FalseWaitRejected = { duration: 180, easing: "ease-out", wait: false } extends WaitedTransaction ? false : true
     expectTypeOf<EmptyRejected>().toEqualTypeOf<true>()
-    expectTypeOf<WaitOnlyRejected>().toEqualTypeOf<true>()
+    expectTypeOf<FalseWaitRejected>().toEqualTypeOf<true>()
   })
 
   it("preserves the domain class hierarchy", function () {

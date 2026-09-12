@@ -8,10 +8,14 @@ import {
 
 describe("Appearance", function () {
   it("keeps complete default light and dark values", function () {
-    expect(defaultAppearance.colors.background).toEqual({ light: "#ffffff", dark: "#121a21" })
-    expect(defaultAppearance.colors.foreground).toEqual({ light: "#183447", dark: "#edf8fc" })
-    expect(defaultAppearance.colors.primary).toEqual({ light: "#4c9cff", dark: "#4c9cff" })
-    expect(defaultAppearance.spacing).toEqual({ light: 12 })
+    expect(defaultAppearance.colors.light.background).toBe("#ffffff")
+    expect(defaultAppearance.colors.dark.background).toBe("#121a21")
+    expect(defaultAppearance.colors.light.foreground).toBe("#183447")
+    expect(defaultAppearance.colors.dark.foreground).toBe("#edf8fc")
+    expect(defaultAppearance.colors.light.primary).toBe("#4c9cff")
+    expect(defaultAppearance.colors.dark.primary).toBe("#4c9cff")
+    expect(defaultAppearance.spacing).toBe(12)
+    expect(defaultAppearance.transaction).toEqual({ duration: 120, easing: "ease-out" })
     expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
     expect(defaultAppearance.material.light.grain).toBe(0)
   })
@@ -47,50 +51,60 @@ describe("Appearance", function () {
       const value = { light: "oklch(60% 0.2 260)", dark: "var(--custom-color)" }
       const appearance = createAppearanceSnapshot({
         ...defaultAppearance,
-        colors: { ...defaultAppearance.colors, [role]: value }
+        colors: {
+          light: { ...defaultAppearance.colors.light, [role]: value.light },
+          dark: { ...defaultAppearance.colors.dark, [role]: value.dark }
+        }
       })
 
-      expect(appearance.colors[role]).toEqual(value)
-      expect(Object.isFrozen(appearance.colors[role])).toBe(true)
+      expect({ light: appearance.colors.light[role], dark: appearance.colors.dark[role] }).toEqual(value)
+      expect(Object.isFrozen(appearance.colors.light)).toBe(true)
+      expect(Object.isFrozen(appearance.colors.dark)).toBe(true)
       value.light = "red"
-      expect(appearance.colors[role].light).toBe("oklch(60% 0.2 260)")
+      expect(appearance.colors.light[role]).toBe("oklch(60% 0.2 260)")
     }
   )
 
   it("exposes only the current palette names", function () {
-    expect(defaultAppearance.colors).not.toHaveProperty("accent")
+    expect(defaultAppearance.colors.light).not.toHaveProperty("accent")
 
     if (false) {
       // @ts-expect-error The retired color name is not part of Appearance.
-      void defaultAppearance.colors.accent
+      void defaultAppearance.colors.light.accent
     }
   })
 
-  it("makes unsupported dark branches a type error", function () {
-    const spacing: ThemedValue<number> = { light: 12 }
+  it("requires both Theme branches in every ThemedValue", function () {
+    const spacing: ThemedValue<number> = { light: 12, dark: 14 }
 
     if (false) {
-      // @ts-expect-error This Appearance value has no dark branch.
-      void ({ light: 12, dark: 12 } satisfies ThemedValue<number>)
+      // @ts-expect-error A ThemedValue never has an implicit branch.
+      void ({ light: 12 } satisfies ThemedValue<number>)
     }
 
-    expect(spacing).toEqual({ light: 12 })
+    expect(spacing).toEqual({ light: 12, dark: 14 })
   })
 
   it("creates deeply immutable snapshots", function () {
     const appearance = createAppearanceSnapshot({
       ...defaultAppearance,
-      colors: { ...defaultAppearance.colors, background: { light: "canvas", dark: "black" } }
+      colors: {
+        light: { ...defaultAppearance.colors.light, background: "canvas" },
+        dark: { ...defaultAppearance.colors.dark, background: "black" }
+      }
     })
 
-    expect(appearance.colors.background).toEqual({ light: "canvas", dark: "black" })
+    expect(appearance.colors.light.background).toBe("canvas")
+    expect(appearance.colors.dark.background).toBe("black")
     expect(Object.isFrozen(appearance)).toBe(true)
     expect(Object.isFrozen(appearance.colors)).toBe(true)
-    expect(Object.isFrozen(appearance.colors.background)).toBe(true)
+    expect(Object.isFrozen(appearance.colors.light)).toBe(true)
+    expect(Object.isFrozen(appearance.transaction)).toBe(true)
     expect(Object.isFrozen(appearance.material.light)).toBe(true)
   })
 
   it("publishes the complete bounded material ranges", function () {
+    expect(appearanceLimits.transaction.duration).toEqual({ minimum: 0, maximum: 60_000 })
     expect(appearanceLimits.material).toEqual({
       grain: { minimum: 0, maximum: 1 },
       grainAmount: { minimum: 0, maximum: 1 },

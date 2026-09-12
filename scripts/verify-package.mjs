@@ -60,8 +60,8 @@ import { ClientEndpoint, Endpoint, ServerEndpoint, parseShellEvent, defaultAppea
 
 assert(ClientEndpoint.prototype instanceof Endpoint)
 assert(ServerEndpoint.prototype instanceof Endpoint)
-assert.equal(defaultAppearance.colors.background.light, "#ffffff")
-assert.equal(defaultAppearance.colors.primary.light, "#4c9cff")
+assert.equal(defaultAppearance.colors.light.background, "#ffffff")
+assert.equal(defaultAppearance.colors.light.primary, "#4c9cff")
 assert.equal("accent" in defaultAppearance, false)
 assert.deepEqual(parseShellEvent({ event: "started", pid: 42 }), { event: "started", pid: 42 })
 /** @type {import("@phreshos/core").System} */
@@ -73,7 +73,7 @@ void system?.shell("printf hello")
 
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { defineConfig, isUploadFile, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopSurfaceSource, type FileStat, type LocalWindow, type Program, type System, type SystemUploads, type TrafficMessage, type Transaction, type Upload, type Window, type WindowGeometry, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
+    `import { defineConfig, isUploadFile, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopSurfaceSource, type FileStat, type LocalWindow, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type WaitedTransaction, type Window, type WindowGeometry, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
 const config: Config = defineConfig({
   identity: "package-consumer",
@@ -87,7 +87,8 @@ const forcedProgram: Promise<Program> = system.program.forceCreate("./phresh.con
 system.forceCreateProgram("./phresh.config.ts")
 type WindowHasSurface = "surface" extends keyof Window ? true : false
 const windowHasSurface: WindowHasSurface = false
-const transaction: Transaction = { duration: 180, wait: true }
+const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
+const waitedTransaction: WaitedTransaction = { ...transaction, wait: true }
 declare const localWindow: LocalWindow
 const geometry: WindowGeometry = {
   position: { x: "0/1", y: "0/1" },
@@ -117,7 +118,7 @@ void writable
 void program.identity
 void forcedProgram
 void transaction
-void localWindow.transaction(transaction).addSurface()
+void localWindow.transaction(waitedTransaction).addSurface()
 void localWindow.transaction(transaction).follow(window)
 void localWindow.unfollow()
 void localWindow.removeSurface()
