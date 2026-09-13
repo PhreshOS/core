@@ -2,8 +2,8 @@ import type { Launch, Layer, Position, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
 import type { ProgramSql } from "./sql.js"
 import type { ProgramStore, Storage } from "./storage.js"
-import type { Subscribable } from "./subscribable.js"
-import type { ClientPermissions, ProgramPermissions } from "./permissions.js"
+import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
+import type { ProgramPermissions } from "./permissions.js"
 
 /** Standard rendered sizes available for every Program icon. */
 export type ProgramIconSize = "small" | "medium" | "large"
@@ -42,9 +42,9 @@ export type ClientDeclaration = EndpointDeclaration & Readonly<{
 
   /** Default minimized state, or `null` for the system default. */
   minimize: boolean | null
+  /** Default maximized state, or null for the system default. */
+  maximize: boolean | null
 
-  /** Immutable permissions granted by this Program declaration. */
-  permissions: ClientPermissions
 }>
 
 /** A Process exit scoped to its owning Program. */
@@ -124,58 +124,62 @@ export type ProgramEvents = {
 }
 
 /** The stable domain root from which Processes are created. */
-export class Program {
+export abstract class Program implements Subscribable<ProgramEvents, never> {
   protected constructor() {}
-}
 
-export interface Program extends Subscribable<ProgramEvents, never> {
+  public declare readonly [subscribableDefinition]?: SubscribableDefinition<ProgramEvents, never>
+
+  public abstract readonly subscribe: Subscribable<ProgramEvents, never>["subscribe"]
+  public abstract readonly wait: Subscribable<ProgramEvents, never>["wait"]
+  public abstract readonly events: Subscribable<ProgramEvents, never>["events"]
+
   /** Stable public identity. */
-  readonly identity: string
+  public abstract readonly identity: string
 
   /** Runtime identity used to address this Program's browser assets. */
-  readonly assetId: string
+  public abstract readonly assetId: string
 
   /** Human-readable name. */
-  readonly name: string
+  public abstract readonly name: string
 
   /** Declared version, or `null`. */
-  readonly version: string | null
+  public abstract readonly version: string | null
 
   /** Declared description, or `null`. */
-  readonly description: string | null
+  public abstract readonly description: string | null
 
   /** Whether this Program provides Program-specific documentation for agents. */
-  readonly hasAgent: boolean
+  public abstract readonly hasAgent: boolean
 
   /** Server declaration, or `null` when this Program cannot start one. */
-  readonly server: EndpointDeclaration | null
+  public abstract readonly server: EndpointDeclaration | null
 
   /** Client declaration, or `null` when this Program cannot start one. */
-  readonly client: ClientDeclaration | null
+  public abstract readonly client: ClientDeclaration | null
 
   /** Persistent filesystem data shared by every Process of this Program. */
-  readonly data: Storage
+  public abstract readonly data: Storage
 
   /** Disposable filesystem data shared by every Process of this Program. */
-  readonly cache: Storage
+  public abstract readonly cache: Storage
 
   /** Persistent key-value storage shared by every Process of this Program. */
-  readonly store: ProgramStore
+  public abstract readonly store: ProgramStore
 
   /** Read-only SQL access to captured Client and Server output. */
-  readonly logs: ProgramSql
+  public abstract readonly logs: ProgramSql
 
   /** Writable SQLite database owned by this Program. */
-  readonly database: ProgramSql
+  public abstract readonly database: ProgramSql
 
   /** Operations and lifecycle observation for this Program's Processes. */
-  readonly process: ProgramProcess
+  public abstract readonly process: ProgramProcess
 
   /** Persistent Process launch applied when the System starts. */
-  readonly startup: ProgramStartup
+  public abstract readonly startup: ProgramStartup
 
-  /** Stored user grants managed for this Program. */
-  readonly permissions: ProgramPermissions
+  /** Authoritative permission state managed for this Program. */
+  public abstract readonly permissions: ProgramPermissions
 
   /**
    * Returns one standard PNG representation of this Program's icon.
@@ -183,23 +187,23 @@ export interface Program extends Subscribable<ProgramEvents, never> {
    *
    * @param size Rendered size. Omission selects `medium`.
    */
-  icon(size?: ProgramIconSize): Promise<Blob>
+  public abstract icon(size?: ProgramIconSize): Promise<Blob>
 
   /** Reads this Program's agent documentation, or `null` when none is declared. */
-  agent(): Promise<string | null>
+  public abstract agent(): Promise<string | null>
 
   /** Returns whether this Program currently has an installed form. */
-  installed(): Promise<boolean>
+  public abstract installed(): Promise<boolean>
 
   /** Installs this Program while yielding command output. */
-  install(): AsyncGenerator<ProgramCommandChunk, void, void>
+  public abstract install(): AsyncGenerator<ProgramCommandChunk, void, void>
 
   /** Removes this Program's installed form while yielding cleanup output. */
-  uninstall(everything?: boolean): AsyncGenerator<ProgramCommandChunk, void, void>
+  public abstract uninstall(everything?: boolean): AsyncGenerator<ProgramCommandChunk, void, void>
 
   /** Ends all Processes and removes this Program from the runtime registry. */
-  forget(): Promise<void>
+  public abstract forget(): Promise<void>
 
   /** Creates another Program from this Program under a new identity. */
-  fork(identity: string): Promise<Program>
+  public abstract fork(identity: string): Promise<Program>
 }

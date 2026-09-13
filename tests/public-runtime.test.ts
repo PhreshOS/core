@@ -126,13 +126,13 @@ describe("public runtime", function () {
     expectTypeOf<ServerService>().toHaveProperty("waitReady")
     expectTypeOf<Service>().not.toHaveProperty("channel")
 
-    const immutableProgramPermissions: Launch = {
+    const launchCannotSupplyPermissions: Launch = {
       client: {
         // @ts-expect-error Process launches cannot override Program permissions.
         permissions: { all: true }
       }
     }
-    void immutableProgramPermissions
+    void launchCannotSupplyPermissions
   })
 
   it("keeps the finite public registries narrow", function () {
@@ -147,8 +147,8 @@ describe("public runtime", function () {
     expectTypeOf<Desktop>().toHaveProperty("viewport")
     expectTypeOf<Desktop>().toHaveProperty("preferences")
     expectTypeOf<Desktop>().not.toHaveProperty("pointer")
-    expectTypeOf<System["fetch"]>().returns.toEqualTypeOf<Promise<Response>>()
-    expectTypeOf<System["websocket"]>().returns.toEqualTypeOf<Promise<WebSocket>>()
+    expectTypeOf<System["network"]["fetch"]>().returns.toEqualTypeOf<Promise<Response>>()
+    expectTypeOf<System["network"]["websocket"]>().returns.toEqualTypeOf<Promise<WebSocket>>()
   })
 
   it("keeps permission values canonical after input resolution", function () {
@@ -157,7 +157,7 @@ describe("public runtime", function () {
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"network">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"storage">>().toEqualTypeOf<string>()
-    expectTypeOf<Permission>().toEqualTypeOf<string[] | false | null>()
+    expectTypeOf<Permission>().toEqualTypeOf<readonly string[] | false | null>()
     expectTypeOf<ClientContext["permissions"]["request"]>().returns.toEqualTypeOf<Promise<Permission>>()
     expectTypeOf<Program>().toHaveProperty("permissions")
     expect(parsePermission("all", [])).toEqual([])

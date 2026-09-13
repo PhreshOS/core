@@ -3,6 +3,7 @@ import {
   appearanceLimits,
   createAppearanceSnapshot,
   defaultAppearance,
+  parseAppearance,
   type ThemedValue
 } from "../source/main.js"
 
@@ -101,6 +102,16 @@ describe("Appearance", function () {
     expect(Object.isFrozen(appearance.colors.light)).toBe(true)
     expect(Object.isFrozen(appearance.transaction)).toBe(true)
     expect(Object.isFrozen(appearance.material.light)).toBe(true)
+  })
+
+  it("rejects stale and malformed boundary values", function () {
+    expect(parseAppearance(defaultAppearance)).toEqual(defaultAppearance)
+    expect(() => parseAppearance({ ...defaultAppearance, colors: defaultAppearance.colors.light })).toThrow("Appearance colors")
+    expect(() => parseAppearance({ ...defaultAppearance, material: {
+      light: { ...defaultAppearance.material.light, opacity: 2 },
+      dark: defaultAppearance.material.dark
+    } })).toThrow("Appearance material opacity")
+    expect(() => parseAppearance({ ...defaultAppearance, obsolete: true })).toThrow("Appearance is invalid")
   })
 
   it("publishes the complete bounded material ranges", function () {

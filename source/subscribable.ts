@@ -31,22 +31,24 @@ export type CaptureSubscriber<Events extends object, Fallback = never> = (captur
 export type Cleanup = () => void
 
 // Carries a Subscribable's declared types through higher-order adapters. The
-// symbol is deliberately private and has no runtime representation.
-declare const definition: unique symbol
+// symbol is internal and instances need no stored value for it.
+/** @internal Key preserving event definitions through class contracts. */
+export const subscribableDefinition: unique symbol = Symbol("@phreshos/core/subscribable-definition")
 
-type Definition<Events extends object, Fallback> = Readonly<{
+/** @internal Event definition carried by class-based Subscribables. */
+export type SubscribableDefinition<Events extends object, Fallback> = Readonly<{
   events: Events
   fallback: Fallback
 }>
 
 /** Extracts the declared event map from a Subscribable type. */
 export type SubscribableEvents<Target> = Target extends {
-  readonly [definition]?: Definition<infer Events, unknown>
+  readonly [subscribableDefinition]?: SubscribableDefinition<infer Events, unknown>
 } ? Events : never
 
 /** Extracts the fallback message from a Subscribable type. */
 export type SubscribableFallback<Target> = Target extends {
-  readonly [definition]?: Definition<object, infer Fallback>
+  readonly [subscribableDefinition]?: SubscribableDefinition<object, infer Fallback>
 } ? Fallback : never
 
 /** Options controlling one asynchronous event iterator. */
@@ -118,7 +120,7 @@ interface EventStream<Events extends object, Fallback> {
  */
 export interface Subscribable<Events extends object = {}, Fallback = unknown> {
   /** @internal Preserves this contract's declared types for SDK adapters. */
-  readonly [definition]?: Definition<Events, Fallback>
+  readonly [subscribableDefinition]?: SubscribableDefinition<Events, Fallback>
 
   /** Registers one persistent subscription for a named event or every event. */
   subscribe: Subscribe<Events, Fallback>

@@ -80,8 +80,10 @@ export type ClientConfig = Readonly<{
 
   /** Whether the Window initially opens minimized. */
   minimize?: boolean
+  /** Whether the Window initially fills its Desktop workspace. */
+  maximize?: boolean
 
-  /** Immutable permissions declared for this Program's Client. */
+  /** Permissions copied into authoritative Program storage during installation. */
   permissions?: ClientPermissionDeclarations
 
   /** Settings used only by the development command. */

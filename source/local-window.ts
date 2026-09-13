@@ -1,31 +1,18 @@
-import type { Position, Size } from "./launch.js"
 import type { AppearanceTransaction, WaitedTransaction } from "./appearance-transaction.js"
-import type { Window, WindowGeometry } from "./window.js"
+import type { Window, WindowOperations } from "./window.js"
 
 /** Commands that change one Client Window's physical representation. */
-export interface LocalWindowOperations {
-  /** Adds the host Surface. */
+export interface LocalWindowOperations extends Pick<WindowOperations, "move" | "resize" | "setGeometry" | "minimize" | "maximize"> {
+  /** Adds the host Surface; available in under and over layers only. */
   addSurface(): Promise<void>
 
-  /** Removes the host Surface. */
+  /** Removes the host Surface; available in under and over layers only. */
   removeSurface(): Promise<void>
 
-  /** Moves the local representation. */
-  move(position: Position): Promise<void>
-
-  /** Resizes the local representation. */
-  resize(size: Size): Promise<void>
-
-  /** Changes local position and size as one operation. */
-  setGeometry(geometry: WindowGeometry): Promise<void>
-
-  /** Changes whether the local representation is minimized. */
-  minimize(minimized?: boolean): Promise<void>
-
-  /** Presents this local Window with another Window's geometry and minimized state. */
+  /** Follows the supplied authoritative Window, replacing any previous target. */
   follow(window: Window): Promise<void>
 
-  /** Ends following and returns to the local representation held before it began. */
+  /** Stops following and preserves the current local state. */
   unfollow(): Promise<void>
 }
 
@@ -34,10 +21,7 @@ export interface LocalWindowOperations {
  * no events: its commands neither change authoritative state nor broadcast
  * anything.
  */
-export interface LocalWindow extends LocalWindowOperations {
+export interface LocalWindow extends LocalWindowOperations, WindowOperations {
   /** Returns the same commands bound to one visual transaction. */
   transaction(transaction: AppearanceTransaction | WaitedTransaction): LocalWindowOperations
-
-  /** Brings the local representation to the front of its own layer. */
-  raise(): Promise<void>
 }

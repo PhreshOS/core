@@ -53,17 +53,18 @@ export interface ServerTraffic<
 }
 
 /** The Server Endpoint of a Process. */
-export class ServerEndpoint<Events extends object = {}, Fallback = unknown> extends Endpoint<Events, Fallback> {
+export abstract class ServerEndpoint<Events extends object = {}, Fallback = unknown> extends Endpoint<Events, Fallback> {
   protected constructor() {
     super()
   }
-}
-
-export interface ServerEndpoint<Events extends object = {}, Fallback = unknown> extends Askable {
   /** Directed communication originating from this Server Endpoint. */
-  readonly traffic: ServerTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
+  public abstract override readonly traffic: ServerTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
 
   /** Starts a fresh Server Endpoint incarnation using optional Process-local settings. */
-  start(launch?: ServerLaunch): Promise<void>
+  public abstract override start(launch?: ServerLaunch): Promise<void>
+
+  public abstract ask<Answer = unknown>(event: string): Promise<Answer>
+  public abstract ask<Answer = unknown, Payload = unknown>(event: string, payload: Payload): Promise<Answer>
+  public abstract timeout(milliseconds: number): ReturnType<Askable["timeout"]>
 
 }

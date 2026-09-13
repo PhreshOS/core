@@ -1,7 +1,7 @@
 import type { Askable } from "./askable.js"
 import type { EndpointLifecycle } from "./endpoint.js"
 import type { Publishable } from "./publishable.js"
-import type { Subscribable } from "./subscribable.js"
+import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 
 /** Stable public coordinates of one Endpoint service. */
 export type ServiceKey = Readonly<{
@@ -16,17 +16,22 @@ export type ServiceKey = Readonly<{
 }>
 
 /** Stable communication handle for one Endpoint service address. */
-export class Service<Events extends object = {}, Fallback = unknown> {
+export abstract class Service<Events extends object = {}, Fallback = unknown>
+  implements Publishable, Subscribable<Events, Fallback> {
   protected constructor() {}
-}
 
-export interface Service<Events extends object = {}, Fallback = unknown>
-  extends Publishable, Subscribable<Events, Fallback> {
+  public declare readonly [subscribableDefinition]?: SubscribableDefinition<Events, Fallback>
+
+  public abstract readonly publish: Publishable["publish"]
+  public abstract readonly subscribe: Subscribable<Events, Fallback>["subscribe"]
+  public abstract readonly wait: Subscribable<Events, Fallback>["wait"]
+  public abstract readonly events: Subscribable<Events, Fallback>["events"]
+
   /** Start and stop transitions of the addressed Endpoint. */
-  readonly lifecycle: EndpointLifecycle
+  public abstract readonly lifecycle: EndpointLifecycle
 
   /** Returns whether the addressed Endpoint currently has a live incarnation. */
-  exists(): Promise<boolean>
+  public abstract exists(): Promise<boolean>
 
   /**
    * Waits until the addressed Endpoint service can be used.
@@ -35,21 +40,23 @@ export interface Service<Events extends object = {}, Fallback = unknown>
    * service additionally has to announce readiness. The SDK uses its
    * ten-second deadline unless one is supplied.
    */
-  waitReady(timeout?: number): Promise<void>
+  public abstract waitReady(timeout?: number): Promise<void>
 }
 
 /** Stable handle for one Server-provided service. */
-export class ServerService<Events extends object = {}, Fallback = unknown>
+export abstract class ServerService<Events extends object = {}, Fallback = unknown>
   extends Service<Events, Fallback> {
   protected constructor() {
     super()
   }
+
+  public abstract ask<Answer = unknown>(event: string): Promise<Answer>
+  public abstract ask<Answer = unknown, Payload = unknown>(event: string, payload: Payload): Promise<Answer>
+  public abstract timeout(milliseconds: number): ReturnType<Askable["timeout"]>
 }
 
-export interface ServerService<Events extends object = {}, Fallback = unknown> extends Askable {}
-
 /** Stable handle for one Client-provided service. */
-export class ClientService<Events extends object = {}, Fallback = unknown>
+export abstract class ClientService<Events extends object = {}, Fallback = unknown>
   extends Service<Events, Fallback> {
   protected constructor() {
     super()

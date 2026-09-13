@@ -27,6 +27,9 @@ export type WindowEvents = {
   /** The authoritative minimized state changed. */
   minimize: boolean
 
+  /** The authoritative maximized state changed. */
+  maximize: boolean
+
   /** The authoritative title changed. */
   changeTitle: string
 
@@ -48,6 +51,9 @@ export type WindowState = Readonly<{
   /** Whether the Window is minimized. */
   minimized: boolean
 
+  /** Whether presentation fills the workspace when visible. Geometry is retained. */
+  maximized: boolean
+
   /** Whether the Window is frontmost in its layer. */
   front: boolean
 
@@ -57,7 +63,7 @@ export type WindowState = Readonly<{
 }>
 
 /** Presentation capability owned by one Client handle. */
-export interface Window extends Subscribable<WindowEvents, never> {
+export interface Window extends WindowOperations, Subscribable<WindowEvents, never> {
   /** Returns the current title. */
   title(): Promise<string>
 
@@ -70,23 +76,32 @@ export interface Window extends Subscribable<WindowEvents, never> {
   /** Returns whether the Window is minimized. */
   minimized(): Promise<boolean>
 
+  /** Returns whether the Window is maximized. */
+  maximized(): Promise<boolean>
+
   /** Returns whether the Window is frontmost in its layer. */
   front(): Promise<boolean>
 
   /** Returns the authoritative desktop layer containing the Window. */
   layer(): Promise<WindowLayer>
+}
 
-  /** Moves the authoritative Window. */
+/** Operations shared by authoritative Windows and their local representations. */
+export interface WindowOperations {
+  /** Moves the stored geometry. */
   move(position: Position): Promise<void>
 
-  /** Resizes the authoritative Window. */
+  /** Resizes the stored geometry. */
   resize(size: Size): Promise<void>
 
-  /** Changes position and size as one authoritative operation. */
+  /** Changes stored position and size as one operation. */
   setGeometry(geometry: WindowGeometry): Promise<void>
 
   /** Changes whether the Window is minimized. */
   minimize(minimized?: boolean): Promise<void>
+
+  /** Changes maximization without modifying minimized state or stored geometry. */
+  maximize(maximized?: boolean): Promise<void>
 
   /** Changes the Window title. */
   changeTitle(title: string): Promise<void>

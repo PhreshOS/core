@@ -158,3 +158,12 @@ function pathCovers(grant: NetworkPath, requested: NetworkPath) {
 
   return requested.value === grant.value || requested.value.startsWith(`${grant.value}/`)
 }
+
+/** Outbound networking provided by one System connection. */
+export interface Network {
+  /** Performs one outbound request and returns a standard Response. */
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>
+
+  /** Opens an outbound connection and returns a platform-standard WebSocket. */
+  websocket(url: string | URL, protocols?: string | string[]): Promise<WebSocket>
+}

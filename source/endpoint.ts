@@ -1,7 +1,7 @@
 import type { Process } from "./process.js"
 import type { Publishable } from "./publishable.js"
 import type { ServerEndpoint } from "./server-endpoint.js"
-import type { Captures, Cleanup, EventOptions, Subscribable } from "./subscribable.js"
+import { subscribableDefinition, type Captures, type Cleanup, type EventOptions, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 
 /** One application value observed in traffic originating from an Endpoint. */
 export type TrafficMessage<Payload = unknown, To = Endpoint | null> = Readonly<{
@@ -76,24 +76,28 @@ export type EndpointLifecycleEvents = {
 export interface EndpointLifecycle extends Subscribable<EndpointLifecycleEvents, never> {}
 
 /** The shared base of a Process's Server Endpoint and Client Endpoint. */
-export class Endpoint<Events extends object = {}, Fallback = unknown> {
+export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
+  implements Publishable, Subscribable<Events, Fallback> {
   protected constructor() {}
-}
 
-/** An Endpoint address that can also be followed as a destinationless source. */
-export interface Endpoint<Events extends object = {}, Fallback = unknown>
-  extends Publishable, Subscribable<Events, Fallback> {
+  public declare readonly [subscribableDefinition]?: SubscribableDefinition<Events, Fallback>
+
+  public abstract readonly publish: Publishable["publish"]
+  public abstract readonly subscribe: Subscribable<Events, Fallback>["subscribe"]
+  public abstract readonly wait: Subscribable<Events, Fallback>["wait"]
+  public abstract readonly events: Subscribable<Events, Fallback>["events"]
+
   /** Directed communication originating from this Endpoint. */
-  readonly traffic: EndpointTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
+  public abstract readonly traffic: EndpointTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
 
   /** Start and stop transitions of this permanent Endpoint handle. */
-  readonly lifecycle: EndpointLifecycle
+  public abstract readonly lifecycle: EndpointLifecycle
 
   /** Returns the Process that owns this Endpoint. */
-  process(): Promise<Process>
+  public abstract process(): Promise<Process>
 
   /** Returns whether this Endpoint currently has a live incarnation. */
-  exists(): Promise<boolean>
+  public abstract exists(): Promise<boolean>
 
   /**
    * Waits until this Endpoint can be used.
@@ -103,7 +107,7 @@ export interface Endpoint<Events extends object = {}, Fallback = unknown>
    * owning Process exists. The SDK uses its ten-second deadline unless one is
    * supplied.
    */
-  waitReady(timeout?: number): Promise<void>
+  public abstract waitReady(timeout?: number): Promise<void>
 
   /**
    * Starts a fresh incarnation without waiting for Server Endpoint readiness.
@@ -112,7 +116,7 @@ export interface Endpoint<Events extends object = {}, Fallback = unknown>
    * declare this endpoint kind, the Endpoint is already starting or live, or
    * creation fails.
    */
-  start(): Promise<void>
+  public abstract start(): Promise<void>
 
   /**
    * Stops the current incarnation and destroys its boundary-owned resources.
@@ -121,9 +125,9 @@ export interface Endpoint<Events extends object = {}, Fallback = unknown>
    * stopping or absent, this is the Process's final live Endpoint, or stopping
    * fails. Stopping never exits the Process implicitly.
    */
-  stop(): Promise<void>
+  public abstract stop(): Promise<void>
 
   /** Returns whether the current Endpoint incarnation is a service. */
-  isService(): Promise<boolean>
+  public abstract isService(): Promise<boolean>
 
 }

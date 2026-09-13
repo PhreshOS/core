@@ -13,26 +13,35 @@ export {
   type EventOptions,
   type EventSubscriber,
   type Subscribable,
+  subscribableDefinition,
+  type SubscribableDefinition,
   type SubscribableEvents,
   type SubscribableFallback
 } from "./subscribable.js"
 
 export { type Publishable } from "./publishable.js"
+export {
+  parseEndpointReference,
+  parseProcessSnapshot,
+  parseProgramSnapshot,
+  type EndpointReference,
+  type EndpointSnapshot,
+  type HandleAddress,
+  type ProcessSnapshot,
+  type ProgramSnapshot
+} from "./domain-snapshot.js"
 export { type Timeoutable } from "./timeout.js"
-export { networkScopeCovers, parseNetworkScope, type NetworkScope } from "./network.js"
+export { networkScopeCovers, parseNetworkScope, type NetworkScope, type Network } from "./network.js"
 export {
   clientPermissionCatalog,
   isPermissionName,
-  parseClientPermissions,
   parsePermission,
+  parseClientPermissionDeclarations,
   parsePermissionName,
   parsePermissions,
   type ClientPermissionDeclarations,
-  type ClientPermissions,
   type ContextPermissions,
   type Permission,
-  type PermissionDefinition,
-  type PermissionDefinitions,
   type PermissionInput,
   type PermissionName,
   type PermissionRequest,
@@ -42,6 +51,7 @@ export {
   type ProgramPermissions,
   type TimedContextPermissions
 } from "./permissions.js"
+export { parseProgramDefinition } from "./program-definition.js"
 export { type Askable, type TimedAskable } from "./askable.js"
 export {
   ClientService,
@@ -60,12 +70,7 @@ export {
   type DesktopPreferencesUpdate,
   type WritableDesktopPreferencesSource,
   type Theme,
-  type ThemePreference,
-  type Colorable,
-  type Elevatable,
-  type Shapeable,
-  type Sizable,
-  type Variantable
+  type ThemePreference
 } from "./theme.js"
 export {
   type Desktop,
@@ -77,6 +82,7 @@ export {
 export {
   appearanceLimits,
   createAppearanceSnapshot,
+  parseAppearance,
   defaultAppearance,
   type Appearance,
   type AppearanceColor,
@@ -87,7 +93,7 @@ export {
   type AppearanceMaterial,
   type AppearanceShadow,
   type ThemedValue,
-  type WritableAppearance,
+  type WritableAppearance
 } from "./appearance.js"
 export {
   describeStorageScope,
@@ -174,6 +180,7 @@ export {
 } from "./program.js"
 export {
   type Window,
+  type WindowOperations,
   type WindowEvents,
   type WindowGeometry,
   type WindowLayer,

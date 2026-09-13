@@ -29,7 +29,7 @@ export type PermissionValue<Name extends PermissionName> = Name extends Permissi
   : never
 
 /** Canonical stored value of one permission. Lists represent unordered sets. */
-export type Permission<Name extends PermissionName = PermissionName> = PermissionValue<Name>[] | false | null
+export type Permission<Name extends PermissionName = PermissionName> = readonly PermissionValue<Name>[] | false | null
 
 /** Values accepted where one exact permission is assigned. */
 export type PermissionInput<Name extends PermissionName = PermissionName> =
@@ -48,45 +48,50 @@ export type Permissions = Partial<{
   [Name in PermissionName]: Permission<Name>
 }>
 
-/** Immutable initial permission assignments declared by one Client. */
+/** Permission assignments copied into authoritative storage during installation. */
 export type ClientPermissionDeclarations = Readonly<{
   [Name in PermissionName]?: true | readonly PermissionValue<Name>[]
 }>
 
-/** Immutable resolved permission grants declared by one Client. */
-export type ClientPermissions = Readonly<{
-  [Name in PermissionName]?: readonly PermissionValue<Name>[]
-}>
+/** Validates and canonicalizes the permissions declared by one Client. */
+export function parseClientPermissionDeclarations(value: unknown): ClientPermissionDeclarations {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("A Client's permissions must be a permission declaration")
+  }
 
-/** Presentation and default assignment belonging to one exact permission. */
-export type PermissionDefinition<Name extends PermissionName = PermissionName> = Readonly<{
-  valueDomain: PermissionValueDomain<Name>
-  default: readonly PermissionValue<Name>[]
-  title: string
-  description: string
-}>
+  const declarations: Partial<Record<PermissionName, true | readonly unknown[]>> = {}
 
-/** One definition for every permission recognized by the Core catalog. */
-export type PermissionDefinitions = Readonly<{
-  [Name in PermissionName]: PermissionDefinition<Name>
-}>
+  for (const [unknownName, declaration] of Object.entries(value)) {
+    const name = parsePermissionName(unknownName)
+
+    if (declaration === true) declarations[name] = true
+    else if (Array.isArray(declaration)) {
+      const permission = parsePermission(name, declaration)
+      if (permission === false || permission === null) throw new Error(`A Client's "${name}" permission is invalid`)
+      declarations[name] = permission
+    }
+    else throw new Error(`A Client's "${name}" permission must be true or a valid list`)
+  }
+
+  return Object.freeze(declarations) as ClientPermissionDeclarations
+}
 
 /** Permission request using one caller-selected deadline. */
 export interface TimedContextPermissions {
-  /** Returns the requested canonical scope when granted, false when denied, or null when unresolved. */
+  /** Requests owner approval, replaces the stored permission, and returns that canonical permission. */
   request<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<Permission<Name>>
 }
 
 /** Stored permissions and owner requests belonging to the executing Client. */
 export interface ContextPermissions extends TimedContextPermissions, Timeoutable<TimedContextPermissions> {
-  /** Returns the stored user value, independently of declared or implied grants. */
+  /** Returns the exact stored assignment without applying fallback authority. */
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
 
-  /** Returns whether the current execution context effectively holds the requested permission. */
+  /** Returns whether the current stored permission allows the requested capability. */
   allows<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<boolean>
 }
 
-/** Authoritative stored user grants belonging to one Program. */
+/** The authoritative permission state belonging to one Program. */
 export interface ProgramPermissions {
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
   all(): Promise<Permissions>
@@ -139,26 +144,6 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
   domain satisfies never
 
   return null
-}
-
-/** Reads immutable Program-declared grants against the closed permission contract. */
-export function parseClientPermissions(value: unknown): ClientPermissions {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error("The System returned invalid Client permissions")
-  }
-
-  const permissions: Partial<Record<PermissionName, readonly string[]>> = {}
-
-  for (const [unknownName, permission] of Object.entries(value)) {
-    const name = parsePermissionName(unknownName)
-    const parsed = parsePermission(name, permission)
-
-    if (!Array.isArray(parsed)) throw new Error(`The System returned an invalid declared "${name}" permission`)
-
-    permissions[name] = Object.freeze([...parsed])
-  }
-
-  return Object.freeze(permissions) as ClientPermissions
 }
 
 /** Reads a transport snapshot against the complete closed permission contract. */

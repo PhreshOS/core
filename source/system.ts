@@ -7,6 +7,7 @@ import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
+import type { Network } from "./network.js"
 import type { ClientPermissionDeclarations } from "./permissions.js"
 
 type ServerDefinitionBase = Readonly<{
@@ -31,6 +32,8 @@ export type ClientDefinition = Readonly<{
   position?: Position
   layer?: Layer
   minimize?: boolean
+  /** Whether the Window initially fills its Desktop workspace. */
+  maximize?: boolean
   permissions?: ClientPermissionDeclarations
 }>
 
@@ -39,6 +42,9 @@ type ProgramDefinitionBase = Readonly<{
   name?: string
   version?: string
   description?: string
+  categories?: readonly string[]
+  keywords?: readonly string[]
+  website?: string
   icon?: string
   agent?: string
   storage: string
@@ -143,12 +149,7 @@ export interface System {
   readonly program: SystemProgram
   readonly process: SystemProcess
   readonly uploads: SystemUploads
-
-  /** Performs one outbound request through this environment's System adapter. */
-  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>
-
-  /** Opens one outbound connection and returns the platform-standard WebSocket. */
-  websocket(url: string | URL, protocols?: string | string[]): Promise<WebSocket>
+  readonly network: Network
 
   /** Runs one shell command whose complete process tree belongs to the returned iterator. */
   shell(command: string, options?: ShellOptions): AsyncGenerator<ShellEvent, void, void>

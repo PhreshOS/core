@@ -1,7 +1,7 @@
 import type { ClientEndpoint } from "./client-endpoint.js"
 import type { Program } from "./program.js"
 import type { ServerEndpoint } from "./server-endpoint.js"
-import type { Subscribable } from "./subscribable.js"
+import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 
 /** How an operating-system-backed endpoint or Process finished. */
 export type Exit = Readonly<{
@@ -22,28 +22,32 @@ export type ProcessEvents = {
 }
 
 /** One live execution of a Program. */
-export class Process {
+export abstract class Process implements Subscribable<ProcessEvents, never> {
   protected constructor() {}
-}
 
-export interface Process extends Subscribable<ProcessEvents, never> {
+  public declare readonly [subscribableDefinition]?: SubscribableDefinition<ProcessEvents, never>
+
+  public abstract readonly subscribe: Subscribable<ProcessEvents, never>["subscribe"]
+  public abstract readonly wait: Subscribable<ProcessEvents, never>["wait"]
+  public abstract readonly events: Subscribable<ProcessEvents, never>["events"]
+
   /** Immutable runtime identity. */
-  readonly identity: string
+  public abstract readonly identity: string
 
   /** Optional meaningful name unique among this Program's live Processes. */
-  readonly name: string | null
+  public abstract readonly name: string | null
 
   /** Instant at which this Process was created. */
-  readonly startedAt: Date
+  public abstract readonly startedAt: Date
 
   /** Permanent handle to this Process's Server Endpoint. */
-  readonly server: ServerEndpoint
+  public abstract readonly server: ServerEndpoint
 
   /** Permanent handle to this Process's Client Endpoint. */
-  readonly client: ClientEndpoint
+  public abstract readonly client: ClientEndpoint
 
   /** Returns the Program that owns this Process. */
-  program(): Program
+  public abstract program(): Program
 
   /**
    * Returns the Process whose `program.process.create()` call created this Process.
@@ -51,17 +55,17 @@ export interface Process extends Subscribable<ProcessEvents, never> {
    * Returns `null` when this Process has no parent. The retained parent handle
    * remains available after that parent exits.
    */
-  parent(): Promise<Process | null>
+  public abstract parent(): Promise<Process | null>
 
   /** Returns every immutable option supplied when this Process was created. */
-  options<Options extends object = Readonly<Record<string, string>>>(): Promise<Readonly<Options>>
+  public abstract options<Options extends object = Readonly<Record<string, string>>>(): Promise<Readonly<Options>>
 
   /** Returns one immutable option supplied when this Process was created. */
-  options<Option extends string = string>(name: string): Promise<Option | undefined>
+  public abstract options<Option extends string = string>(name: string): Promise<Option | undefined>
 
   /** Ends the complete Process and all live Endpoints. */
-  exit(): Promise<void>
+  public abstract exit(): Promise<void>
 
   /** Returns whether this Process has ended. */
-  exited(): Promise<boolean>
+  public abstract exited(): Promise<boolean>
 }

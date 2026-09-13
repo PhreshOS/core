@@ -49,6 +49,8 @@ export type ClientLaunch = Readonly<{
 
   /** Whether the Window initially opens minimized. */
   minimize?: boolean
+  /** Whether the Window initially fills its Desktop workspace. */
+  maximize?: boolean
 }>
 
 /** Initial endpoint selection and immutable options for one Process. */
