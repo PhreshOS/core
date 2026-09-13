@@ -6,7 +6,7 @@
       "name": "@phreshos/core",
       "devDependencies": {
         "typescript": "^6.0.3",
-        "vitest": "^4.1.1",
+        "vitest": "^4.1.10",
       },
     },
   },

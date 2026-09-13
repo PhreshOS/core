@@ -47,8 +47,13 @@ bun install --frozen-lockfile
 bun run verify
 ```
 
-`verify` checks the contracts and completions, runs the tests, builds the
-package, and validates the published artifact.
+`check` performs static checks. `build` creates the package. `test` runs the
+Vitest suite, including completion and built-package consumer tests, so build
+first when running tests separately. `verify` runs all three in that order.
+
+Assertions and their fixtures live in `tests/`; operational tooling belongs in
+`scripts/`. Verification uses the committed dependency graph without local
+package substitutions.
 
 ## Related repositories
 
