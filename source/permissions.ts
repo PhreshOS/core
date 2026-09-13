@@ -1,12 +1,14 @@
 import type { Timeoutable } from "./timeout.js"
 import { parseNetworkScope, type NetworkScope } from "./network.js"
 import { parseStorageScope, type StorageScope } from "./storage.js"
+import type { Layer } from "./launch.js"
 
 /** Every Client permission and the value domain accepted by it. */
 export const clientPermissionCatalog = Object.freeze({
   all: "none",
   services: "program",
   programs: "program",
+  layers: "layer",
   network: "network",
   storage: "storage",
   uploads: "none",
@@ -25,7 +27,8 @@ export type PermissionValue<Name extends PermissionName> = Name extends Permissi
   ? PermissionValueDomain<Name> extends "program" ? string
     : PermissionValueDomain<Name> extends "network" ? NetworkScope
       : PermissionValueDomain<Name> extends "storage" ? StorageScope
-      : never
+        : PermissionValueDomain<Name> extends "layer" ? Exclude<Layer, "window">
+          : never
   : never
 
 /** Canonical stored value of one permission. Lists represent unordered sets. */
@@ -48,7 +51,7 @@ export type Permissions = Partial<{
   [Name in PermissionName]: Permission<Name>
 }>
 
-/** Permission assignments copied into authoritative storage during installation. */
+/** Permission assignments written into authoritative storage at Program creation. */
 export type ClientPermissionDeclarations = Readonly<{
   [Name in PermissionName]?: true | readonly PermissionValue<Name>[]
 }>
@@ -131,6 +134,9 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
   if (domain === "none") return values.length === 0 ? [] : null
   if (domain === "program") {
     return values.every(value => typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) ? values : null
+  }
+  if (domain === "layer") {
+    return values.every(value => value === "under" || value === "over") ? values : null
   }
   if (domain === "network") {
     try { return values.map(parseNetworkScope) }

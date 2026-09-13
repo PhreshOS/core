@@ -50,8 +50,10 @@ type ProgramDefinitionBase = Readonly<{
   storage: string
   /** Default Process options, overridden by explicitly supplied launch options. */
   options?: Launch["options"]
-  /** Replaces stored startup on installation. Omission disables startup. */
+  /** An active declaration replaces stored startup on installation; false is inert. */
   startup?: boolean | Launch
+  /** Saved icon launch written at Program creation; omission preserves stored configuration. */
+  launch?: true | Launch
 }>
 
 export type ProgramDefinition = ProgramDefinitionBase & (

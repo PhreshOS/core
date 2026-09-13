@@ -84,14 +84,14 @@ export type ClientConfig = Readonly<{
   /** Whether the Window initially fills its Desktop workspace. */
   maximize?: boolean
 
-  /** Permissions copied into authoritative Program storage during installation. */
+  /** Permissions written into authoritative Program storage at creation. */
   permissions?: ClientPermissionDeclarations
 
   /** Settings used only by the development command. */
   development?: ClientDevelopment
 }>
 
-type Description = Pick<ProgramDefinition, "options" | "startup"> & Readonly<{
+type Description = Pick<ProgramDefinition, "options" | "startup" | "launch"> & Readonly<{
   /** Stable public identity written in kebab-case. */
   identity: string
 

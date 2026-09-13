@@ -3,6 +3,8 @@ import { parseProgramDefinition, type Config, type Launch, type ProgramDefinitio
 
 describe("Program definition", function () {
   it("shares startup and option contracts with authoring configuration", () => {
+    expectTypeOf<Config["launch"]>().toEqualTypeOf<true | Launch | undefined>()
+    expectTypeOf<Config["launch"]>().toEqualTypeOf<ProgramDefinition["launch"]>()
     expectTypeOf<Config["startup"]>().toEqualTypeOf<ProgramDefinition["startup"]>()
     expectTypeOf<Config["options"]>().toEqualTypeOf<Launch["options"]>()
     expectTypeOf<ProgramDefinition["startup"]>().toEqualTypeOf<boolean | Launch | undefined>()
@@ -22,6 +24,18 @@ describe("Program definition", function () {
 
     expect(definition.client?.permissions?.network).toEqual(["https://api.example.com"])
     expect(Object.isFrozen(definition)).toBe(true)
+  })
+
+  it("preserves icon launch intent independently of default options", () => {
+    const base = { identity: "example", storage: "/tmp/example", client: { location: "/client" } }
+    for (const launch of [undefined, true, {}, { options: { document: "welcome.txt" } }]) {
+      const parsed = parseProgramDefinition({ ...base, launch, options: { document: "default.txt" } })
+      expect(parsed.launch).toEqual(launch)
+      expect(parsed.options).toEqual({ document: "default.txt" })
+    }
+    for (const launch of [false, null, "true", [], { options: { count: 1 } }]) {
+      expect(() => parseProgramDefinition({ ...base, launch })).toThrow()
+    }
   })
 
   it("preserves startup selection and default launch options", function () {

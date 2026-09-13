@@ -76,8 +76,10 @@ describe("public runtime", function () {
 
     expectTypeOf<Processes>().toEqualTypeOf<Process[]>()
     expectTypeOf<Found>().toEqualTypeOf<Process | null>()
-    expectTypeOf<Program>().toHaveProperty("fork")
     expectTypeOf<Program>().toHaveProperty("assetId")
+    expectTypeOf<Program["launch"]["get"]>().returns.toEqualTypeOf<Promise<Launch | null>>()
+    expectTypeOf<Program["launch"]["set"]>().parameters.toEqualTypeOf<[launch: Launch]>()
+    expectTypeOf<Program["launch"]["set"]>().returns.toEqualTypeOf<Promise<void>>()
     expectTypeOf<Program["data"]>().toEqualTypeOf<Storage>()
   })
 
@@ -152,9 +154,10 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
+    expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over">()
     expectTypeOf<PermissionValue<"network">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"storage">>().toEqualTypeOf<string>()
     expectTypeOf<Permission>().toEqualTypeOf<readonly string[] | false | null>()

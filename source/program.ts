@@ -102,6 +102,15 @@ export type ProgramProcessRunEvent =
   | (Readonly<{ event: "output" }> & ProgramCommandChunk)
   | Readonly<{ event: "exited", process: Process, exit: Exit }>
 
+/** Saved Process launch used when the Program's icon is opened. */
+export interface ProgramLaunch {
+  /** Returns the stored launch, or null when no launch has been saved. */
+  get(): Promise<Launch | null>
+
+  /** Replaces the stored launch without creating a Process. */
+  set(launch: Launch): Promise<void>
+}
+
 /** Persistent Process launch used when the System starts. */
 export interface ProgramStartup {
   /** Returns the configured launch, or `null` when startup is disabled. */
@@ -178,6 +187,9 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Persistent Process launch applied when the System starts. */
   public abstract readonly startup: ProgramStartup
 
+  /** Saved configuration for opening this Program from its icon. */
+  public abstract readonly launch: ProgramLaunch
+
   /** Authoritative permission state managed for this Program. */
   public abstract readonly permissions: ProgramPermissions
 
@@ -204,6 +216,4 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Ends all Processes and removes this Program from the runtime registry. */
   public abstract forget(): Promise<void>
 
-  /** Creates another Program from this Program under a new identity. */
-  public abstract fork(identity: string): Promise<Program>
 }

@@ -177,7 +177,8 @@ export {
   type ProgramProcessExit,
   type ProgramProcessRunEvent,
   type ProgramProcessRunOptions,
-  type ProgramStartup
+  type ProgramStartup,
+  type ProgramLaunch
 } from "./program.js"
 export {
   type Window,

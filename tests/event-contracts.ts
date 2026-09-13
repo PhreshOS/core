@@ -96,6 +96,9 @@ function clientContextContract(context: ClientContext) {
   context.permissions.request("all", [])
   context.permissions.timeout(120_000).request("all")
   context.permissions.request("services", ["flambo"])
+  context.permissions.request("layers", ["under", "over"])
+  // @ts-expect-error The standard Window layer requires no permission.
+  context.permissions.request("layers", ["window"])
   context.permissions.request("programs")
   context.permissions.request("appearance")
   context.permissions.request("desktopPreferences", [])

@@ -11,7 +11,7 @@ type ProgramDefinitionBase = Omit<ProgramDefinition, "server" | "client">
 export function parseProgramDefinition(value: unknown): ProgramDefinition {
   const source = exact(value, [
     "identity", "name", "version", "description", "categories", "keywords",
-    "website", "icon", "agent", "storage", "server", "client", "options", "startup"
+    "website", "icon", "agent", "storage", "server", "client", "options", "startup", "launch"
   ], "Program definition")
 
   if (typeof source.identity !== "string" || !identityPattern.test(source.identity)) {
@@ -52,6 +52,7 @@ export function parseProgramDefinition(value: unknown): ProgramDefinition {
     ...present("agent", agent),
     ...present("options", parseLaunch({ options: source.options }).options),
     ...present("startup", source.startup === undefined || typeof source.startup === "boolean" ? source.startup : parseLaunch(source.startup)),
+    ...present<"launch", ProgramDefinition["launch"]>("launch", source.launch === undefined || source.launch === true ? source.launch : parseLaunch(source.launch)),
     storage: source.storage
   } satisfies ProgramDefinitionBase
 
