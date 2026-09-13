@@ -1,5 +1,6 @@
 import type { Layer, Position, Size } from "./launch.js"
 import type { ClientPermissionDeclarations } from "./permissions.js"
+import type { ProgramDefinition } from "./system.js"
 
 /** One explicit way to execute a Program's Server. */
 export type ServerExecution =
@@ -90,7 +91,7 @@ export type ClientConfig = Readonly<{
   development?: ClientDevelopment
 }>
 
-type Description = Readonly<{
+type Description = Pick<ProgramDefinition, "options" | "startup"> & Readonly<{
   /** Stable public identity written in kebab-case. */
   identity: string
 

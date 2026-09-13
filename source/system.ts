@@ -1,6 +1,6 @@
 import type { WritableAppearance } from "./appearance.js"
 import type { Program } from "./program.js"
-import type { Layer, Position, Size } from "./launch.js"
+import type { Launch, Layer, Position, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
 import type { ClientService, ServerService, ServiceKey } from "./service.js"
 import type { Storage } from "./storage.js"
@@ -48,6 +48,10 @@ type ProgramDefinitionBase = Readonly<{
   icon?: string
   agent?: string
   storage: string
+  /** Default Process options, overridden by explicitly supplied launch options. */
+  options?: Launch["options"]
+  /** Replaces stored startup on installation. Omission disables startup. */
+  startup?: boolean | Launch
 }>
 
 export type ProgramDefinition = ProgramDefinitionBase & (

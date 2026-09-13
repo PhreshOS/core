@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest"
-import { parseProgramDefinition } from "../source/main.js"
+import { describe, expect, expectTypeOf, it } from "vitest"
+import { parseProgramDefinition, type Config, type Launch, type ProgramDefinition } from "../source/main.js"
 
 describe("Program definition", function () {
+  it("shares startup and option contracts with authoring configuration", () => {
+    expectTypeOf<Config["startup"]>().toEqualTypeOf<ProgramDefinition["startup"]>()
+    expectTypeOf<Config["options"]>().toEqualTypeOf<Launch["options"]>()
+    expectTypeOf<ProgramDefinition["startup"]>().toEqualTypeOf<boolean | Launch | undefined>()
+  })
   it("canonicalizes the shared runtime definition", function () {
     const definition = parseProgramDefinition({
       identity: "example-program",
@@ -17,6 +22,20 @@ describe("Program definition", function () {
 
     expect(definition.client?.permissions?.network).toEqual(["https://api.example.com"])
     expect(Object.isFrozen(definition)).toBe(true)
+  })
+
+  it("preserves startup selection and default launch options", function () {
+    const base = { identity: "example", storage: "/tmp/example", client: { location: "/client" } }
+    for (const startup of [undefined, false, true, {}, { options: { document: "welcome.txt" }, client: { minimize: true } }]) {
+      const parsed = parseProgramDefinition({ ...base, startup, options: { document: "default.txt", language: "en" } })
+      expect(parsed.startup).toEqual(startup)
+      expect(parsed.options).toEqual({ document: "default.txt", language: "en" })
+      expect(Object.isFrozen(parsed.options)).toBe(true)
+    }
+    for (const startup of [null, "true", [], { options: { count: 1 } }, { client: { location: "/legacy" } }, { client: { size: { width: Infinity, height: 10 } } }]) {
+      expect(() => parseProgramDefinition({ ...base, startup })).toThrow()
+    }
+    expect(() => parseProgramDefinition({ ...base, options: { count: 1 } })).toThrow("text values")
   })
 
   it("rejects stale, incomplete, and contradictory definitions", function () {

@@ -52,6 +52,7 @@ export {
   type TimedContextPermissions
 } from "./permissions.js"
 export { parseProgramDefinition } from "./program-definition.js"
+export { parseLaunch } from "./launch-validation.js"
 export { type Askable, type TimedAskable } from "./askable.js"
 export {
   ClientService,
