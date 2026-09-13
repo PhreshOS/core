@@ -7,7 +7,7 @@ describe("Program definition", function () {
     expectTypeOf<Config["launch"]>().toEqualTypeOf<ProgramDefinition["launch"]>()
     expectTypeOf<Config["startup"]>().toEqualTypeOf<ProgramDefinition["startup"]>()
     expectTypeOf<Config["options"]>().toEqualTypeOf<Launch["options"]>()
-    expectTypeOf<ProgramDefinition["startup"]>().toEqualTypeOf<boolean | Launch | undefined>()
+    expectTypeOf<ProgramDefinition["startup"]>().toEqualTypeOf<true | Launch | undefined>()
   })
   it("canonicalizes the shared runtime definition", function () {
     const definition = parseProgramDefinition({
@@ -40,13 +40,13 @@ describe("Program definition", function () {
 
   it("preserves startup selection and default launch options", function () {
     const base = { identity: "example", storage: "/tmp/example", client: { location: "/client" } }
-    for (const startup of [undefined, false, true, {}, { options: { document: "welcome.txt" }, client: { minimize: true } }]) {
+    for (const startup of [undefined, true, {}, { options: { document: "welcome.txt" }, client: { minimize: true } }]) {
       const parsed = parseProgramDefinition({ ...base, startup, options: { document: "default.txt", language: "en" } })
       expect(parsed.startup).toEqual(startup)
       expect(parsed.options).toEqual({ document: "default.txt", language: "en" })
       expect(Object.isFrozen(parsed.options)).toBe(true)
     }
-    for (const startup of [null, "true", [], { options: { count: 1 } }, { client: { location: "/legacy" } }, { client: { size: { width: Infinity, height: 10 } } }]) {
+    for (const startup of [false, null, "true", [], { options: { count: 1 } }, { client: { location: "/legacy" } }, { client: { size: { width: Infinity, height: 10 } } }]) {
       expect(() => parseProgramDefinition({ ...base, startup })).toThrow()
     }
     expect(() => parseProgramDefinition({ ...base, options: { count: 1 } })).toThrow("text values")
