@@ -9,7 +9,6 @@ export const clientPermissionCatalog = Object.freeze({
   services: "program",
   programs: "program",
   layers: "layer",
-  wallpaper: "none",
   network: "network",
   storage: "storage",
   uploads: "none",
@@ -28,7 +27,7 @@ export type PermissionValue<Name extends PermissionName> = Name extends Permissi
   ? PermissionValueDomain<Name> extends "program" ? string
     : PermissionValueDomain<Name> extends "network" ? NetworkScope
       : PermissionValueDomain<Name> extends "storage" ? StorageScope
-        : PermissionValueDomain<Name> extends "layer" ? Extract<Layer, "under" | "over">
+        : PermissionValueDomain<Name> extends "layer" ? Exclude<Layer, "window">
           : never
   : never
 
@@ -137,7 +136,7 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
     return values.every(value => typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) ? values : null
   }
   if (domain === "layer") {
-    return values.every(value => value === "under" || value === "over") ? values : null
+    return values.every(value => value === "under" || value === "over" || value === "wallpaper") ? values : null
   }
   if (domain === "network") {
     try { return values.map(parseNetworkScope) }

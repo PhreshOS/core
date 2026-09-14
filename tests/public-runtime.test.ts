@@ -154,10 +154,10 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "wallpaper" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
-    expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over">()
+    expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over" | "wallpaper">()
     expectTypeOf<PermissionValue<"network">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"storage">>().toEqualTypeOf<string>()
     expectTypeOf<Permission>().toEqualTypeOf<readonly string[] | false | null>()
