@@ -13,6 +13,8 @@ describe("Appearance", function () {
     expect(defaultAppearance.colors.dark.background).toBe("#121a21")
     expect(defaultAppearance.colors.light.foreground).toBe("#183447")
     expect(defaultAppearance.colors.dark.foreground).toBe("#edf8fc")
+    expect(defaultAppearance.colors.light.default).toBe("#ffffff")
+    expect(defaultAppearance.colors.dark.default).toBe("#121a21")
     expect(defaultAppearance.colors.light.primary).toBe("#4c9cff")
     expect(defaultAppearance.colors.dark.primary).toBe("#4c9cff")
     expect(defaultAppearance.spacing).toBe(12)
@@ -46,7 +48,7 @@ describe("Appearance", function () {
     expect(snapshot.material).toEqual(defaultAppearance.material)
   })
 
-  it.each(["background", "foreground", "primary", "secondary", "success", "warning", "danger", "info"] as const)(
+  it.each(["background", "foreground", "default", "primary", "secondary", "success", "warning", "danger", "info"] as const)(
     "preserves independent immutable %s branches",
     function (role) {
       const value = { light: "oklch(60% 0.2 260)", dark: "var(--custom-color)" }
@@ -106,6 +108,12 @@ describe("Appearance", function () {
 
   it("rejects stale and malformed boundary values", function () {
     expect(parseAppearance(defaultAppearance)).toEqual(defaultAppearance)
+    const { default: omitted, ...withoutDefault } = defaultAppearance.colors.light
+    expect(omitted).toBe("#ffffff")
+    expect(() => parseAppearance({
+      ...defaultAppearance,
+      colors: { ...defaultAppearance.colors, light: withoutDefault }
+    })).toThrow("Appearance colors is invalid")
     expect(() => parseAppearance({ ...defaultAppearance, colors: defaultAppearance.colors.light })).toThrow("Appearance colors")
     expect(() => parseAppearance({ ...defaultAppearance, material: {
       light: { ...defaultAppearance.material.light, opacity: 2 },

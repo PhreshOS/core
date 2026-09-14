@@ -25,6 +25,7 @@ export type AppearanceMaterial = Readonly<{
 export type AppearanceColors = Readonly<{
   background: string
   foreground: string
+  default: string
   primary: string
   secondary: string
   success: string
@@ -103,6 +104,7 @@ export const defaultAppearance = createAppearanceSnapshot({
     light: {
       background: "#ffffff",
       foreground: "#183447",
+      default: "#ffffff",
       primary: "#4c9cff",
       secondary: "#8b5cf6",
       success: "#16a34a",
@@ -113,6 +115,7 @@ export const defaultAppearance = createAppearanceSnapshot({
     dark: {
       background: "#121a21",
       foreground: "#edf8fc",
+      default: "#121a21",
       primary: "#4c9cff",
       secondary: "#a78bfa",
       success: "#4ade80",
@@ -180,7 +183,7 @@ function themed<Value>(value: ThemedValue<Value>, clone: (value: Value) => Value
 function same<Value>(value: Value) { return value }
 
 const appearanceKeys = ["colors", "spacing", "radius", "shadow", "material", "transaction", "signInWallpaper", "desktopWallpaper"] as const
-const colorKeys = ["background", "foreground", "primary", "secondary", "success", "warning", "danger", "info"] as const
+const colorKeys = ["background", "foreground", "default", "primary", "secondary", "success", "warning", "danger", "info"] as const
 const shadowKeys = ["x", "y", "blur", "spread", "opacity"] as const
 const materialKeys = ["grain", "grainAmount", "backdrop", "opacity", "distortion", "saturation"] as const
 
