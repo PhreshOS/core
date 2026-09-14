@@ -18,11 +18,16 @@ export type Size = Readonly<{
   height: Value
 }>
 
-/** A structurally isolated desktop layer. */
-export type Layer = "window" | "under" | "over"
-
 /** Every structurally isolated desktop layer. */
-export const layers: readonly Layer[] = ["window", "under", "over"]
+export const layers = ["window", "under", "over", "wallpaper"] as const
+
+/** A structurally isolated desktop layer. */
+export type Layer = (typeof layers)[number]
+
+/** Whether a value names a structurally isolated desktop layer. */
+export function isLayer(value: unknown): value is Layer {
+  return layers.some(layer => layer === value)
+}
 
 /** Settings for one Server Endpoint incarnation. */
 export type ServerLaunch = Readonly<{

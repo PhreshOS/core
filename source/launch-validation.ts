@@ -1,4 +1,4 @@
-import { layers, type ClientLaunch, type Launch, type ServerLaunch } from "./launch.js"
+import { isLayer, layers, type ClientLaunch, type Launch, type ServerLaunch } from "./launch.js"
 import { isRelativeValue } from "./value.js"
 
 /** Validate one Process launch without resolving Program or Desktop defaults. */
@@ -38,7 +38,7 @@ function client(value: unknown): ClientLaunch {
     result.title = source.title
   }
   if (source.layer !== undefined) {
-    if (source.layer !== "window" && source.layer !== "under" && source.layer !== "over") throw new Error(`A Window layer must be one of ${layers.join(", ")}`)
+    if (!isLayer(source.layer)) throw new Error(`A Window layer must be one of ${layers.join(", ")}`)
     result.layer = source.layer
   }
   if (source.size !== undefined) {

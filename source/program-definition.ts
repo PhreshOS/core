@@ -1,4 +1,4 @@
-import { layers, type Layer, type Position, type Size } from "./launch.js"
+import { isLayer, layers, type Layer, type Position, type Size } from "./launch.js"
 import { parseClientPermissionDeclarations } from "./permissions.js"
 import type { ClientDefinition, ProgramDefinition, ServerDefinition } from "./system.js"
 import { isRelativeValue } from "./value.js"
@@ -167,7 +167,7 @@ function optionalBoolean(value: unknown, name: string): boolean | undefined {
 
 function optionalLayer(value: unknown): Layer | undefined {
   if (value === undefined) return undefined
-  if (value === "window" || value === "under" || value === "over") return value
+  if (isLayer(value)) return value
   throw new Error(`A Client's layer must be one of ${layers.join(", ")}`)
 }
 

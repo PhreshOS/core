@@ -138,7 +138,7 @@ describe("public runtime", function () {
   })
 
   it("keeps the finite public registries narrow", function () {
-    expect(layers).toEqual(["window", "under", "over"])
+    expect(layers).toEqual(["window", "under", "over", "wallpaper"])
   })
 
   it("separates the Client context, Desktop, and global System contracts", function () {
@@ -154,7 +154,7 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "wallpaper" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over">()

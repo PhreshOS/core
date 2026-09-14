@@ -9,7 +9,7 @@ export interface LocalWindowOperations extends Pick<WindowOperations, "move" | "
   /** Removes the host Surface; available in under and over layers only. */
   removeSurface(): Promise<void>
 
-  /** Follows the supplied authoritative Window, replacing any previous target. */
+  /** Follows state permitted by this layer from the target, replacing any previous target. */
   follow(window: Window): Promise<void>
 
   /** Stops following and preserves the current local state. */
@@ -19,7 +19,8 @@ export interface LocalWindowOperations extends Pick<WindowOperations, "move" | "
 /**
  * One Client Window's physical representation on the current Desktop. It has
  * no events: its commands neither change authoritative state nor broadcast
- * anything.
+ * anything. Wallpaper permits only follow/unfollow; other local mutations reject.
+ * Local title changes are available only on standard windows.
  */
 export interface LocalWindow extends LocalWindowOperations, WindowOperations {
   /** Returns the same commands bound to one visual transaction. */

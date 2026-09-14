@@ -9,6 +9,7 @@ export const clientPermissionCatalog = Object.freeze({
   services: "program",
   programs: "program",
   layers: "layer",
+  wallpaper: "none",
   network: "network",
   storage: "storage",
   uploads: "none",
@@ -27,7 +28,7 @@ export type PermissionValue<Name extends PermissionName> = Name extends Permissi
   ? PermissionValueDomain<Name> extends "program" ? string
     : PermissionValueDomain<Name> extends "network" ? NetworkScope
       : PermissionValueDomain<Name> extends "storage" ? StorageScope
-        : PermissionValueDomain<Name> extends "layer" ? Exclude<Layer, "window">
+        : PermissionValueDomain<Name> extends "layer" ? Extract<Layer, "under" | "over">
           : never
   : never
 

@@ -1,5 +1,5 @@
 import { isRelativeValue } from "./value.js"
-import type { Position, Size } from "./launch.js"
+import { isLayer, type Position, type Size } from "./launch.js"
 import type { ClientDeclaration, EndpointDeclaration } from "./program.js"
 
 /** Stable coordinates shared by every handle for one runtime entity. */
@@ -187,7 +187,7 @@ function nullableBoolean(value: unknown, name: string): boolean | null {
 }
 
 function nullableLayer(value: unknown): ClientDeclaration["layer"] {
-  if (value === null || value === "window" || value === "under" || value === "over") return value
+  if (value === null || isLayer(value)) return value
   throw invalid("Client declaration")
 }
 

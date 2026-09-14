@@ -193,7 +193,7 @@ export {
   type LocalWindowOperations
 } from "./local-window.js"
 export { type AppearanceTransaction, type Easing, type WaitedTransaction } from "./appearance-transaction.js"
-export { layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"
+export { isLayer, layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"
 export {
   defineConfig,
   type ClientConfig,
