@@ -53,6 +53,7 @@ export {
 } from "./permissions.js"
 export { parseProgramDefinition } from "./program-definition.js"
 export { parseLaunch } from "./launch-validation.js"
+export { parseProgramInstallOptions, parseProgramUninstallOptions } from "./program-installation.js"
 export { type Askable, type TimedAskable } from "./askable.js"
 export {
   ClientService,
@@ -172,6 +173,8 @@ export {
   type ProgramEvents,
   type ProgramIconSize,
   type ProgramCommandChunk,
+  type ProgramInstallOptions,
+  type ProgramUninstallOptions,
   type ProgramProcess,
   type ProgramProcessEvents,
   type ProgramProcessExit,

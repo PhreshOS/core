@@ -48,8 +48,6 @@ type ProgramDefinitionBase = Readonly<{
   icon?: string
   agent?: string
   storage: string
-  /** Default Process options, overridden by explicitly supplied launch options. */
-  options?: Launch["options"]
   /** Startup configuration written at creation and installation; omission preserves stored configuration. */
   startup?: true | Launch
   /** Icon launch configuration written at creation and installation; omission preserves stored configuration. */
@@ -63,7 +61,7 @@ export type ProgramDefinition = ProgramDefinitionBase & (
 
 export type SystemProgramUninstall = Readonly<{
   program: Program
-  everything: boolean
+  purge: boolean
 }>
 
 export type SystemProcessExit = Exit & Readonly<{ process: Process }>

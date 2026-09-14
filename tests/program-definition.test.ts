@@ -2,11 +2,10 @@ import { describe, expect, expectTypeOf, it } from "vitest"
 import { parseProgramDefinition, type Config, type Launch, type ProgramDefinition } from "../source/main.js"
 
 describe("Program definition", function () {
-  it("shares startup and option contracts with authoring configuration", () => {
+  it("shares launch and startup contracts with authoring configuration", () => {
     expectTypeOf<Config["launch"]>().toEqualTypeOf<true | Launch | undefined>()
     expectTypeOf<Config["launch"]>().toEqualTypeOf<ProgramDefinition["launch"]>()
     expectTypeOf<Config["startup"]>().toEqualTypeOf<ProgramDefinition["startup"]>()
-    expectTypeOf<Config["options"]>().toEqualTypeOf<Launch["options"]>()
     expectTypeOf<ProgramDefinition["startup"]>().toEqualTypeOf<true | Launch | undefined>()
   })
   it("canonicalizes the shared runtime definition", function () {
@@ -26,30 +25,26 @@ describe("Program definition", function () {
     expect(Object.isFrozen(definition)).toBe(true)
   })
 
-  it("preserves icon launch intent independently of default options", () => {
+  it("preserves icon launch intent", () => {
     const base = { identity: "example", storage: "/tmp/example", client: { location: "/client" } }
     for (const launch of [undefined, true, {}, { options: { document: "welcome.txt" } }]) {
-      const parsed = parseProgramDefinition({ ...base, launch, options: { document: "default.txt" } })
+      const parsed = parseProgramDefinition({ ...base, launch })
       expect(parsed.launch).toEqual(launch)
-      expect(parsed.options).toEqual({ document: "default.txt" })
     }
     for (const launch of [false, null, "true", [], { options: { count: 1 } }]) {
       expect(() => parseProgramDefinition({ ...base, launch })).toThrow()
     }
   })
 
-  it("preserves startup selection and default launch options", function () {
+  it("preserves startup selection and its launch options", function () {
     const base = { identity: "example", storage: "/tmp/example", client: { location: "/client" } }
     for (const startup of [undefined, true, {}, { options: { document: "welcome.txt" }, client: { minimize: true } }]) {
-      const parsed = parseProgramDefinition({ ...base, startup, options: { document: "default.txt", language: "en" } })
+      const parsed = parseProgramDefinition({ ...base, startup })
       expect(parsed.startup).toEqual(startup)
-      expect(parsed.options).toEqual({ document: "default.txt", language: "en" })
-      expect(Object.isFrozen(parsed.options)).toBe(true)
     }
     for (const startup of [false, null, "true", [], { options: { count: 1 } }, { client: { location: "/legacy" } }, { client: { size: { width: Infinity, height: 10 } } }]) {
       expect(() => parseProgramDefinition({ ...base, startup })).toThrow()
     }
-    expect(() => parseProgramDefinition({ ...base, options: { count: 1 } })).toThrow("text values")
   })
 
   it("rejects stale, incomplete, and contradictory definitions", function () {

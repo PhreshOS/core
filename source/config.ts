@@ -91,7 +91,7 @@ export type ClientConfig = Readonly<{
   development?: ClientDevelopment
 }>
 
-type Description = Pick<ProgramDefinition, "options" | "startup" | "launch"> & Readonly<{
+type Description = Pick<ProgramDefinition, "startup" | "launch"> & Readonly<{
   /** Stable public identity written in kebab-case. */
   identity: string
 

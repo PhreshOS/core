@@ -63,6 +63,9 @@ export type Launch = Readonly<{
   /** Optional meaningful name unique among this Program's live Processes. */
   name?: string
 
+  /** Terminate the existing Program-local named Process before creating its replacement. Requires `name`. */
+  replace?: boolean
+
   /** Whether and how to start the declared Server. Uses its declaration when omitted. */
   server?: boolean | ServerLaunch
 

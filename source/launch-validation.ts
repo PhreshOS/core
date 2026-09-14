@@ -3,12 +3,16 @@ import { isRelativeValue } from "./value.js"
 
 /** Validate one Process launch without resolving Program or Desktop defaults. */
 export function parseLaunch(value: unknown): Launch {
-  const source = exact(value, ["name", "options", "server", "client"], "Launch")
+  const source = exact(value, ["name", "replace", "options", "server", "client"], "Launch")
   const result: { -readonly [Key in keyof Launch]: Launch[Key] } = {}
 
   if (source.name !== undefined) {
     if (typeof source.name !== "string" || !source.name.trim()) throw new Error("A Process name must be non-empty text")
     result.name = source.name
+  }
+  if (source.replace !== undefined) {
+    if (source.name === undefined) throw new Error("Process replacement requires a name")
+    result.replace = boolean(source.replace, "replace")
   }
   if (source.options !== undefined) {
     const options = object(source.options, "Launch options")

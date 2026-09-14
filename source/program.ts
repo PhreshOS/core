@@ -17,6 +17,20 @@ export type ProgramCommandChunk = Readonly<{
   text: string
 }>
 
+/** Installation decisions applied by System. */
+export type ProgramInstallOptions = Readonly<{
+  /** Create this Process after installation, before startup. `true` uses an empty Launch. */
+  launch?: true | Launch
+  /** Delete existing installed Program storage. Omission preserves it. */
+  purge?: boolean
+}>
+
+/** Removal decisions applied by System. */
+export type ProgramUninstallOptions = Readonly<{
+  /** Also remove Processes, persistent storage, and the runtime Program. */
+  purge?: boolean
+}>
+
 /** Resolved declaration shared by Server and Client endpoint kinds. */
 export type EndpointDeclaration = Readonly<{
   /** Whether a default Process starts this declared Endpoint. */
@@ -208,10 +222,10 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   public abstract installed(): Promise<boolean>
 
   /** Installs this Program while yielding command output. */
-  public abstract install(): AsyncGenerator<ProgramCommandChunk, void, void>
+  public abstract install(options?: ProgramInstallOptions): AsyncGenerator<ProgramCommandChunk, void, void>
 
   /** Removes this Program's installed form while yielding cleanup output. */
-  public abstract uninstall(everything?: boolean): AsyncGenerator<ProgramCommandChunk, void, void>
+  public abstract uninstall(options?: ProgramUninstallOptions): AsyncGenerator<ProgramCommandChunk, void, void>
 
   /** Ends all Processes and removes this Program from the runtime registry. */
   public abstract forget(): Promise<void>

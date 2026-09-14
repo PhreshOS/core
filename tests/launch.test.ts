@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest"
 import { parseLaunch } from "../source/main.js"
 
 describe("Launch", () => {
+  it("replaces only a named Process", () => {
+    expect(parseLaunch({ name: "main", replace: true })).toEqual({ name: "main", replace: true })
+    expect(parseLaunch({ name: "main", replace: false })).toEqual({ name: "main", replace: false })
+    expect(() => parseLaunch({ replace: true })).toThrow("requires a name")
+    expect(() => parseLaunch({ name: "main", replace: "yes" })).toThrow()
+  })
   it("snapshots options and Endpoint overrides without resolving defaults", () => {
     const input = { options: { language: "en" }, client: { position: { x: "1/2", y: 10 } } }
     const launch = parseLaunch(input)
