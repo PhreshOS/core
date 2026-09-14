@@ -18,8 +18,9 @@ describe("Launch", () => {
     expect(parseLaunch({ server: false, client: true })).toEqual({ server: false, client: true })
   })
 
-  it("rejects unknown fields and invalid supplied values", () => {
-    for (const value of [null, [], true, { extra: true }, { name: "" }, { options: null }, { options: ["x"] }, { server: { service: "yes" } }, { client: { layer: "top" } }, { client: { maximize: 1 } }]) {
+  it("validates consumed values and ignores additional properties", () => {
+    expect(parseLaunch({ extension: true, client: { extension: true } })).toEqual({ client: {} })
+    for (const value of [null, [], true, { name: "" }, { options: null }, { options: ["x"] }, { server: { service: "yes" } }, { client: { layer: "top" } }, { client: { maximize: 1 } }]) {
       expect(() => parseLaunch(value)).toThrow()
     }
   })

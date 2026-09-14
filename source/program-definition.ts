@@ -9,10 +9,7 @@ type ProgramDefinitionBase = Omit<ProgramDefinition, "server" | "client">
 
 /** Validates and canonicalizes one complete Program definition at an unknown boundary. */
 export function parseProgramDefinition(value: unknown): ProgramDefinition {
-  const source = exact(value, [
-    "identity", "name", "version", "description", "categories", "keywords",
-    "website", "icon", "agent", "storage", "server", "client", "startup", "launch"
-  ], "Program definition")
+  const source = object(value, "Program definition")
 
   if (typeof source.identity !== "string" || !identityPattern.test(source.identity)) {
     throw new Error("A Program's identity must be kebab-case")
@@ -62,9 +59,7 @@ export function parseProgramDefinition(value: unknown): ProgramDefinition {
 }
 
 function parseServer(value: unknown): ServerDefinition {
-  const source = exact(value, [
-    "location", "start", "service", "installCommand", "uninstallCommand", "startCommand", "entryFile"
-  ], "Server definition")
+  const source = object(value, "Server definition")
 
   if (typeof source.location !== "string") throw new Error("A Server must have a location")
   const start = optionalBoolean(source.start, "A Server's start default")
@@ -96,9 +91,7 @@ function parseServer(value: unknown): ServerDefinition {
 }
 
 function parseClient(value: unknown): ClientDefinition {
-  const source = exact(value, [
-    "location", "start", "service", "title", "size", "position", "layer", "minimize", "maximize", "permissions"
-  ], "Client definition")
+  const source = object(value, "Client definition")
 
   if (typeof source.location !== "string") throw new Error("A Client must have a location")
   const start = optionalBoolean(source.start, "A Client's start default")
@@ -123,13 +116,13 @@ function parseClient(value: unknown): ClientDefinition {
 }
 
 function size(value: unknown): Size {
-  const source = exact(value, ["width", "height"], "Window size")
+  const source = object(value, "Window size")
   if (!isRelativeValue(source.width) || !isRelativeValue(source.height)) throw invalidGeometry("size")
   return Object.freeze({ width: source.width, height: source.height })
 }
 
 function position(value: unknown): Position {
-  const source = exact(value, ["x", "y"], "Window position")
+  const source = object(value, "Window position")
   if (!isRelativeValue(source.x) || !isRelativeValue(source.y)) throw invalidGeometry("position")
   return Object.freeze({ x: source.x, y: source.y })
 }
@@ -142,12 +135,9 @@ function list(value: unknown, field: "categories" | "keywords", maximum: number)
   return Object.freeze([...value])
 }
 
-function exact(value: unknown, keys: readonly string[], name: string) {
+function object(value: unknown, name: string) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${name} must be an object`)
-  const source = value as Record<string, unknown>
-  const unknown = Object.keys(source).find(key => !keys.includes(key))
-  if (unknown) throw new Error(`${name} contains the unknown field "${unknown}"`)
-  return source
+  return value as Record<string, unknown>
 }
 
 function present<Key extends string, Value>(key: Key, value: Value | undefined): Partial<Readonly<Record<Key, Value>>> {

@@ -65,7 +65,8 @@ export function parseClientPermissionDeclarations(value: unknown): ClientPermiss
   const declarations: Partial<Record<PermissionName, true | readonly unknown[]>> = {}
 
   for (const [unknownName, declaration] of Object.entries(value)) {
-    const name = parsePermissionName(unknownName)
+    if (!isPermissionName(unknownName)) continue
+    const name = unknownName
 
     if (declaration === true) declarations[name] = true
     else if (Array.isArray(declaration)) {
@@ -161,7 +162,8 @@ export function parsePermissions(value: unknown): Permissions {
   const permissions: Partial<Record<PermissionName, Permission>> = {}
 
   for (const [unknownName, permission] of Object.entries(value)) {
-    const name = parsePermissionName(unknownName)
+    if (!isPermissionName(unknownName)) continue
+    const name = unknownName
     permissions[name] = parsePermission(name, permission)
   }
 

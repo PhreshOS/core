@@ -3,7 +3,7 @@ import type { ProgramInstallOptions, ProgramUninstallOptions } from "./program.j
 
 /** Validates the decisions for one Program installation. */
 export function parseProgramInstallOptions(value: unknown): ProgramInstallOptions {
-  const source = options(value, ["launch", "purge"])
+  const source = options(value)
   return Object.freeze({
     ...purge(source),
     ...(source.launch === undefined ? {} : { launch: source.launch === true ? true as const : parseLaunch(source.launch) })
@@ -12,15 +12,12 @@ export function parseProgramInstallOptions(value: unknown): ProgramInstallOption
 
 /** Validates the decisions for one Program uninstallation. */
 export function parseProgramUninstallOptions(value: unknown): ProgramUninstallOptions {
-  return Object.freeze(purge(options(value, ["purge"])))
+  return Object.freeze(purge(options(value)))
 }
 
-function options(value: unknown, keys: readonly string[]): Record<string, unknown> {
+function options(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Program installation options must be an object")
-  const source = value as Record<string, unknown>
-  const unknown = Object.keys(source).find(key => !keys.includes(key))
-  if (unknown) throw new Error(`Program installation options contain the unknown field "${unknown}"`)
-  return source
+  return value as Record<string, unknown>
 }
 
 function purge(source: Record<string, unknown>): ProgramUninstallOptions {

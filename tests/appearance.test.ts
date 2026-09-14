@@ -106,20 +106,27 @@ describe("Appearance", function () {
     expect(Object.isFrozen(appearance.material.light)).toBe(true)
   })
 
-  it("rejects stale and malformed boundary values", function () {
+  it("validates consumed values and ignores additional properties", function () {
     expect(parseAppearance(defaultAppearance)).toEqual(defaultAppearance)
     const { default: omitted, ...withoutDefault } = defaultAppearance.colors.light
     expect(omitted).toBe("#ffffff")
     expect(() => parseAppearance({
       ...defaultAppearance,
       colors: { ...defaultAppearance.colors, light: withoutDefault }
-    })).toThrow("Appearance colors is invalid")
+    })).toThrow("Appearance color default is invalid")
     expect(() => parseAppearance({ ...defaultAppearance, colors: defaultAppearance.colors.light })).toThrow("Appearance colors")
     expect(() => parseAppearance({ ...defaultAppearance, material: {
       light: { ...defaultAppearance.material.light, opacity: 2 },
       dark: defaultAppearance.material.dark
     } })).toThrow("Appearance material opacity")
-    expect(() => parseAppearance({ ...defaultAppearance, obsolete: true })).toThrow("Appearance is invalid")
+    expect(parseAppearance({
+      ...defaultAppearance,
+      extension: true,
+      colors: {
+        ...defaultAppearance.colors,
+        light: { ...defaultAppearance.colors.light, extension: "future" }
+      }
+    })).toEqual(defaultAppearance)
   })
 
   it("publishes the complete bounded material ranges", function () {

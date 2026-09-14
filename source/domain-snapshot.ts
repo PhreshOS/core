@@ -43,10 +43,7 @@ export type EndpointReference = Readonly<{
 
 /** Validates and canonicalizes shared Program state from an unknown boundary. */
 export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
-  const source = exact(value, [
-    "reference", "identity", "assetId", "installed", "name", "version",
-    "description", "categories", "keywords", "hasAgent", "server", "client"
-  ], "Program")
+  const source = object(value, "Program")
 
   if (typeof source.reference !== "string"
     || typeof source.identity !== "string"
@@ -77,9 +74,7 @@ export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
 
 /** Validates and canonicalizes shared Process state from an unknown boundary. */
 export function parseProcessSnapshot(value: unknown): ProcessSnapshot {
-  const source = exact(value, [
-    "reference", "identity", "name", "program", "options", "startedAt", "server", "client"
-  ], "Process")
+  const source = object(value, "Process")
   const startedAt = source.startedAt instanceof Date ? new Date(source.startedAt) : new Date(String(source.startedAt))
 
   if (typeof source.reference !== "string"
@@ -104,7 +99,7 @@ export function parseProcessSnapshot(value: unknown): ProcessSnapshot {
 
 /** Validates and canonicalizes an Endpoint address from an unknown boundary. */
 export function parseEndpointReference(value: unknown): EndpointReference {
-  const source = exact(value, ["kind", "process"], "Endpoint reference")
+  const source = object(value, "Endpoint reference")
 
   if (source.kind !== "server" && source.kind !== "client") throw invalid("Endpoint reference")
 
@@ -112,13 +107,13 @@ export function parseEndpointReference(value: unknown): EndpointReference {
 }
 
 function parseEndpointDeclaration(value: unknown): EndpointDeclaration {
-  const source = exact(value, ["start", "service"], "Endpoint declaration")
+  const source = object(value, "Endpoint declaration")
   if (typeof source.start !== "boolean" || typeof source.service !== "boolean") throw invalid("Endpoint declaration")
   return Object.freeze({ start: source.start, service: source.service })
 }
 
 function parseClientDeclaration(value: unknown): ClientDeclaration {
-  const source = exact(value, ["start", "service", "title", "size", "position", "layer", "minimize", "maximize"], "Client declaration")
+  const source = object(value, "Client declaration")
 
   if (typeof source.start !== "boolean"
     || typeof source.service !== "boolean") {
@@ -138,19 +133,19 @@ function parseClientDeclaration(value: unknown): ClientDeclaration {
 }
 
 function parseEndpointSnapshot(value: unknown): EndpointSnapshot {
-  const source = exact(value, ["service"], "Endpoint")
+  const source = object(value, "Endpoint")
   if (typeof source.service !== "boolean") throw invalid("Endpoint")
   return Object.freeze({ service: source.service })
 }
 
 function parsePosition(value: unknown): Position {
-  const source = exact(value, ["x", "y"], "Window position")
+  const source = object(value, "Window position")
   if (!isRelativeValue(source.x) || !isRelativeValue(source.y)) throw invalid("Window position")
   return Object.freeze({ x: source.x, y: source.y })
 }
 
 function parseSize(value: unknown): Size {
-  const source = exact(value, ["width", "height"], "Window size")
+  const source = object(value, "Window size")
   if (!isRelativeValue(source.width) || !isRelativeValue(source.height)) throw invalid("Window size")
   return Object.freeze({ width: source.width, height: source.height })
 }
@@ -158,12 +153,6 @@ function parseSize(value: unknown): Size {
 function object(value: unknown, name: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw invalid(name)
   return value as Record<string, unknown>
-}
-
-function exact(value: unknown, keys: readonly string[], name: string) {
-  const source = object(value, name)
-  if (Object.keys(source).some(key => !keys.includes(key))) throw invalid(name)
-  return source
 }
 
 function recordOfStrings(value: unknown): value is Record<string, string> {

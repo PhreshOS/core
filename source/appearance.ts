@@ -149,7 +149,7 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
 
 /** Validates unknown boundary data and returns one canonical Appearance snapshot. */
 export function parseAppearance(value: unknown): Appearance {
-  const source = exactRecord(value, appearanceKeys, "Appearance")
+  const source = record(value, "Appearance")
 
   return createAppearanceSnapshot({
     colors: parseThemed(source.colors, parseColors, "Appearance colors"),
@@ -182,28 +182,27 @@ function themed<Value>(value: ThemedValue<Value>, clone: (value: Value) => Value
 
 function same<Value>(value: Value) { return value }
 
-const appearanceKeys = ["colors", "spacing", "radius", "shadow", "material", "transaction", "signInWallpaper", "desktopWallpaper"] as const
 const colorKeys = ["background", "foreground", "default", "primary", "secondary", "success", "warning", "danger", "info"] as const
 const shadowKeys = ["x", "y", "blur", "spread", "opacity"] as const
 const materialKeys = ["grain", "grainAmount", "backdrop", "opacity", "distortion", "saturation"] as const
 
 function parseColors(value: unknown): AppearanceColors {
-  const source = exactRecord(value, colorKeys, "Appearance colors")
+  const source = record(value, "Appearance colors")
   return Object.freeze(Object.fromEntries(colorKeys.map(key => [key, nonempty(source[key], `Appearance color ${key}`)]))) as AppearanceColors
 }
 
 function parseShadow(value: unknown): AppearanceShadow {
-  const source = exactRecord(value, shadowKeys, "Appearance shadow")
+  const source = record(value, "Appearance shadow")
   return Object.freeze(Object.fromEntries(shadowKeys.map(key => [key, bounded(source[key], appearanceLimits.shadow[key], `Appearance shadow ${key}`)]))) as AppearanceShadow
 }
 
 function parseMaterial(value: unknown): AppearanceMaterial {
-  const source = exactRecord(value, materialKeys, "Appearance material")
+  const source = record(value, "Appearance material")
   return Object.freeze(Object.fromEntries(materialKeys.map(key => [key, bounded(source[key], appearanceLimits.material[key], `Appearance material ${key}`)]))) as AppearanceMaterial
 }
 
 function parseTransaction(value: unknown): AppearanceTransaction {
-  const source = exactRecord(value, ["duration", "easing"] as const, "Appearance transaction")
+  const source = record(value, "Appearance transaction")
   const easing = source.easing
   const named = easing === "linear" || easing === "ease" || easing === "ease-in" || easing === "ease-out" || easing === "ease-in-out"
   const curve = Array.isArray(easing)
@@ -224,15 +223,13 @@ function parseWallpaper(value: unknown) {
 }
 
 function parseThemed<Value>(value: unknown, parse: (value: unknown) => Value, name: string): ThemedValue<Value> {
-  const source = exactRecord(value, ["light", "dark"] as const, name)
+  const source = record(value, name)
   return Object.freeze({ light: parse(source.light), dark: parse(source.dark) })
 }
 
-function exactRecord<const Keys extends readonly string[]>(value: unknown, keys: Keys, name: string): Record<Keys[number], unknown> {
+function record(value: unknown, name: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${name} is invalid`)
-  const source = value as Record<string, unknown>
-  if (Object.keys(source).length !== keys.length || Object.keys(source).some(key => !keys.includes(key))) throw new Error(`${name} is invalid`)
-  return source
+  return value as Record<string, unknown>
 }
 
 function bounded(value: unknown, range: AppearanceRange, name: string) {

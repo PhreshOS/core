@@ -42,15 +42,20 @@ describe("Program definition", function () {
       const parsed = parseProgramDefinition({ ...base, startup })
       expect(parsed.startup).toEqual(startup)
     }
-    for (const startup of [false, null, "true", [], { options: { count: 1 } }, { client: { location: "/legacy" } }, { client: { size: { width: Infinity, height: 10 } } }]) {
+    expect(parseProgramDefinition({ ...base, startup: { client: { extension: true } } }).startup).toEqual({ client: {} })
+    for (const startup of [false, null, "true", [], { options: { count: 1 } }, { client: { size: { width: Infinity, height: 10 } } }]) {
       expect(() => parseProgramDefinition({ ...base, startup })).toThrow()
     }
   })
 
-  it("rejects stale, incomplete, and contradictory definitions", function () {
+  it("validates consumed values and ignores additional properties", function () {
     expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example" })).toThrow("Server, a Client, or both")
-    expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example", client: { location: "/client", permissions: { files: true } } })).toThrow("permission")
-    expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example", client: { location: "/client", legacy: true } })).toThrow("unknown field")
+    expect(parseProgramDefinition({ identity: "example", storage: "/tmp/example", client: { location: "/client", permissions: { files: true } } }).client?.permissions).toEqual({})
+    expect(parseProgramDefinition({ identity: "example", storage: "/tmp/example", extension: true, client: { location: "/client", extension: true } })).toEqual({
+      identity: "example",
+      storage: "/tmp/example",
+      client: { location: "/client" }
+    })
     expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example", server: { location: "/server", startCommand: "node main.js", entryFile: "main.js" } })).toThrow("exactly one")
   })
 })

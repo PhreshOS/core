@@ -44,9 +44,8 @@ describe("domain snapshots", function () {
     expect(Object.isFrozen(parsedProcess.options)).toBe(true)
   })
 
-  it("rejects stale or incomplete shared values", function () {
-    expect(() => parseProgramSnapshot({ ...program, client: { ...program.client, permissions: { all: [] } } })).toThrow("Client declaration")
-    expect(() => parseProgramSnapshot({ ...program, legacy: true })).toThrow("Program")
+  it("validates consumed values and ignores additional properties", function () {
+    expect(parseProgramSnapshot({ ...program, extension: true, client: { ...program.client, extension: true } })).toEqual(program)
     expect(() => parseProgramSnapshot({ ...program, client: { start: true } })).toThrow("Client declaration")
     expect(() => parseProcessSnapshot({ ...process, options: { view: 1 } })).toThrow("Process")
     expect(() => parseEndpointReference({ kind: "worker", process })).toThrow("Endpoint reference")

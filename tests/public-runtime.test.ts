@@ -184,7 +184,7 @@ describe("public runtime", function () {
     expect(() => parsePermission("programs", ["Not an identity"])).toThrow(/invalid "programs" permission/)
     expect(() => parsePermission("network", ["api.example.com"])).toThrow(/invalid "network" permission/)
     expect(() => parsePermission("files" as never, [])).toThrow(/does not know the permission/)
-    expect(() => parsePermissions({ files: [] })).toThrow(/does not know the permission/)
+    expect(parsePermissions({ files: [] })).toEqual({})
   })
 
   it("defines operation-aware native Storage scopes", function () {

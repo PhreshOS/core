@@ -3,7 +3,7 @@ import { isRelativeValue } from "./value.js"
 
 /** Validate one Process launch without resolving Program or Desktop defaults. */
 export function parseLaunch(value: unknown): Launch {
-  const source = exact(value, ["name", "replace", "options", "server", "client"], "Launch")
+  const source = object(value, "Launch")
   const result: { -readonly [Key in keyof Launch]: Launch[Key] } = {}
 
   if (source.name !== undefined) {
@@ -27,12 +27,12 @@ export function parseLaunch(value: unknown): Launch {
 }
 
 function server(value: unknown): ServerLaunch {
-  const source = exact(value, ["service"], "Server launch")
+  const source = object(value, "Server launch")
   return Object.freeze(source.service === undefined ? {} : { service: boolean(source.service, "service") })
 }
 
 function client(value: unknown): ClientLaunch {
-  const source = exact(value, ["service", "title", "size", "position", "layer", "minimize", "maximize"], "Client launch")
+  const source = object(value, "Client launch")
   const result: { -readonly [Key in keyof ClientLaunch]: ClientLaunch[Key] } = {}
   for (const key of ["service", "minimize", "maximize"] as const) {
     if (source[key] !== undefined) result[key] = boolean(source[key], key)
@@ -46,12 +46,12 @@ function client(value: unknown): ClientLaunch {
     result.layer = source.layer
   }
   if (source.size !== undefined) {
-    const size = exact(source.size, ["width", "height"], "Window size")
+    const size = object(source.size, "Window size")
     if (!isRelativeValue(size.width) || !isRelativeValue(size.height)) throw new Error("A Window size must contain finite pixels or relative expressions")
     result.size = Object.freeze({ width: size.width, height: size.height })
   }
   if (source.position !== undefined) {
-    const position = exact(source.position, ["x", "y"], "Window position")
+    const position = object(source.position, "Window position")
     if (!isRelativeValue(position.x) || !isRelativeValue(position.y)) throw new Error("A Window position must contain finite pixels or relative expressions")
     result.position = Object.freeze({ x: position.x, y: position.y })
   }
@@ -66,11 +66,4 @@ function boolean(value: unknown, name: string): boolean {
 function object(value: unknown, name: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${name} must be an object`)
   return value as Record<string, unknown>
-}
-
-function exact(value: unknown, keys: readonly string[], name: string) {
-  const source = object(value, name)
-  const unknown = Object.keys(source).find(key => !keys.includes(key))
-  if (unknown) throw new Error(`${name} contains the unknown field "${unknown}"`)
-  return source
 }
