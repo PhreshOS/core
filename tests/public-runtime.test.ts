@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from "vitest"
 import {
   ClientEndpoint,
+  Connection,
   ClientService,
   type ClientContext,
   type Desktop,
@@ -24,6 +25,7 @@ import {
   Endpoint,
   ServerEndpoint,
   ServerService,
+  Session,
   Service,
   defineConfig,
   isRelativeValue,
@@ -70,9 +72,18 @@ describe("public runtime", function () {
     expect(ServerService.prototype).toBeInstanceOf(Service)
   })
 
+  it("defines Connection and Session as canonical System domains", function () {
+    expectTypeOf<System["connection"]["list"]>().returns.resolves.toEqualTypeOf<Connection[]>()
+    expectTypeOf<System["session"]["list"]>().returns.resolves.toEqualTypeOf<Session[]>()
+    expectTypeOf<Connection["session"]>().returns.resolves.toEqualTypeOf<Session | null>()
+    expectTypeOf<Connection["signIn"]>().returns.resolves.toEqualTypeOf<Session>()
+    expectTypeOf<Session["connections"]>().returns.resolves.toEqualTypeOf<Connection[]>()
+    expectTypeOf<Session["signOut"]>().returns.resolves.toEqualTypeOf<void>()
+  })
+
   it("keeps one complete Program and Process contract", function () {
-    type Processes = Awaited<ReturnType<Program["process"]["list"]>>
-    type Found = Awaited<ReturnType<Program["process"]["find"]>>
+    type Processes = Awaited<ReturnType<Program["processes"]>>
+    type Found = Awaited<ReturnType<Program["findProcess"]>>
 
     expectTypeOf<Processes>().toEqualTypeOf<Process[]>()
     expectTypeOf<Found>().toEqualTypeOf<Process | null>()
@@ -148,13 +159,14 @@ describe("public runtime", function () {
     expectTypeOf<ClientContext>().toHaveProperty("permissions")
     expectTypeOf<Desktop>().toHaveProperty("viewport")
     expectTypeOf<Desktop>().toHaveProperty("preferences")
+    expectTypeOf<Desktop["connection"]>().returns.resolves.toEqualTypeOf<Connection>()
     expectTypeOf<Desktop>().not.toHaveProperty("pointer")
     expectTypeOf<System["network"]["fetch"]>().returns.toEqualTypeOf<Promise<Response>>()
     expectTypeOf<System["network"]["websocket"]>().returns.toEqualTypeOf<Promise<WebSocket>>()
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences" | "desktopConnection" | "connections">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over" | "wallpaper">()
@@ -177,6 +189,8 @@ describe("public runtime", function () {
     expect(parsePermission("uploads", [])).toEqual([])
     expect(parsePermission("appearance", [])).toEqual([])
     expect(parsePermission("desktopPreferences", [])).toEqual([])
+    expect(parsePermission("connections", [])).toEqual([])
+    expect(parsePermission("desktopConnection", [])).toEqual([])
     expect(parsePermission("all", false)).toBe(false)
     expect(parsePermission("all", null)).toBeNull()
     expect(parsePermissions({ all: null })).toEqual({ all: null })
@@ -242,7 +256,9 @@ describe("public runtime", function () {
           storage: ["read:Documents/**"],
           uploads: true,
           appearance: [],
-          desktopPreferences: true
+          desktopPreferences: true,
+          desktopConnection: true,
+          connections: true
         }
       }
     })

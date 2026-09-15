@@ -9,6 +9,8 @@ import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
 import type { Network } from "./network.js"
 import type { ClientPermissionDeclarations } from "./permissions.js"
+import type { Connection } from "./connection.js"
+import type { Session, SessionEndReason } from "./session.js"
 
 type ServerDefinitionBase = Readonly<{
   location: string
@@ -146,12 +148,44 @@ export interface SystemProcess extends Subscribable<SystemProcessEvents, never> 
   find(identity: string): Promise<Process | null>
 }
 
+/** Lifecycle events in the System Connection registry. */
+export type SystemConnectionEvents = {
+  create: Connection
+  disconnect: Connection
+}
+
+/** Live browser Connections known by the System. */
+export interface SystemConnection extends Subscribable<SystemConnectionEvents, never> {
+  list(): Promise<Connection[]>
+  find(identity: string): Promise<Connection | null>
+}
+
+/** One Session ending in the authoritative System registry. */
+export type SystemSessionEnd = Readonly<{
+  session: Session
+  reason: SessionEndReason
+}>
+
+/** Lifecycle events in the System Session registry. */
+export type SystemSessionEvents = {
+  create: Session
+  end: SystemSessionEnd
+}
+
+/** Authentication Sessions known by the System. */
+export interface SystemSession extends Subscribable<SystemSessionEvents, never> {
+  list(): Promise<Session[]>
+  find(identity: string): Promise<Session | null>
+}
+
 /** Transport-neutral authoritative System contract shared by environment adapters. */
 export interface System {
   readonly storage: Storage
   readonly appearance: WritableAppearance
   readonly program: SystemProgram
   readonly process: SystemProcess
+  readonly connection: SystemConnection
+  readonly session: SystemSession
   readonly uploads: SystemUploads
   readonly network: Network
 

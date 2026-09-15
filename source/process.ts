@@ -50,7 +50,7 @@ export abstract class Process implements Subscribable<ProcessEvents, never> {
   public abstract program(): Program
 
   /**
-   * Returns the Process whose `program.process.create()` call created this Process.
+   * Returns the Process whose `program.createProcess()` call created this Process.
    *
    * Returns `null` when this Process has no parent. The retained parent handle
    * remains available after that parent exits.

@@ -67,43 +67,6 @@ export type ProgramProcessExit = Exit & Readonly<{
   process: Process
 }>
 
-/** Process lifecycle events scoped to one Program. */
-export type ProgramProcessEvents = {
-  /** A Process entered this Program's runtime set. */
-  create: Process
-
-  /** A Process left this Program's runtime set. */
-  exit: ProgramProcessExit
-
-}
-
-/** Operations over the Processes belonging to one Program. */
-export interface ProgramProcess extends Subscribable<ProgramProcessEvents, never> {
-  /** Returns every live Process of this Program available to this SDK. */
-  list(): Promise<Process[]>
-
-  /** Returns the earliest-started live Process, or `null` when none exist. */
-  first(): Promise<Process | null>
-
-  /** Returns the latest-started live Process, or `null` when none exist. */
-  last(): Promise<Process | null>
-
-  /** Finds a live Process by identity or Program-local name. */
-  find(identityOrName: string): Promise<Process | null>
-
-  /** Creates one Process of this Program. */
-  create(launch?: Launch): Promise<Process>
-
-  /** Finds the named Process or atomically creates it with the same resolved launch. */
-  findOrCreate(launch: Launch & Readonly<{ name: string }>): Promise<Process>
-
-  /** Ends every live Process and returns their identities. */
-  exitAll(): Promise<string[]>
-
-  /** Creates a Process whose lifetime belongs to the returned iterator. */
-  run(launch?: Launch, options?: ProgramProcessRunOptions): AsyncGenerator<ProgramProcessRunEvent, void, void>
-}
-
 /** Cancellation controls for one Process whose lifetime belongs to its iterator. */
 export type ProgramProcessRunOptions = Readonly<{
   /** Exits the Process and aborts iteration with this signal's reason. */
@@ -139,11 +102,17 @@ export interface ProgramStartup {
 
 /** Lifecycle events belonging to one Program entity. */
 export type ProgramEvents = {
+  /** A Process was created by this Program. */
+  processCreate: Process
+
+  /** A Process belonging to this Program ended. */
+  processExit: ProgramProcessExit
+
   /** This Program left the runtime registry. */
   forget: undefined
 
   /** Whether every installed resource, including storage, was removed. */
-  uninstall: boolean
+  uninstall: Readonly<{ purge: boolean }>
 }
 
 /** The stable domain root from which Processes are created. */
@@ -195,9 +164,6 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Writable SQLite database owned by this Program. */
   public abstract readonly database: ProgramSql
 
-  /** Operations and lifecycle observation for this Program's Processes. */
-  public abstract readonly process: ProgramProcess
-
   /** Persistent Process launch applied when the System starts. */
   public abstract readonly startup: ProgramStartup
 
@@ -220,6 +186,30 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
 
   /** Returns whether this Program currently has an installed form. */
   public abstract installed(): Promise<boolean>
+
+  /** Returns every live Process belonging to this Program. */
+  public abstract processes(): Promise<Process[]>
+
+  /** Returns the earliest-started live Process, or `null` when none exist. */
+  public abstract firstProcess(): Promise<Process | null>
+
+  /** Returns the latest-started live Process, or `null` when none exist. */
+  public abstract lastProcess(): Promise<Process | null>
+
+  /** Finds a live Process by identity or Program-local name. */
+  public abstract findProcess(identityOrName: string): Promise<Process | null>
+
+  /** Creates one Process belonging to this Program. */
+  public abstract createProcess(launch?: Launch): Promise<Process>
+
+  /** Finds the named Process or atomically creates it with the same resolved launch. */
+  public abstract findOrCreateProcess(launch: Launch & Readonly<{ name: string }>): Promise<Process>
+
+  /** Ends every live Process belonging to this Program and returns their identities. */
+  public abstract exitProcesses(): Promise<string[]>
+
+  /** Creates a Process whose lifetime belongs to the returned iterator. */
+  public abstract runProcess(launch?: Launch, options?: ProgramProcessRunOptions): AsyncGenerator<ProgramProcessRunEvent, void, void>
 
   /** Installs this Program while yielding command output. */
   public abstract install(options?: ProgramInstallOptions): AsyncGenerator<ProgramCommandChunk, void, void>

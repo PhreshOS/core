@@ -13,7 +13,9 @@ export const clientPermissionCatalog = Object.freeze({
   storage: "storage",
   uploads: "none",
   appearance: "none",
-  desktopPreferences: "none"
+  desktopPreferences: "none",
+  desktopConnection: "none",
+  connections: "none"
 } as const)
 
 /** One permission name recognized by every PhreshOS environment. */

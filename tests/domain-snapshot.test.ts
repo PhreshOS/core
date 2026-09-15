@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseEndpointReference, parseProcessSnapshot, parseProgramSnapshot } from "../source/main.js"
+import { parseConnectionSnapshot, parseEndpointReference, parseProcessSnapshot, parseProgramSnapshot, parseSessionEndSnapshot, parseSessionSnapshot } from "../source/main.js"
 
 const program = {
   reference: "program-reference",
@@ -49,5 +49,21 @@ describe("domain snapshots", function () {
     expect(() => parseProgramSnapshot({ ...program, client: { start: true } })).toThrow("Client declaration")
     expect(() => parseProcessSnapshot({ ...process, options: { view: 1 } })).toThrow("Process")
     expect(() => parseEndpointReference({ kind: "worker", process })).toThrow("Endpoint reference")
+  })
+
+  it("canonicalizes Connection and Session boundary state", function () {
+    expect(parseConnectionSnapshot({ identity: "connection", connected: true, session: "session", extension: true })).toEqual({
+      identity: "connection",
+      connected: true,
+      session: "session"
+    })
+    expect(parseSessionSnapshot({ identity: "session", valid: true, extension: true })).toEqual({ identity: "session", valid: true })
+    expect(parseSessionEndSnapshot({ identity: "session", valid: false, reason: "signedOut" })).toEqual({
+      identity: "session",
+      valid: false,
+      reason: "signedOut"
+    })
+    expect(() => parseConnectionSnapshot({ identity: "connection", connected: true })).toThrow("Connection")
+    expect(() => parseSessionEndSnapshot({ identity: "session", valid: false, reason: "disconnect" })).toThrow("Session end")
   })
 })

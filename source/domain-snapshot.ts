@@ -1,6 +1,7 @@
 import { isRelativeValue } from "./value.js"
 import { isLayer, type Position, type Size } from "./launch.js"
 import type { ClientDeclaration, EndpointDeclaration } from "./program.js"
+import type { SessionEndReason } from "./session.js"
 
 /** Stable coordinates shared by every handle for one runtime entity. */
 export type HandleAddress = Readonly<{
@@ -39,6 +40,24 @@ export type ProcessSnapshot = HandleAddress & Readonly<{
 export type EndpointReference = Readonly<{
   kind: "server" | "client"
   process: ProcessSnapshot
+}>
+
+/** Public state of one browser Connection carried across a System boundary. */
+export type ConnectionSnapshot = Readonly<{
+  identity: string
+  connected: boolean
+  session: string | null
+}>
+
+/** Public state of one Session carried across a System boundary. */
+export type SessionSnapshot = Readonly<{
+  identity: string
+  valid: boolean
+}>
+
+/** Terminal Session state carried with registry and entity events. */
+export type SessionEndSnapshot = SessionSnapshot & Readonly<{
+  reason: SessionEndReason
 }>
 
 /** Validates and canonicalizes shared Program state from an unknown boundary. */
@@ -104,6 +123,38 @@ export function parseEndpointReference(value: unknown): EndpointReference {
   if (source.kind !== "server" && source.kind !== "client") throw invalid("Endpoint reference")
 
   return Object.freeze({ kind: source.kind, process: parseProcessSnapshot(source.process) })
+}
+
+/** Validates and canonicalizes one Connection snapshot from an unknown boundary. */
+export function parseConnectionSnapshot(value: unknown): ConnectionSnapshot {
+  const source = object(value, "Connection")
+
+  if (typeof source.identity !== "string"
+    || typeof source.connected !== "boolean"
+    || source.session !== null && typeof source.session !== "string") {
+    throw invalid("Connection")
+  }
+
+  return Object.freeze({ identity: source.identity, connected: source.connected, session: source.session })
+}
+
+/** Validates and canonicalizes one Session snapshot from an unknown boundary. */
+export function parseSessionSnapshot(value: unknown): SessionSnapshot {
+  const source = object(value, "Session")
+
+  if (typeof source.identity !== "string" || typeof source.valid !== "boolean") throw invalid("Session")
+
+  return Object.freeze({ identity: source.identity, valid: source.valid })
+}
+
+/** Validates one ended Session snapshot and its exact reason. */
+export function parseSessionEndSnapshot(value: unknown): SessionEndSnapshot {
+  const session = parseSessionSnapshot(value)
+  const reason = (value as Record<string, unknown>).reason
+
+  if (reason !== "signedOut" && reason !== "expired") throw invalid("Session end")
+
+  return Object.freeze({ ...session, reason })
 }
 
 function parseEndpointDeclaration(value: unknown): EndpointDeclaration {

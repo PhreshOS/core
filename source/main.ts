@@ -21,14 +21,20 @@ export {
 
 export { type Publishable } from "./publishable.js"
 export {
+  parseConnectionSnapshot,
   parseEndpointReference,
   parseProcessSnapshot,
   parseProgramSnapshot,
+  parseSessionEndSnapshot,
+  parseSessionSnapshot,
+  type ConnectionSnapshot,
   type EndpointReference,
   type EndpointSnapshot,
   type HandleAddress,
   type ProcessSnapshot,
-  type ProgramSnapshot
+  type ProgramSnapshot,
+  type SessionEndSnapshot,
+  type SessionSnapshot
 } from "./domain-snapshot.js"
 export { type Timeoutable } from "./timeout.js"
 export { networkScopeCovers, parseNetworkScope, type NetworkScope, type Network } from "./network.js"
@@ -124,13 +130,18 @@ export {
   type ShellEvent,
   type ShellOptions,
   type System,
+  type SystemConnection,
+  type SystemConnectionEvents,
   type SystemProcess,
   type SystemProcessEvents,
   type SystemProcessExit,
   type SystemProgram,
   type SystemWindowEvents,
   type SystemProgramEvents,
-  type SystemProgramUninstall
+  type SystemProgramUninstall,
+  type SystemSession,
+  type SystemSessionEnd,
+  type SystemSessionEvents
 } from "./system.js"
 export { type LogKind, type LogRecord, type LogSource, type ProgramSql } from "./sql.js"
 
@@ -166,6 +177,12 @@ export {
 } from "./server-endpoint.js"
 export { ClientEndpoint, type ClientTraffic } from "./client-endpoint.js"
 export { Process, type Exit, type ProcessEvents } from "./process.js"
+export { Connection, type ConnectionEvents } from "./connection.js"
+export {
+  Session,
+  type SessionEndReason,
+  type SessionEvents
+} from "./session.js"
 export {
   Program,
   type ClientDeclaration,
@@ -175,8 +192,6 @@ export {
   type ProgramCommandChunk,
   type ProgramInstallOptions,
   type ProgramUninstallOptions,
-  type ProgramProcess,
-  type ProgramProcessEvents,
   type ProgramProcessExit,
   type ProgramProcessRunEvent,
   type ProgramProcessRunOptions,

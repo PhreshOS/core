@@ -1,5 +1,6 @@
 import type { Subscribable } from "./subscribable.js"
 import type { WritableDesktopPreferencesSource } from "./theme.js"
+import type { Connection } from "./connection.js"
 
 /** Measured dimensions of one Desktop viewport in CSS pixels. */
 export type DesktopSize = Readonly<{
@@ -26,4 +27,7 @@ export interface DesktopViewportSource extends Subscribable<DesktopViewportEvent
 export interface Desktop {
   readonly viewport: DesktopViewportSource
   readonly preferences: WritableDesktopPreferencesSource
+
+  /** Returns the browser Connection carrying this Desktop. */
+  connection(): Promise<Connection>
 }
