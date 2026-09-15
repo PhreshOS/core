@@ -19,7 +19,7 @@ export type Size = Readonly<{
 }>
 
 /** Every structurally isolated desktop layer. */
-export const layers = ["window", "under", "over", "wallpaper"] as const
+export const layers = ["window", "under", "over", "wallpaper", "start-menu"] as const
 
 /** A structurally isolated desktop layer. */
 export type Layer = (typeof layers)[number]

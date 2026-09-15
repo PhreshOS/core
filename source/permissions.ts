@@ -139,7 +139,7 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
     return values.every(value => typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) ? values : null
   }
   if (domain === "layer") {
-    return values.every(value => value === "under" || value === "over" || value === "wallpaper") ? values : null
+    return values.every(value => value === "under" || value === "over" || value === "wallpaper" || value === "start-menu") ? values : null
   }
   if (domain === "network") {
     try { return values.map(parseNetworkScope) }
