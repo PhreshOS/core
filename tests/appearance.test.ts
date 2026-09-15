@@ -13,26 +13,33 @@ describe("Appearance", function () {
     expect(defaultAppearance.colors.dark.background).toBe("#121a21")
     expect(defaultAppearance.colors.light.foreground).toBe("#183447")
     expect(defaultAppearance.colors.dark.foreground).toBe("#edf8fc")
-    expect(defaultAppearance.colors.light.default).toBe("#ffffff")
-    expect(defaultAppearance.colors.dark.default).toBe("#121a21")
+    expect(defaultAppearance.colors.light.default).toBe("#e0e0e6")
+    expect(defaultAppearance.colors.dark.default).toBe("#25292c")
     expect(defaultAppearance.colors.light.primary).toBe("#4c9cff")
     expect(defaultAppearance.colors.dark.primary).toBe("#4c9cff")
     expect(defaultAppearance.spacing).toBe(12)
     expect(defaultAppearance.transaction).toEqual({ duration: 120, easing: "ease-out" })
     expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
-    expect(defaultAppearance.material.light.grain).toBe(0)
+    expect(defaultAppearance.material.light.grain).toBe(0.05)
   })
 
-  it("uses material defaults with independent light and dark opacity", function () {
+  it("uses independent light and dark material defaults", function () {
     expect(defaultAppearance.material.light).toEqual({
-      grain: 0,
-      grainAmount: 0,
+      grain: 0.05,
+      grainAmount: 1,
       backdrop: 12,
-      opacity: 0.2,
+      opacity: 0.55,
       distortion: 0,
-      saturation: 1
+      saturation: 1.66
     })
-    expect(defaultAppearance.material.dark).toEqual({ ...defaultAppearance.material.light, opacity: 0.35 })
+    expect(defaultAppearance.material.dark).toEqual({
+      grain: 0.03,
+      grainAmount: 1,
+      backdrop: 12,
+      opacity: 0.66,
+      distortion: 0,
+      saturation: 1.77
+    })
   })
 
   it("owns independent, immutable shadow values", function () {
@@ -109,7 +116,7 @@ describe("Appearance", function () {
   it("validates consumed values and ignores additional properties", function () {
     expect(parseAppearance(defaultAppearance)).toEqual(defaultAppearance)
     const { default: omitted, ...withoutDefault } = defaultAppearance.colors.light
-    expect(omitted).toBe("#ffffff")
+    expect(omitted).toBe("#e0e0e6")
     expect(() => parseAppearance({
       ...defaultAppearance,
       colors: { ...defaultAppearance.colors, light: withoutDefault }

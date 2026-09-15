@@ -87,15 +87,6 @@ export const appearanceLimits = Object.freeze({
   material: Readonly<Record<keyof AppearanceMaterial, AppearanceRange>>
 }>
 
-const defaultMaterial = Object.freeze({
-  grain: 0,
-  grainAmount: 0,
-  backdrop: 12,
-  opacity: 0.2,
-  distortion: 0,
-  saturation: 1
-})
-
 const defaultShadow = Object.freeze({ x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 })
 
 /** Complete default Appearance available to every environment. */
@@ -104,7 +95,7 @@ export const defaultAppearance = createAppearanceSnapshot({
     light: {
       background: "#ffffff",
       foreground: "#183447",
-      default: "#ffffff",
+      default: "#e0e0e6",
       primary: "#4c9cff",
       secondary: "#8b5cf6",
       success: "#16a34a",
@@ -115,7 +106,7 @@ export const defaultAppearance = createAppearanceSnapshot({
     dark: {
       background: "#121a21",
       foreground: "#edf8fc",
-      default: "#121a21",
+      default: "#25292c",
       primary: "#4c9cff",
       secondary: "#a78bfa",
       success: "#4ade80",
@@ -127,7 +118,10 @@ export const defaultAppearance = createAppearanceSnapshot({
   spacing: 12,
   radius: 10,
   shadow: { light: defaultShadow, dark: defaultShadow },
-  material: { light: defaultMaterial, dark: { ...defaultMaterial, opacity: 0.35 } },
+  material: {
+    light: { grain: 0.05, grainAmount: 1, backdrop: 12, opacity: 0.55, distortion: 0, saturation: 1.66 },
+    dark: { grain: 0.03, grainAmount: 1, backdrop: 12, opacity: 0.66, distortion: 0, saturation: 1.77 }
+  },
   transaction: { duration: 120, easing: "ease-out" },
   signInWallpaper: { light: null, dark: null },
   desktopWallpaper: { light: null, dark: null }
