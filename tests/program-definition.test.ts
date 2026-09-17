@@ -12,16 +12,14 @@ describe("Program definition", function () {
     const definition = parseProgramDefinition({
       identity: "example-program",
       storage: "/var/example",
-      client: {
-        location: "/opt/example/client",
-        permissions: {
-          network: ["https://api.example.com/**"],
-          uploads: true
-        }
-      }
+      permissions: {
+        network: ["https://api.example.com/**"],
+        uploads: true
+      },
+      client: { location: "/opt/example/client" }
     })
 
-    expect(definition.client?.permissions?.network).toEqual(["https://api.example.com"])
+    expect(definition.permissions?.network).toEqual(["https://api.example.com"])
     expect(Object.isFrozen(definition)).toBe(true)
   })
 
@@ -50,12 +48,12 @@ describe("Program definition", function () {
 
   it("validates consumed values and ignores additional properties", function () {
     expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example" })).toThrow("Server, a Client, or both")
-    expect(parseProgramDefinition({ identity: "example", storage: "/tmp/example", client: { location: "/client", permissions: { files: true } } }).client?.permissions).toEqual({})
+    expect(parseProgramDefinition({ identity: "example", storage: "/tmp/example", permissions: { files: true }, client: { location: "/client" } }).permissions).toEqual({})
     expect(parseProgramDefinition({ identity: "example", storage: "/tmp/example", extension: true, client: { location: "/client", extension: true } })).toEqual({
       identity: "example",
       storage: "/tmp/example",
       client: { location: "/client" }
     })
-    expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example", server: { location: "/server", startCommand: "node main.js", entryFile: "main.js" } })).toThrow("exactly one")
+    expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example", server: { location: "/server", command: "node main.js", worker: "main.js" } })).toThrow("exactly one")
   })
 })

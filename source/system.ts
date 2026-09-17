@@ -8,7 +8,7 @@ import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
 import type { Network } from "./network.js"
-import type { ClientPermissionDeclarations } from "./permissions.js"
+import type { ProgramPermissionDeclarations } from "./permissions.js"
 import type { Connection } from "./connection.js"
 import type { Session, SessionEndReason } from "./session.js"
 
@@ -21,8 +21,9 @@ type ServerDefinitionBase = Readonly<{
 }>
 
 export type ServerDefinition = ServerDefinitionBase & (
-  | Readonly<{ startCommand: string, entryFile?: never }>
-  | Readonly<{ startCommand?: never, entryFile: string }>
+  | Readonly<{ command: string, worker?: never, sandbox?: never }>
+  | Readonly<{ command?: never, worker: string, sandbox?: never }>
+  | Readonly<{ command?: never, worker?: never, sandbox: string }>
 )
 
 export type ClientDefinition = Readonly<{
@@ -36,7 +37,6 @@ export type ClientDefinition = Readonly<{
   minimize?: boolean
   /** Whether the Window initially fills its Desktop workspace. */
   maximize?: boolean
-  permissions?: ClientPermissionDeclarations
 }>
 
 type ProgramDefinitionBase = Readonly<{
@@ -54,6 +54,8 @@ type ProgramDefinitionBase = Readonly<{
   startup?: true | Launch
   /** Icon launch configuration written at creation and installation; omission preserves stored configuration. */
   launch?: true | Launch
+  /** Permission declarations applied to this Program's authoritative permission state. */
+  permissions?: ProgramPermissionDeclarations
 }>
 
 export type ProgramDefinition = ProgramDefinitionBase & (

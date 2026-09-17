@@ -1,22 +1,33 @@
 import type { Layer, Position, Size } from "./launch.js"
-import type { ClientPermissionDeclarations } from "./permissions.js"
+import type { ProgramPermissionDeclarations } from "./permissions.js"
 import type { ProgramDefinition } from "./system.js"
 
 /** One explicit way to execute a Program's Server. */
 export type ServerExecution =
   | Readonly<{
-    /** Shell command that starts an isolated operating-system process. */
-    startCommand: string
-    entryFile?: never
+    /** Shell command that starts an operating-system child process. */
+    command: string
+    worker?: never
+    sandbox?: never
   }>
   | Readonly<{
-    startCommand?: never
+    command?: never
     /** JavaScript module loaded as a worker owned by the System. */
-    entryFile: string
+    worker: string
+    sandbox?: never
+  }>
+  | Readonly<{
+    command?: never
+    worker?: never
+    /** JavaScript module loaded inside a capability-contained runtime owned by the System. */
+    sandbox: string
   }>
 
 /** Development settings for a Program's Server. */
-export type ServerDevelopment = ServerExecution
+export type ServerDevelopment = Readonly<{
+  /** Attached host command with access to the Project's development tooling. */
+  command: string
+}>
 
 /** Development settings for a Program's Client. */
 export type ClientDevelopment =
@@ -84,9 +95,6 @@ export type ClientConfig = Readonly<{
   /** Whether the Window initially fills its Desktop workspace. */
   maximize?: boolean
 
-  /** Permissions written into authoritative Program storage at creation. */
-  permissions?: ClientPermissionDeclarations
-
   /** Settings used only by the development command. */
   development?: ClientDevelopment
 }>
@@ -121,6 +129,9 @@ type Description = Pick<ProgramDefinition, "startup" | "launch"> & Readonly<{
 
   /** Command run before production start, installation, and packaging. */
   buildCommand?: string
+
+  /** Permissions written into authoritative Program storage at creation. */
+  permissions?: ProgramPermissionDeclarations
 }>
 
 type ServerProgramConfig = Description & Readonly<{

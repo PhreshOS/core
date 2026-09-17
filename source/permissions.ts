@@ -3,8 +3,8 @@ import { parseNetworkScope, type NetworkScope } from "./network.js"
 import { parseStorageScope, type StorageScope } from "./storage.js"
 import type { Layer } from "./launch.js"
 
-/** Every Client permission and the value domain accepted by it. */
-export const clientPermissionCatalog = Object.freeze({
+/** Every Program permission and the value domain accepted by it. */
+export const programPermissionCatalog = Object.freeze({
   all: "none",
   services: "program",
   programs: "program",
@@ -19,10 +19,10 @@ export const clientPermissionCatalog = Object.freeze({
 } as const)
 
 /** One permission name recognized by every PhreshOS environment. */
-export type PermissionName = keyof typeof clientPermissionCatalog
+export type PermissionName = keyof typeof programPermissionCatalog
 
 /** The domain from which one permission accepts values. */
-export type PermissionValueDomain<Name extends PermissionName = PermissionName> = (typeof clientPermissionCatalog)[Name]
+export type PermissionValueDomain<Name extends PermissionName = PermissionName> = (typeof programPermissionCatalog)[Name]
 
 /** One selectable value belonging to an exact permission. */
 export type PermissionValue<Name extends PermissionName> = Name extends PermissionName
@@ -54,14 +54,14 @@ export type Permissions = Partial<{
 }>
 
 /** Permission assignments written into authoritative storage at Program creation. */
-export type ClientPermissionDeclarations = Readonly<{
+export type ProgramPermissionDeclarations = Readonly<{
   [Name in PermissionName]?: true | readonly PermissionValue<Name>[]
 }>
 
-/** Validates and canonicalizes the permissions declared by one Client. */
-export function parseClientPermissionDeclarations(value: unknown): ClientPermissionDeclarations {
+/** Validates and canonicalizes the permissions declared by one Program. */
+export function parseProgramPermissionDeclarations(value: unknown): ProgramPermissionDeclarations {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error("A Client's permissions must be a permission declaration")
+    throw new Error("A Program's permissions must be a permission declaration")
   }
 
   const declarations: Partial<Record<PermissionName, true | readonly unknown[]>> = {}
@@ -73,13 +73,13 @@ export function parseClientPermissionDeclarations(value: unknown): ClientPermiss
     if (declaration === true) declarations[name] = true
     else if (Array.isArray(declaration)) {
       const permission = parsePermission(name, declaration)
-      if (permission === false || permission === null) throw new Error(`A Client's "${name}" permission is invalid`)
+      if (permission === false || permission === null) throw new Error(`A Program's "${name}" permission is invalid`)
       declarations[name] = permission
     }
-    else throw new Error(`A Client's "${name}" permission must be true or a valid list`)
+    else throw new Error(`A Program's "${name}" permission must be true or a valid list`)
   }
 
-  return Object.freeze(declarations) as ClientPermissionDeclarations
+  return Object.freeze(declarations) as ProgramPermissionDeclarations
 }
 
 /** Permission request using one caller-selected deadline. */
@@ -88,7 +88,7 @@ export interface TimedContextPermissions {
   request<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<Permission<Name>>
 }
 
-/** Stored permissions and owner requests belonging to the executing Client. */
+/** Stored permissions and owner requests belonging to the executing Program. */
 export interface ContextPermissions extends TimedContextPermissions, Timeoutable<TimedContextPermissions> {
   /** Returns the exact stored assignment without applying fallback authority. */
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
@@ -108,7 +108,7 @@ export interface ProgramPermissions {
 
 /** Whether one unknown value names a permission in the closed Core catalog. */
 export function isPermissionName(value: unknown): value is PermissionName {
-  return typeof value === "string" && Object.hasOwn(clientPermissionCatalog, value)
+  return typeof value === "string" && Object.hasOwn(programPermissionCatalog, value)
 }
 
 /** Reads one unknown permission name against the closed Core catalog. */
@@ -132,7 +132,7 @@ export function parsePermission<Name extends PermissionName>(name: Name, value: 
 }
 
 function parsePermissionValues<Name extends PermissionName>(name: Name, values: readonly unknown[]) {
-  const domain = clientPermissionCatalog[parsePermissionName(name)]
+  const domain = programPermissionCatalog[parsePermissionName(name)]
 
   if (domain === "none") return values.length === 0 ? [] : null
   if (domain === "program") {

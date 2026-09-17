@@ -235,67 +235,59 @@ describe("public runtime", function () {
     const config = {
       identity: "public-contract",
       agent: "./agent-guide.md",
-      client: {
-        location: "./client",
-        permissions: { all: true }
-      }
+      permissions: { all: true },
+      client: { location: "./client" }
     } as const
 
     expect(defineConfig(config)).toBe(config)
     expect(config.agent).toBe("./agent-guide.md")
-    expect(config.client.permissions.all).toBe(true)
+    expect(config.permissions.all).toBe(true)
 
     defineConfig({
       identity: "selected-permissions",
-      client: {
-        location: "./client",
-        permissions: {
-          services: ["flambo"],
-          programs: true,
-          network: ["https://api.example.com/v1/**"],
-          storage: ["read:Documents/**"],
-          uploads: true,
-          appearance: [],
-          desktopPreferences: true,
-          desktopConnection: true,
-          connections: true
-        }
-      }
+      permissions: {
+        services: ["flambo"],
+        programs: true,
+        network: ["https://api.example.com/v1/**"],
+        storage: ["read:Documents/**"],
+        uploads: true,
+        appearance: [],
+        desktopPreferences: true,
+        desktopConnection: true,
+        connections: true
+      },
+      client: { location: "./client" }
     })
 
     defineConfig({
       identity: "unknown-permission",
-      client: {
-        location: "./client",
-        permissions: {
-          // @ts-expect-error Permission declarations accept only Core catalog names.
-          files: true
-        }
-      }
+      permissions: {
+        // @ts-expect-error Permission declarations accept only Core catalog names.
+        files: true
+      },
+      client: { location: "./client" }
     })
 
     defineConfig({
       identity: "unknown-permission-value",
-      client: {
-        location: "./client",
-        permissions: {
-          // @ts-expect-error The value-less all permission accepts no string values.
-          all: ["read"]
-        }
-      }
+      permissions: {
+        // @ts-expect-error The value-less all permission accepts no string values.
+        all: ["read"]
+      },
+      client: { location: "./client" }
     })
   })
 
   it("requires exactly one Server execution declaration", function () {
     const worker = defineConfig({
       identity: "worker-contract",
-      server: { location: "./server", entryFile: "main.js" }
+      server: { location: "./server", worker: "main.js" }
     })
 
-    expect(worker.server?.entryFile).toBe("main.js")
+    expect(worker.server?.worker).toBe("main.js")
 
     // @ts-expect-error A Server cannot declare two execution modes.
-    const both = defineConfig({ identity: "both-contract", server: { location: "./server", startCommand: "node main.js", entryFile: "main.js" } })
+    const both = defineConfig({ identity: "both-contract", server: { location: "./server", command: "node main.js", worker: "main.js" } })
 
     // @ts-expect-error A Server must declare one execution mode.
     const neither = defineConfig({ identity: "neither-contract", server: { location: "./server" } })

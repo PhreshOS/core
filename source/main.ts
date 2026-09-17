@@ -39,13 +39,13 @@ export {
 export { type Timeoutable } from "./timeout.js"
 export { networkScopeCovers, parseNetworkScope, type NetworkScope, type Network } from "./network.js"
 export {
-  clientPermissionCatalog,
+  programPermissionCatalog,
   isPermissionName,
   parsePermission,
-  parseClientPermissionDeclarations,
+  parseProgramPermissionDeclarations,
   parsePermissionName,
   parsePermissions,
-  type ClientPermissionDeclarations,
+  type ProgramPermissionDeclarations,
   type ContextPermissions,
   type Permission,
   type PermissionInput,

@@ -1,5 +1,5 @@
 import { isLayer, layers, type Layer, type Position, type Size } from "./launch.js"
-import { parseClientPermissionDeclarations } from "./permissions.js"
+import { parseProgramPermissionDeclarations } from "./permissions.js"
 import type { ClientDefinition, ProgramDefinition, ServerDefinition } from "./system.js"
 import { isRelativeValue } from "./value.js"
 import { parseLaunch } from "./launch-validation.js"
@@ -49,6 +49,7 @@ export function parseProgramDefinition(value: unknown): ProgramDefinition {
     ...present("agent", agent),
     ...present<"startup", ProgramDefinition["startup"]>("startup", source.startup === undefined || source.startup === true ? source.startup : parseLaunch(source.startup)),
     ...present<"launch", ProgramDefinition["launch"]>("launch", source.launch === undefined || source.launch === true ? source.launch : parseLaunch(source.launch)),
+    ...(source.permissions === undefined ? {} : { permissions: parseProgramPermissionDeclarations(source.permissions) }),
     storage: source.storage
   } satisfies ProgramDefinitionBase
 
@@ -67,9 +68,8 @@ function parseServer(value: unknown): ServerDefinition {
   const installCommand = optionalText(source.installCommand, "A Server's install command")
   const uninstallCommand = optionalText(source.uninstallCommand, "A Server's uninstall command")
 
-  const hasCommand = source.startCommand !== undefined
-  const hasEntry = source.entryFile !== undefined
-  if (hasCommand === hasEntry) throw new Error("A Server must declare exactly one startCommand or entryFile")
+  const modes = [source.command, source.worker, source.sandbox].filter(mode => mode !== undefined)
+  if (modes.length !== 1) throw new Error("A Server must declare exactly one command, worker, or sandbox")
 
   const base = {
     location: source.location,
@@ -79,14 +79,19 @@ function parseServer(value: unknown): ServerDefinition {
     ...present("uninstallCommand", uninstallCommand)
   }
 
-  if (hasCommand) return Object.freeze({
+  if (source.command !== undefined) return Object.freeze({
     ...base,
-    startCommand: nonempty(source.startCommand, "A Server's startCommand")
+    command: nonempty(source.command, "A Server's command")
+  }) satisfies ServerDefinition
+
+  if (source.worker !== undefined) return Object.freeze({
+    ...base,
+    worker: nonempty(source.worker, "A Server's worker entry")
   }) satisfies ServerDefinition
 
   return Object.freeze({
     ...base,
-    entryFile: nonempty(source.entryFile, "A Server's entryFile")
+    sandbox: nonempty(source.sandbox, "A Server's sandbox entry")
   }) satisfies ServerDefinition
 }
 
@@ -110,8 +115,7 @@ function parseClient(value: unknown): ClientDefinition {
     ...present("position", source.position === undefined ? undefined : position(source.position)),
     ...present("layer", layer),
     ...present("minimize", minimize),
-    ...present("maximize", maximize),
-    ...(source.permissions === undefined ? {} : { permissions: parseClientPermissionDeclarations(source.permissions) })
+    ...present("maximize", maximize)
   }) satisfies ClientDefinition
 }
 
