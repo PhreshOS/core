@@ -75,7 +75,7 @@ test("package contract", async () => {
 
     writeFileSync(
       join(consumer, "consumer.ts"),
-      `import { defineConfig, isUploadFile, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type LocalWindow, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type WaitedTransaction, type Window, type WindowGeometry, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
+      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type LocalWindow, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type WaitedTransaction, type Window, type WindowGeometry, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
   const config: Config = defineConfig({
     identity: "package-consumer",
@@ -116,7 +116,11 @@ test("package contract", async () => {
   const processOptions: Promise<Readonly<{ mode: string }>> = process.options<{ mode: string }>()
   const processMode: Promise<"primary" | "secondary" | undefined> = process.options<"primary" | "secondary">("mode")
   const theme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
+  const scale = desktopPreferences.snapshot().then(snapshot => snapshot.scale)
   const updateTheme = writableDesktopPreferences.update({ theme: "default" })
+  const updateScale = writableDesktopPreferences.update({ scale: desktopPreferencesLimits.scale.minimum })
+  const resetScale = writableDesktopPreferences.update({ scale: "default" })
+  const parsedScale = parseDesktopPreferencesUpdate({ scale: 1.25 })
   void config
   void uploadStat
   void writable
@@ -139,7 +143,12 @@ test("package contract", async () => {
   void desktop.viewport
   void desktop.preferences
   void theme
+  void scale
   void updateTheme
+  void updateScale
+  void resetScale
+  void parsedScale
+  void defaultDesktopScale
   void windowHasSurface
   `
     )
