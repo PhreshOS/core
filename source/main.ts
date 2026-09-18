@@ -21,6 +21,19 @@ export {
 
 export { type Publishable } from "./publishable.js"
 export {
+  describeExecuteOperation,
+  execute,
+  executeRequestSchema,
+  listExecuteOperations,
+  parseExecuteRequest,
+  type ExecuteOperationDescription,
+  type ExecuteOperationKey,
+  type ExecuteOperationSummary,
+  type ExecuteRequest,
+  type ExecuteResult,
+  type ExecutionSystem
+} from "./execute/main.js"
+export {
   parseConnectionSnapshot,
   parseEndpointReference,
   parseProcessSnapshot,

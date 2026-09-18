@@ -45,6 +45,9 @@
     "verify": "node --run check && node --run build && node --run test",
     "prepack": "node --run build"
   },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
   "devDependencies": {
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"

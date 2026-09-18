@@ -9,9 +9,9 @@ The environment-neutral contracts and domain objects shared across PhreshOS.
 ## Role
 
 Core is the single source of truth for the System, Program, Process, Endpoint,
-Service, Context, Desktop, Window, communication, storage, Appearance, and
-permission contracts. It also provides the runtime classes whose references are
-preserved by the environment SDKs.
+Service, Context, Desktop, Window, communication, storage, Appearance,
+permission, and Execute contracts. It also provides the runtime classes whose
+references are preserved by the environment SDKs.
 
 Core contains no transport, persistence, command-line, or visual
 implementation. Those implementations consume its contracts without redefining

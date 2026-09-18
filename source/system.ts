@@ -11,6 +11,7 @@ import type { Network } from "./network.js"
 import type { ProgramPermissionDeclarations } from "./permissions.js"
 import type { Connection } from "./connection.js"
 import type { Session, SessionEndReason } from "./session.js"
+import type { ExecuteRequest, ExecuteResult } from "./execute/contract.js"
 
 type ServerDefinitionBase = Readonly<{
   location: string
@@ -191,6 +192,9 @@ export interface System {
   readonly session: SystemSession
   readonly uploads: SystemUploads
   readonly network: Network
+
+  /** Executes one JSON operation through the ordinary public System handles. */
+  execute<Request extends ExecuteRequest>(request: Request): Promise<ExecuteResult<Request>>
 
   /** Runs one shell command whose complete process tree belongs to the returned iterator. */
   shell(command: string, options?: ShellOptions): AsyncGenerator<ShellEvent, void, void>
