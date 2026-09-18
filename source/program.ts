@@ -214,7 +214,11 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Installs this Program while yielding command output. */
   public abstract install(options?: ProgramInstallOptions): AsyncGenerator<ProgramCommandChunk, void, void>
 
-  /** Removes this Program's installed form while yielding cleanup output. */
+  /**
+   * Ensures this Program has no installed form while yielding cleanup output.
+   * An already-uninstalled Program yields nothing. Purge additionally removes
+   * its runtime entity and storage.
+   */
   public abstract uninstall(options?: ProgramUninstallOptions): AsyncGenerator<ProgramCommandChunk, void, void>
 
   /** Ends all Processes and removes this Program from the runtime registry. */

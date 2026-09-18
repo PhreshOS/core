@@ -110,20 +110,22 @@ export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
   public abstract waitReady(timeout?: number): Promise<void>
 
   /**
-   * Starts a fresh incarnation without waiting for Server Endpoint readiness.
+   * Ensures this Endpoint has a live incarnation without waiting for Server
+   * Endpoint readiness. Launch values configure a newly created incarnation;
+   * an already-live incarnation remains unchanged.
    *
    * Rejects when the Process is gone or inaccessible, the Program did not
-   * declare this endpoint kind, the Endpoint is already starting or live, or
-   * creation fails.
+   * declare this endpoint kind, the launch is invalid, or creation fails.
    */
   public abstract start(): Promise<void>
 
   /**
-   * Stops the current incarnation and destroys its boundary-owned resources.
+   * Ensures this Endpoint has no live incarnation and destroys the current
+   * incarnation's boundary-owned resources when present.
    *
-   * Rejects when the Process is gone or inaccessible, the Endpoint is already
-   * stopping or absent, this is the Process's final live Endpoint, or stopping
-   * fails. Stopping never exits the Process implicitly.
+   * Rejects when the Process is gone or inaccessible, this is the Process's
+   * final live Endpoint, or stopping fails. Stopping never exits the Process
+   * implicitly.
    */
   public abstract stop(): Promise<void>
 

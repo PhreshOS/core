@@ -22,7 +22,7 @@ export abstract class ClientEndpoint<Events extends object = {}, Fallback = unkn
   /** Presentation capability permanently owned by this Client Endpoint handle. */
   public abstract readonly window: Window
 
-  /** Starts a fresh Client Endpoint and Window using optional Process-local overrides. */
+  /** Ensures a Client incarnation is live, using these overrides only when one must be created. */
   public abstract override start(launch?: ClientLaunch): Promise<void>
 
 }

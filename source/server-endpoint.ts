@@ -60,7 +60,7 @@ export abstract class ServerEndpoint<Events extends object = {}, Fallback = unkn
   /** Directed communication originating from this Server Endpoint. */
   public abstract override readonly traffic: ServerTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
 
-  /** Starts a fresh Server Endpoint incarnation using optional Process-local settings. */
+  /** Ensures a Server incarnation is live, using these settings only when one must be created. */
   public abstract override start(launch?: ServerLaunch): Promise<void>
 
   public abstract ask<Answer = unknown>(event: string): Promise<Answer>
