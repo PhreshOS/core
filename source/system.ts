@@ -31,6 +31,7 @@ export type ClientDefinition = Readonly<{
   start?: boolean
   service?: boolean
   title?: string
+  header?: boolean
   size?: Size
   position?: Position
   layer?: Layer

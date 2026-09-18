@@ -43,6 +43,9 @@ export type ClientLaunch = Readonly<{
   /** Initial Window title for this Client incarnation. */
   title?: string
 
+  /** Whether a standard Window initially shows its Desktop-owned header. */
+  header?: boolean
+
   /** Initial Window size for this Process. */
   size?: Size
 

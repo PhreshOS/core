@@ -175,6 +175,7 @@ function parseClientDeclaration(value: unknown): ClientDeclaration {
     start: source.start,
     service: source.service,
     title: nullableText(source.title, "Client declaration"),
+    header: nullableBoolean(source.header, "Client declaration"),
     size: source.size === null ? null : parseSize(source.size),
     position: source.position === null ? null : parsePosition(source.position),
     layer: nullableLayer(source.layer),

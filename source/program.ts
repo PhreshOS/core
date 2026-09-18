@@ -45,6 +45,9 @@ export type ClientDeclaration = EndpointDeclaration & Readonly<{
   /** Default Window title, or `null` when the system supplies it. */
   title: string | null
 
+  /** Default standard Window header state, or `null` for the system default. */
+  header: boolean | null
+
   /** Default Window size, or `null` when the system supplies it. */
   size: Size | null
 

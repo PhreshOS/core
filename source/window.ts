@@ -33,6 +33,9 @@ export type WindowEvents = {
   /** The authoritative title changed. */
   changeTitle: string
 
+  /** The Desktop-owned header visibility changed. */
+  changeHeader: boolean
+
   /** Whether this Window became or ceased to be frontmost in its layer. */
   front: boolean
 }
@@ -41,6 +44,9 @@ export type WindowEvents = {
 export type WindowState = Readonly<{
   /** Current title. */
   title: string
+
+  /** Whether the Desktop-owned header is shown. */
+  header: boolean
 
   /** Current top-left position. */
   position: Position
@@ -66,6 +72,9 @@ export type WindowState = Readonly<{
 export interface Window extends WindowOperations, Subscribable<WindowEvents, never> {
   /** Returns the current title. */
   title(): Promise<string>
+
+  /** Returns whether the Desktop-owned header is shown. */
+  header(): Promise<boolean>
 
   /** Returns the current top-left position. */
   position(): Promise<Position>
@@ -105,6 +114,9 @@ export interface WindowOperations {
 
   /** Changes the Window title. */
   changeTitle(title: string): Promise<void>
+
+  /** Changes whether the Desktop-owned header is shown. */
+  changeHeader(header: boolean): Promise<void>
 
   /** Brings the Window to the front of its own layer. */
   raise(): Promise<void>

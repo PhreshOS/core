@@ -20,7 +20,7 @@ export interface LocalWindowOperations extends Pick<WindowOperations, "move" | "
  * One Client Window's physical representation on the current Desktop. It has
  * no events: its commands neither change authoritative state nor broadcast
  * anything. Wallpaper permits only follow/unfollow; other local mutations reject.
- * Local title changes are available only on standard windows.
+ * Local title and header changes are available only on standard windows.
  */
 export interface LocalWindow extends LocalWindowOperations, WindowOperations {
   /** Returns the same commands bound to one visual transaction. */

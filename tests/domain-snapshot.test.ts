@@ -15,10 +15,12 @@ const program = {
     start: true,
     service: false,
     title: null,
+    header: null,
     size: null,
     position: null,
     layer: null,
-    minimize: null, maximize: null
+    minimize: null,
+    maximize: null
   }
 }
 

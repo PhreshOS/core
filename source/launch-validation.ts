@@ -34,7 +34,7 @@ function server(value: unknown): ServerLaunch {
 function client(value: unknown): ClientLaunch {
   const source = object(value, "Client launch")
   const result: { -readonly [Key in keyof ClientLaunch]: ClientLaunch[Key] } = {}
-  for (const key of ["service", "minimize", "maximize"] as const) {
+  for (const key of ["service", "header", "minimize", "maximize"] as const) {
     if (source[key] !== undefined) result[key] = boolean(source[key], key)
   }
   if (source.title !== undefined) {

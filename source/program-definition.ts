@@ -103,6 +103,7 @@ function parseClient(value: unknown): ClientDefinition {
   const service = optionalBoolean(source.service, "A Client's service default")
   const minimize = optionalBoolean(source.minimize, "A Client's minimize default")
   const maximize = optionalBoolean(source.maximize, "A Client's maximize default")
+  const header = optionalBoolean(source.header, "A Client's header default")
   const title = optionalText(source.title, "A Client's title")
   const layer = optionalLayer(source.layer)
 
@@ -111,6 +112,7 @@ function parseClient(value: unknown): ClientDefinition {
     ...present("start", start),
     ...present("service", service),
     ...present("title", title),
+    ...present("header", header),
     ...present("size", source.size === undefined ? undefined : size(source.size)),
     ...present("position", source.position === undefined ? undefined : position(source.position)),
     ...present("layer", layer),

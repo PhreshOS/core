@@ -81,6 +81,9 @@ export type ClientConfig = Readonly<{
   /** Initial Window title. Defaults to the Program name. */
   title?: string
 
+  /** Whether a standard Window initially shows its Desktop-owned header. */
+  header?: boolean
+
   /** Initial Window size. */
   size?: Size
 

@@ -16,10 +16,11 @@ describe("Program definition", function () {
         network: ["https://api.example.com/**"],
         uploads: true
       },
-      client: { location: "/opt/example/client" }
+      client: { location: "/opt/example/client", header: false }
     })
 
     expect(definition.permissions?.network).toEqual(["https://api.example.com"])
+    expect(definition.client?.header).toBe(false)
     expect(Object.isFrozen(definition)).toBe(true)
   })
 
@@ -54,6 +55,7 @@ describe("Program definition", function () {
       storage: "/tmp/example",
       client: { location: "/client" }
     })
+    expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example", client: { location: "/client", header: "hidden" } })).toThrow("header default")
     expect(() => parseProgramDefinition({ identity: "example", storage: "/tmp/example", server: { location: "/server", command: "node main.js", worker: "main.js" } })).toThrow("exactly one")
   })
 })
