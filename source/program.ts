@@ -4,6 +4,8 @@ import type { ProgramSql } from "./sql.js"
 import type { ProgramStore, Storage } from "./storage.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 import type { ProgramPermissions } from "./permissions.js"
+import type { WindowFrame } from "./window.js"
+import type { WindowTransaction } from "./appearance-transaction.js"
 
 /** Standard rendered sizes available for every Program icon. */
 export type ProgramIconSize = "small" | "medium" | "large"
@@ -36,7 +38,7 @@ export type EndpointDeclaration = Readonly<{
   /** Whether a default Process starts this declared Endpoint. */
   start: boolean
 
-  /** Default service role for new Endpoint incarnations. */
+  /** Default service role for new Endpoint execution contexts. */
   service: boolean
 }>
 
@@ -47,6 +49,12 @@ export type ClientDeclaration = EndpointDeclaration & Readonly<{
 
   /** Default standard Window header state, or `null` for the system default. */
   header: boolean | null
+
+  /** Default authoritative frame, or `null` for the layer default. */
+  frame: WindowFrame | null
+
+  /** Default opening transaction, or `null` for the layer default. */
+  transaction: WindowTransaction | null
 
   /** Default Window size, or `null` when the system supplies it. */
   size: Size | null

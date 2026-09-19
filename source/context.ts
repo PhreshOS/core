@@ -1,6 +1,6 @@
 import type { Endpoint } from "./endpoint.js"
 import type { ClientEndpoint } from "./client-endpoint.js"
-import type { LocalWindow } from "./local-window.js"
+import type { WindowPresentation } from "./window-presentation.js"
 import type { Publishable } from "./publishable.js"
 import type { Process } from "./process.js"
 import type { Program } from "./program.js"
@@ -32,7 +32,7 @@ export type ContextCapture<Events extends object = {}, From = Endpoint | null> =
 /** Inbound communication and destinationless output of the executing Endpoint. */
 export interface Context<Events extends object = {}, From = Endpoint | null>
   extends Subscribable<ContextEvents<Events, From>, ContextFallback<From>>, Publishable {
-  /** Returns whether the executing Endpoint incarnation is a service. */
+  /** Returns whether the executing Endpoint context is a service. */
   isService(): Promise<boolean>
 }
 
@@ -54,7 +54,7 @@ export interface EndpointContext<Events extends object = {}>
 export interface ClientContext<Events extends object = {}> extends EndpointContext<Events> {
   readonly server: ServerEndpoint
   readonly window: Window
-  readonly localWindow: LocalWindow
+  readonly presentation: WindowPresentation
   readonly permissions: ContextPermissions
 }
 

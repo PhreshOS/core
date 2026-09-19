@@ -63,19 +63,25 @@ export interface EndpointTraffic<
   asks<Payload = unknown>(options?: EventOptions): AsyncIterableIterator<AskCapture<Payload, AskTo>>
 }
 
-/** Lifecycle transitions observed at one Endpoint address. */
+/** Lifecycle transitions observed for one Endpoint's execution context. */
 export type EndpointLifecycleEvents = {
-  /** A fresh Endpoint incarnation became live. */
+  /** A fresh Endpoint execution context began running. */
   start: undefined
 
-  /** The live Endpoint incarnation ended. */
+  /** The running Endpoint execution context ended. */
   stop: undefined
 }
 
 /** Start and stop events observed at one Endpoint address. */
 export interface EndpointLifecycle extends Subscribable<EndpointLifecycleEvents, never> {}
 
-/** The shared base of a Process's Server Endpoint and Client Endpoint. */
+/**
+ * The shared permanent handle of a Process's Server or Client Endpoint.
+ *
+ * Promise-based operations reject once the owning Process has ended or when
+ * its Program never declared this Endpoint kind. A stopped declared Endpoint
+ * remains valid because another execution context may be started.
+ */
 export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
   implements Publishable, Subscribable<Events, Fallback> {
   protected constructor() {}
@@ -90,19 +96,19 @@ export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
   /** Directed communication originating from this Endpoint. */
   public abstract readonly traffic: EndpointTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
 
-  /** Start and stop transitions of this permanent Endpoint handle. */
+  /** Start and stop transitions of this permanent Endpoint's execution context. */
   public abstract readonly lifecycle: EndpointLifecycle
 
   /** Returns the Process that owns this Endpoint. */
   public abstract process(): Promise<Process>
 
-  /** Returns whether this Endpoint currently has a live incarnation. */
-  public abstract exists(): Promise<boolean>
+  /** Returns whether this Endpoint currently has a running execution context. */
+  public abstract running(): Promise<boolean>
 
   /**
    * Waits until this Endpoint can be used.
    *
-   * A Client Endpoint is ready when it has a live incarnation. A Server Endpoint additionally
+   * A Client Endpoint is ready when it has a running execution context. A Server Endpoint additionally
    * has to announce readiness. Temporary absence remains waitable while the
    * owning Process exists. The SDK uses its ten-second deadline unless one is
    * supplied.
@@ -110,9 +116,9 @@ export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
   public abstract waitReady(timeout?: number): Promise<void>
 
   /**
-   * Ensures this Endpoint has a live incarnation without waiting for Server
-   * Endpoint readiness. Launch values configure a newly created incarnation;
-   * an already-live incarnation remains unchanged.
+   * Ensures this Endpoint has a running execution context without waiting for Server
+   * Endpoint readiness. Launch values configure a newly created context;
+   * an already-running context remains unchanged.
    *
    * Rejects when the Process is gone or inaccessible, the Program did not
    * declare this endpoint kind, the launch is invalid, or creation fails.
@@ -120,8 +126,8 @@ export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
   public abstract start(): Promise<void>
 
   /**
-   * Ensures this Endpoint has no live incarnation and destroys the current
-   * incarnation's boundary-owned resources when present.
+   * Ensures this Endpoint has no running execution context and destroys the current
+   * context's boundary-owned resources when present.
    *
    * Rejects when the Process is gone or inaccessible, this is the Process's
    * final live Endpoint, or stopping fails. Stopping never exits the Process
@@ -129,7 +135,7 @@ export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
    */
   public abstract stop(): Promise<void>
 
-  /** Returns whether the current Endpoint incarnation is a service. */
+  /** Returns whether the current Endpoint execution context is a service. */
   public abstract isService(): Promise<boolean>
 
 }

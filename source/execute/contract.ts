@@ -31,6 +31,31 @@ const size = z.looseObject({
   height: metric.describe("Window height")
 }).describe("Window size")
 
+const easing = z.union([
+  z.enum(["linear", "ease", "ease-in", "ease-out", "ease-in-out"]),
+  z.tuple([z.number(), z.number(), z.number(), z.number()]).readonly()
+])
+
+const appearanceTransaction = z.looseObject({
+  duration: z.number().nonnegative(),
+  easing
+})
+
+const windowTransaction = z.union([z.boolean(), z.number().nonnegative(), appearanceTransaction])
+
+const windowFrame = z.union([z.boolean(), z.looseObject({
+  radius: z.union([z.number(), z.literal("full")]).optional(),
+  color: z.string().optional(),
+  material: z.union([z.boolean(), z.looseObject({
+    grain: z.number().optional(),
+    grainAmount: z.number().optional(),
+    backdrop: z.number().optional(),
+    opacity: z.number().optional(),
+    distortion: z.number().optional(),
+    saturation: z.number().optional()
+  })]).optional()
+})])
+
 const serverLaunch = z.looseObject({
   service: z.boolean().optional().describe("Whether the Server Endpoint is addressable as a Service")
 }).describe("Server Endpoint launch settings")
@@ -39,6 +64,8 @@ const clientLaunch = z.looseObject({
   service: z.boolean().optional().describe("Whether the Client Endpoint is addressable as a Service"),
   title: z.string().optional().describe("Initial Window title"),
   header: z.boolean().optional().describe("Whether the standard Window header is shown"),
+  frame: windowFrame.optional().describe("Authoritative Window frame"),
+  transaction: windowTransaction.optional().describe("Opening transaction for under and over presentations"),
   size: size.optional().describe("Initial Window size"),
   position: position.optional().describe("Initial Window position"),
   layer: z.enum(layers).optional().describe("Desktop Window layer"),
@@ -71,8 +98,8 @@ const windowIdentity = {
 
 const endpointState = z.looseObject({
   declared: z.boolean().describe("Whether the Program declares this Endpoint"),
-  running: z.boolean().describe("Whether the Endpoint currently exists"),
-  service: z.boolean().describe("Whether the Endpoint incarnation is a Service")
+  running: z.boolean().describe("Whether the Endpoint currently has a running execution context"),
+  service: z.boolean().describe("Whether the Endpoint execution context is a Service")
 })
 
 const programResult = z.looseObject({
@@ -92,6 +119,8 @@ const programResult = z.looseObject({
     service: z.boolean(),
     title: z.string().nullable(),
     header: z.boolean().nullable(),
+    frame: windowFrame.nullable(),
+    transaction: windowTransaction.nullable(),
     size: size.nullable(),
     position: position.nullable(),
     layer: z.enum(layers).nullable(),
@@ -116,14 +145,16 @@ const endpointResult = z.looseObject({
   program: z.string().describe("Owning Program identity"),
   endpoint: z.enum(["server", "client"]).describe("Endpoint kind"),
   declared: z.boolean().describe("Whether the Program declares this Endpoint"),
-  running: z.boolean().describe("Whether the Endpoint currently exists"),
-  service: z.boolean().describe("Whether the Endpoint incarnation is a Service")
+  running: z.boolean().describe("Whether the Endpoint currently has a running execution context"),
+  service: z.boolean().describe("Whether the Endpoint execution context is a Service")
 }).describe("Endpoint state")
 
 const windowResult = z.looseObject({
   process: z.string().describe("Owning Process identity"),
   title: z.string().describe("Window title"),
   header: z.boolean().describe("Whether the Desktop-owned Window header is shown"),
+  frame: windowFrame.describe("Authoritative Window frame"),
+  transaction: windowTransaction.describe("Opening presentation transaction"),
   position,
   size,
   minimized: z.boolean().describe("Whether the Window is minimized"),
@@ -149,7 +180,7 @@ const endpointLifecycleEvents = {
 } as const satisfies { [Event in keyof EndpointLifecycleEvents]: Event }
 const windowEvents = {
   move: "move", resize: "resize", geometry: "geometry", minimize: "minimize",
-  maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", front: "front"
+  maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", changeFrame: "changeFrame", front: "front"
 } as const satisfies { [Event in keyof WindowEvents]: Event }
 
 const programWaitRequest = request("program", "wait", {
@@ -272,7 +303,7 @@ const executeOperations = Object.freeze([
   defineOperation("process", "wait", "Wait for one Process lifecycle event.", processWaitRequest, lifecycleResult),
 
   defineOperation("endpoint", "inspect", "Read one Endpoint's current state.", request("endpoint", "inspect", endpointIdentity), endpointResult),
-  defineOperation("endpoint", "start", "Ensure one Endpoint has a live incarnation.", z.union([
+  defineOperation("endpoint", "start", "Ensure one Endpoint has a running execution context.", z.union([
     request("endpoint", "start", {
       program: endpointIdentity.program,
       process: endpointIdentity.process,
@@ -286,7 +317,7 @@ const executeOperations = Object.freeze([
       launch: clientLaunch.optional().describe("Client Endpoint launch settings")
     })
   ]), endpointResult),
-  defineOperation("endpoint", "stop", "Ensure one Endpoint has no live incarnation.", request("endpoint", "stop", endpointIdentity), endpointResult),
+  defineOperation("endpoint", "stop", "Ensure one Endpoint has no running execution context.", request("endpoint", "stop", endpointIdentity), endpointResult),
   defineOperation("endpoint", "waitReady", "Wait until one Endpoint is ready for use.", request("endpoint", "waitReady", {
     ...endpointIdentity,
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
@@ -307,7 +338,7 @@ const executeOperations = Object.freeze([
     event: z.string().min(1).describe("Event name"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
-  defineOperation("endpoint", "waitLifecycle", "Wait for one Endpoint incarnation transition.", request("endpoint", "waitLifecycle", {
+  defineOperation("endpoint", "waitLifecycle", "Wait for one Endpoint execution-context transition.", request("endpoint", "waitLifecycle", {
     ...endpointIdentity,
     event: z.enum(Object.values(endpointLifecycleEvents)).describe("Lifecycle event"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
@@ -342,6 +373,14 @@ const executeOperations = Object.freeze([
   defineOperation("window", "changeHeader", "Change whether one Window shows its Desktop-owned header.", request("window", "changeHeader", {
     ...windowIdentity,
     header: z.boolean().describe("Whether the Window header is shown")
+  }), windowResult),
+  defineOperation("window", "changeFrame", "Replace one Window's authoritative frame definition.", request("window", "changeFrame", {
+    ...windowIdentity,
+    frame: windowFrame
+  }), windowResult),
+  defineOperation("window", "changeOpeningTransaction", "Replace one Window's opening presentation transaction.", request("window", "changeOpeningTransaction", {
+    ...windowIdentity,
+    transaction: windowTransaction
   }), windowResult),
   defineOperation("window", "raise", "Raise one Window within its own layer.", request("window", "raise", windowIdentity), windowResult),
   defineOperation("window", "wait", "Wait for one authoritative Window state change.", request("window", "wait", {

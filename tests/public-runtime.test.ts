@@ -8,7 +8,7 @@ import {
   type FileStat,
   type Context,
   type Launch,
-  type LocalWindow,
+  type WindowPresentation,
   type Permission,
   type PermissionName,
   type PermissionValue,
@@ -19,7 +19,7 @@ import {
   type ShellOptions,
   type System,
   type AppearanceTransaction,
-  type WaitedTransaction,
+  type WindowTransaction,
   type Upload,
   type WritableContent,
   Endpoint,
@@ -42,27 +42,26 @@ import {
 } from "../source/main.js"
 
 describe("public runtime", function () {
-  it("keeps local representation commands separate from subscriptions", function () {
-    expectTypeOf<LocalWindow>().toHaveProperty("setGeometry")
-    expectTypeOf<LocalWindow>().toHaveProperty("addSurface")
-    expectTypeOf<LocalWindow>().toHaveProperty("minimize")
-    expectTypeOf<LocalWindow>().toHaveProperty("follow")
-    expectTypeOf<LocalWindow>().toHaveProperty("unfollow")
-    expectTypeOf<LocalWindow>().toHaveProperty("raise")
-    expectTypeOf<LocalWindow>().toHaveProperty("removeSurface")
-    expectTypeOf<LocalWindow>().toHaveProperty("transaction")
-    expectTypeOf<LocalWindow>().not.toHaveProperty("subscribe")
-    expectTypeOf<LocalWindow>().not.toHaveProperty("title")
+  it("defines the current Desktop presentation beside authoritative Window state", function () {
+    expectTypeOf<WindowPresentation>().toHaveProperty("setGeometry")
+    expectTypeOf<WindowPresentation>().toHaveProperty("minimize")
+    expectTypeOf<WindowPresentation>().toHaveProperty("follow")
+    expectTypeOf<WindowPresentation>().toHaveProperty("unfollow")
+    expectTypeOf<WindowPresentation>().toHaveProperty("raise")
+    expectTypeOf<WindowPresentation>().toHaveProperty("transaction")
+    expectTypeOf<WindowPresentation>().toHaveProperty("transactionAndWait")
+    expectTypeOf<WindowPresentation>().toHaveProperty("subscribe")
+    expectTypeOf<WindowPresentation>().toHaveProperty("title")
 
     const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
-    const waited: WaitedTransaction = { ...transaction, wait: true }
+    const selected: WindowTransaction = true
     void transaction
-    void waited
+    void selected
 
     type EmptyRejected = {} extends AppearanceTransaction ? false : true
-    type FalseWaitRejected = { duration: 180, easing: "ease-out", wait: false } extends WaitedTransaction ? false : true
+    type FalseAccepted = false extends WindowTransaction ? true : false
     expectTypeOf<EmptyRejected>().toEqualTypeOf<true>()
-    expectTypeOf<FalseWaitRejected>().toEqualTypeOf<true>()
+    expectTypeOf<FalseAccepted>().toEqualTypeOf<true>()
   })
 
   it("preserves the domain class hierarchy", function () {
@@ -130,6 +129,8 @@ describe("public runtime", function () {
     expectTypeOf<Endpoint>().toHaveProperty("isService")
     expectTypeOf<Endpoint>().not.toHaveProperty("service")
     expectTypeOf<Endpoint>().toHaveProperty("lifecycle")
+    expectTypeOf<Endpoint>().toHaveProperty("running")
+    expectTypeOf<Endpoint>().not.toHaveProperty("exists")
     expectTypeOf<Service>().toHaveProperty("lifecycle")
     expectTypeOf<Service>().toHaveProperty("exists")
     expectTypeOf<Endpoint>().toHaveProperty("waitReady")
@@ -154,7 +155,7 @@ describe("public runtime", function () {
 
   it("separates the Client context, Desktop, and global System contracts", function () {
     expectTypeOf<ClientContext>().toHaveProperty("window")
-    expectTypeOf<ClientContext>().toHaveProperty("localWindow")
+    expectTypeOf<ClientContext>().toHaveProperty("presentation")
     expectTypeOf<ClientContext>().toHaveProperty("server")
     expectTypeOf<ClientContext>().toHaveProperty("permissions")
     expectTypeOf<Desktop>().toHaveProperty("viewport")

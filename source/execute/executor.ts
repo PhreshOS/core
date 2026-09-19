@@ -183,6 +183,8 @@ async function executeWindow(
     | Request<"window", "maximize">
     | Request<"window", "changeTitle">
     | Request<"window", "changeHeader">
+    | Request<"window", "changeFrame">
+    | Request<"window", "changeOpeningTransaction">
     | Request<"window", "raise">
     | Request<"window", "wait">
 ) {
@@ -204,6 +206,8 @@ async function executeWindow(
     case "maximize": await window.maximize(request.maximized); break
     case "changeTitle": await window.changeTitle(request.title); break
     case "changeHeader": await window.changeHeader(request.header); break
+    case "changeFrame": await window.changeFrame(request.frame); break
+    case "changeOpeningTransaction": await window.changeOpeningTransaction(request.transaction); break
     case "raise": await window.raise(); break
   }
 
@@ -345,11 +349,13 @@ async function programView(program: Program) {
 
 async function processView(process: Process) {
   const program = process.program()
-  const [server, client, serverService, clientService] = await Promise.all([
-    process.server.exists(),
-    process.client.exists(),
-    process.server.isService(),
-    process.client.isService()
+  const [server, client] = await Promise.all([
+    program.server === null
+      ? Promise.resolve({ running: false, service: false })
+      : Promise.all([process.server.running(), process.server.isService()]).then(([running, service]) => ({ running, service })),
+    program.client === null
+      ? Promise.resolve({ running: false, service: false })
+      : Promise.all([process.client.running(), process.client.isService()]).then(([running, service]) => ({ running, service }))
   ])
 
   return {
@@ -357,8 +363,8 @@ async function processView(process: Process) {
     name: process.name,
     program: program.identity,
     startedAt: process.startedAt.toISOString(),
-    server: { declared: program.server !== null, running: server, service: serverService },
-    client: { declared: program.client !== null, running: client, service: clientService }
+    server: { declared: program.server !== null, ...server },
+    client: { declared: program.client !== null, ...client }
   }
 }
 
@@ -371,15 +377,17 @@ async function endpointView(process: Process, name: "server" | "client") {
     program: program.identity,
     endpoint: name,
     declared: name === "server" ? program.server !== null : program.client !== null,
-    running: await target.exists(),
+    running: await target.running(),
     service: await target.isService()
   }
 }
 
 async function windowView(process: string, window: Window) {
-  const [title, header, position, size, minimized, maximized, front, layer] = await Promise.all([
+  const [title, header, frame, transaction, position, size, minimized, maximized, front, layer] = await Promise.all([
     window.title(),
     window.header(),
+    window.frame(),
+    window.openingTransaction(),
     window.position(),
     window.size(),
     window.minimized(),
@@ -388,7 +396,7 @@ async function windowView(process: string, window: Window) {
     window.layer()
   ])
 
-  return { process, title, header, position, size, minimized, maximized, front, layer }
+  return { process, title, header, frame, transaction, position, size, minimized, maximized, front, layer }
 }
 
 function exitView(value: Readonly<{ status: "exited" | "signaled", code: number | null, signal: string | null }>) {

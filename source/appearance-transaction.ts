@@ -13,7 +13,5 @@ export type AppearanceTransaction = Readonly<{
   easing: Easing
 }>
 
-/** An Appearance transaction whose requesting operation waits for completion. */
-export type WaitedTransaction = AppearanceTransaction & Readonly<{
-  wait: true
-}>
+/** Timing selected for a Window presentation operation. */
+export type WindowTransaction = boolean | number | AppearanceTransaction

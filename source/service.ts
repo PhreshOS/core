@@ -30,13 +30,13 @@ export abstract class Service<Events extends object = {}, Fallback = unknown>
   /** Start and stop transitions of the addressed Endpoint. */
   public abstract readonly lifecycle: EndpointLifecycle
 
-  /** Returns whether the addressed Endpoint currently has a live incarnation. */
+  /** Returns whether the addressed Endpoint currently has a running execution context. */
   public abstract exists(): Promise<boolean>
 
   /**
    * Waits until the addressed Endpoint service can be used.
    *
-   * A Client service is ready when its Client incarnation exists. A Server
+   * A Client service is ready when its Client execution context is running. A Server
    * service additionally has to announce readiness. The SDK uses its
    * ten-second deadline unless one is supplied.
    */

@@ -75,7 +75,7 @@ test("package contract", async () => {
 
     writeFileSync(
       join(consumer, "consumer.ts"),
-      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type LocalWindow, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type WaitedTransaction, type Window, type WindowGeometry, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
+      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowTransaction, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
   const config: Config = defineConfig({
     identity: "package-consumer",
@@ -91,8 +91,8 @@ test("package contract", async () => {
   type WindowHasSurface = "surface" extends keyof Window ? true : false
   const windowHasSurface: WindowHasSurface = false
   const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
-  const waitedTransaction: WaitedTransaction = { ...transaction, wait: true }
-  declare const localWindow: LocalWindow
+  const windowTransaction: WindowTransaction = transaction
+  declare const presentation: WindowPresentation
   const geometry: WindowGeometry = {
     position: { x: "0/1", y: "0/1" },
     size: { width: "1/2", height: "1/2" }
@@ -127,10 +127,9 @@ test("package contract", async () => {
   void program.identity
   void forcedProgram
   void transaction
-  void localWindow.transaction(waitedTransaction).addSurface()
-  void localWindow.transaction(transaction).follow(window)
-  void localWindow.unfollow()
-  void localWindow.removeSurface()
+  void presentation.transactionAndWait(windowTransaction).changeFrame(true)
+  void presentation.transaction(transaction).follow()
+  void presentation.unfollow()
   void setGeometry
   void outside
   void hiddenDestination

@@ -7,6 +7,8 @@ import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
+import type { WindowFrame } from "./window.js"
+import type { WindowTransaction } from "./appearance-transaction.js"
 import type { Network } from "./network.js"
 import type { ProgramPermissionDeclarations } from "./permissions.js"
 import type { Connection } from "./connection.js"
@@ -33,6 +35,8 @@ export type ClientDefinition = Readonly<{
   service?: boolean
   title?: string
   header?: boolean
+  frame?: WindowFrame
+  transaction?: WindowTransaction
   size?: Size
   position?: Position
   layer?: Layer

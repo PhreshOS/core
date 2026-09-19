@@ -1,4 +1,6 @@
 import type { Value } from "./value.js"
+import type { WindowTransaction } from "./appearance-transaction.js"
+import type { WindowFrame } from "./window.js"
 
 /** A Window's top-left position. */
 export type Position = Readonly<{
@@ -29,35 +31,41 @@ export function isLayer(value: unknown): value is Layer {
   return layers.some(layer => layer === value)
 }
 
-/** Settings for one Server Endpoint incarnation. */
+/** Settings for one Server Endpoint execution context. */
 export type ServerLaunch = Readonly<{
-  /** Whether this incarnation can be addressed through `system.service()`. */
+  /** Whether this execution context can be addressed through `system.service()`. */
   service?: boolean
 }>
 
-/** Settings for one Client Endpoint incarnation and its Window. */
+/** Settings for starting one Client Endpoint and explicitly replacing Window values. */
 export type ClientLaunch = Readonly<{
-  /** Whether this incarnation can be addressed through `system.service()`. */
+  /** Whether this execution context can be addressed through `system.service()`. */
   service?: boolean
 
-  /** Initial Window title for this Client incarnation. */
+  /** Window title to use when this Client starts. */
   title?: string
 
-  /** Whether a standard Window initially shows its Desktop-owned header. */
+  /** Whether a standard Window shows its Desktop-owned header after this start. */
   header?: boolean
 
-  /** Initial Window size for this Process. */
+  /** Authoritative frame value used by layers that present customizable frames. */
+  frame?: WindowFrame
+
+  /** Transaction used when an under or over Window first appears. */
+  transaction?: WindowTransaction
+
+  /** Window size to use after this start. */
   size?: Size
 
-  /** Initial Window position for this Process. */
+  /** Window position to use after this start. */
   position?: Position
 
   /** Structurally isolated layer containing this Process's Window. */
   layer?: Layer
 
-  /** Whether the Window initially opens minimized. */
+  /** Whether the Window is minimized after this start. */
   minimize?: boolean
-  /** Whether the Window initially fills its Desktop workspace. */
+  /** Whether the Window fills its Desktop workspace after this start. */
   maximize?: boolean
 }>
 

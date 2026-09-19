@@ -1,8 +1,25 @@
 import type { Layer, Position, Size } from "./launch.js"
+import type { AppearanceColor, AppearanceMaterial } from "./appearance.js"
+import type { WindowTransaction } from "./appearance-transaction.js"
 import type { Subscribable } from "./subscribable.js"
 
 /** The authoritative runtime layer occupied by a Window. */
 export type WindowLayer = Layer
+
+/** Appearance-owned material overrides for one optional Desktop frame. */
+export type WindowFrameMaterial = boolean | Partial<AppearanceMaterial>
+
+/** The frame surrounding a Window presentation, or `false` when it is absent. */
+export type WindowFrame = boolean | Readonly<{
+  /** Core Appearance radius in pixels, or a completely rounded boundary. */
+  radius?: number | "full"
+
+  /** An Appearance color role or an explicit CSS color. */
+  color?: AppearanceColor | (string & {})
+
+  /** Default Material, no Material, or explicit Core Material overrides. */
+  material?: WindowFrameMaterial
+}>
 
 /** Position and size committed as one authoritative Window change. */
 export type WindowGeometry = Readonly<{
@@ -36,6 +53,9 @@ export type WindowEvents = {
   /** The Desktop-owned header visibility changed. */
   changeHeader: boolean
 
+  /** The authoritative frame definition changed. */
+  changeFrame: WindowFrame
+
   /** Whether this Window became or ceased to be frontmost in its layer. */
   front: boolean
 }
@@ -47,6 +67,12 @@ export type WindowState = Readonly<{
 
   /** Whether the Desktop-owned header is shown. */
   header: boolean
+
+  /** Authoritative frame definition retained independently of presentation support. */
+  frame: WindowFrame
+
+  /** Transaction selected for the next opening presentation. */
+  transaction: WindowTransaction
 
   /** Current top-left position. */
   position: Position
@@ -68,13 +94,19 @@ export type WindowState = Readonly<{
 
 }>
 
-/** Presentation capability owned by one Client handle. */
+/** Authoritative Window state permanently owned by one Client Endpoint. */
 export interface Window extends WindowOperations, Subscribable<WindowEvents, never> {
   /** Returns the current title. */
   title(): Promise<string>
 
   /** Returns whether the Desktop-owned header is shown. */
   header(): Promise<boolean>
+
+  /** Returns the authoritative frame definition. */
+  frame(): Promise<WindowFrame>
+
+  /** Returns the transaction selected for the next opening presentation. */
+  openingTransaction(): Promise<WindowTransaction>
 
   /** Returns the current top-left position. */
   position(): Promise<Position>
@@ -93,9 +125,12 @@ export interface Window extends WindowOperations, Subscribable<WindowEvents, nev
 
   /** Returns the authoritative desktop layer containing the Window. */
   layer(): Promise<WindowLayer>
+
+  /** Replaces the transaction selected for the next opening presentation. */
+  changeOpeningTransaction(transaction: WindowTransaction): Promise<void>
 }
 
-/** Operations shared by authoritative Windows and their local representations. */
+/** Operations shared by authoritative Windows and their Desktop presentations. */
 export interface WindowOperations {
   /** Moves the stored geometry. */
   move(position: Position): Promise<void>
@@ -117,6 +152,9 @@ export interface WindowOperations {
 
   /** Changes whether the Desktop-owned header is shown. */
   changeHeader(header: boolean): Promise<void>
+
+  /** Replaces the authoritative frame definition. */
+  changeFrame(frame: WindowFrame): Promise<void>
 
   /** Brings the Window to the front of its own layer. */
   raise(): Promise<void>
