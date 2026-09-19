@@ -62,7 +62,7 @@ test("package contract", async () => {
 
   assert(ClientEndpoint.prototype instanceof Endpoint)
   assert(ServerEndpoint.prototype instanceof Endpoint)
-  assert.equal(defaultAppearance.colors.light.background, "#ffffff")
+  assert.equal(defaultAppearance.colors.light.background, "#fff9f5")
   assert.equal(defaultAppearance.colors.light.primary, "#4c9cff")
   assert.equal("accent" in defaultAppearance, false)
   assert.deepEqual(parseShellEvent({ event: "started", pid: 42 }), { event: "started", pid: 42 })

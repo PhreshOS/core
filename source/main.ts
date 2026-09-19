@@ -232,9 +232,7 @@ export { isLayer, layers, type ClientLaunch, type Launch, type Layer, type Posit
 export {
   defineConfig,
   type ClientConfig,
-  type ClientDevelopment,
   type Config,
   type ServerConfig,
-  type ServerExecution,
-  type ServerDevelopment
+  type ServerExecution
 } from "./config.js"

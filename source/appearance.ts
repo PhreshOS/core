@@ -87,15 +87,13 @@ export const appearanceLimits = Object.freeze({
   material: Readonly<Record<keyof AppearanceMaterial, AppearanceRange>>
 }>
 
-const defaultShadow = Object.freeze({ x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 })
-
 /** Complete default Appearance available to every environment. */
 export const defaultAppearance = createAppearanceSnapshot({
   colors: {
     light: {
-      background: "#ffffff",
+      background: "#fff9f5",
       foreground: "#183447",
-      default: "#e0e0e6",
+      default: "#f7b37b",
       primary: "#4c9cff",
       secondary: "#8b5cf6",
       success: "#16a34a",
@@ -106,7 +104,7 @@ export const defaultAppearance = createAppearanceSnapshot({
     dark: {
       background: "#121a21",
       foreground: "#edf8fc",
-      default: "#25292c",
+      default: "#32251a",
       primary: "#4c9cff",
       secondary: "#a78bfa",
       success: "#4ade80",
@@ -117,10 +115,13 @@ export const defaultAppearance = createAppearanceSnapshot({
   },
   spacing: 12,
   radius: 10,
-  shadow: { light: defaultShadow, dark: defaultShadow },
+  shadow: {
+    light: { x: 0, y: 0, blur: 15, spread: 0, opacity: 0.06 },
+    dark: { x: 0, y: 0, blur: 15, spread: 0, opacity: 0.25 }
+  },
   material: {
-    light: { grain: 0.05, grainAmount: 1, backdrop: 12, opacity: 0.55, distortion: 0, saturation: 1.66 },
-    dark: { grain: 0.03, grainAmount: 1, backdrop: 12, opacity: 0.66, distortion: 0, saturation: 1.77 }
+    light: { grain: 0.04, grainAmount: 0.95, backdrop: 5, opacity: 0.8, distortion: 0, saturation: 1.66 },
+    dark: { grain: 0.03, grainAmount: 0.95, backdrop: 12, opacity: 0.8, distortion: 0, saturation: 1.77 }
   },
   transaction: { duration: 120, easing: "ease-out" },
   signInWallpaper: { light: null, dark: null },

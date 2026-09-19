@@ -9,44 +9,45 @@ import {
 
 describe("Appearance", function () {
   it("keeps complete default light and dark values", function () {
-    expect(defaultAppearance.colors.light.background).toBe("#ffffff")
+    expect(defaultAppearance.colors.light.background).toBe("#fff9f5")
     expect(defaultAppearance.colors.dark.background).toBe("#121a21")
     expect(defaultAppearance.colors.light.foreground).toBe("#183447")
     expect(defaultAppearance.colors.dark.foreground).toBe("#edf8fc")
-    expect(defaultAppearance.colors.light.default).toBe("#e0e0e6")
-    expect(defaultAppearance.colors.dark.default).toBe("#25292c")
+    expect(defaultAppearance.colors.light.default).toBe("#f7b37b")
+    expect(defaultAppearance.colors.dark.default).toBe("#32251a")
     expect(defaultAppearance.colors.light.primary).toBe("#4c9cff")
     expect(defaultAppearance.colors.dark.primary).toBe("#4c9cff")
     expect(defaultAppearance.spacing).toBe(12)
     expect(defaultAppearance.transaction).toEqual({ duration: 120, easing: "ease-out" })
     expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
-    expect(defaultAppearance.material.light.grain).toBe(0.05)
+    expect(defaultAppearance.material.light.grain).toBe(0.04)
   })
 
   it("uses independent light and dark material defaults", function () {
     expect(defaultAppearance.material.light).toEqual({
-      grain: 0.05,
-      grainAmount: 1,
-      backdrop: 12,
-      opacity: 0.55,
+      grain: 0.04,
+      grainAmount: 0.95,
+      backdrop: 5,
+      opacity: 0.8,
       distortion: 0,
       saturation: 1.66
     })
     expect(defaultAppearance.material.dark).toEqual({
       grain: 0.03,
-      grainAmount: 1,
+      grainAmount: 0.95,
       backdrop: 12,
-      opacity: 0.66,
+      opacity: 0.8,
       distortion: 0,
       saturation: 1.77
     })
   })
 
   it("owns independent, immutable shadow values", function () {
-    const shadow = { x: 0, y: 8, blur: 24, spread: 0, opacity: 0.16 }
-    expect(defaultAppearance.shadow).toEqual({ light: shadow, dark: shadow })
-    const input = { ...shadow, y: 12 }
-    const snapshot = createAppearanceSnapshot({ ...defaultAppearance, shadow: { light: input, dark: shadow } })
+    const light = { x: 0, y: 0, blur: 15, spread: 0, opacity: 0.06 }
+    const dark = { x: 0, y: 0, blur: 15, spread: 0, opacity: 0.25 }
+    expect(defaultAppearance.shadow).toEqual({ light, dark })
+    const input = { ...light, y: 12 }
+    const snapshot = createAppearanceSnapshot({ ...defaultAppearance, shadow: { light: input, dark } })
     input.y = 20
     expect(snapshot.shadow.light.y).toBe(12)
     expect(Object.isFrozen(snapshot.shadow)).toBe(true)
@@ -116,7 +117,7 @@ describe("Appearance", function () {
   it("validates consumed values and ignores additional properties", function () {
     expect(parseAppearance(defaultAppearance)).toEqual(defaultAppearance)
     const { default: omitted, ...withoutDefault } = defaultAppearance.colors.light
-    expect(omitted).toBe("#e0e0e6")
+    expect(omitted).toBe("#f7b37b")
     expect(() => parseAppearance({
       ...defaultAppearance,
       colors: { ...defaultAppearance.colors, light: withoutDefault }

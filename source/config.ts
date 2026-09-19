@@ -23,29 +23,6 @@ export type ServerExecution =
     sandbox: string
   }>
 
-/** Development settings for a Program's Server. */
-export type ServerDevelopment = Readonly<{
-  /** Attached host command with access to the Project's development tooling. */
-  command: string
-}>
-
-/** Development settings for a Program's Client. */
-export type ClientDevelopment =
-  | Readonly<{
-    /** HTTP(S) URL served by an external or explicitly addressed development server. */
-    url: string
-
-    /** Optional command that starts the Client's development server. */
-    startCommand?: string
-  }>
-  | Readonly<{
-    /** Omit the URL to let the Project assign an available local port. */
-    url?: never
-
-    /** Command that starts the Client's development server. */
-    startCommand: string
-  }>
-
 /** Authoring declaration for a Program's Server. */
 export type ServerConfig = Readonly<{
   /** Production directory containing the Server. */
@@ -63,8 +40,8 @@ export type ServerConfig = Readonly<{
   /** Optional cleanup command run from {@link location} while uninstalling. */
   uninstallCommand?: string
 
-  /** Settings used only by the development command. */
-  development?: ServerDevelopment
+  /** Attached host command used to run this Server during development. */
+  devCommand?: string
 }> & ServerExecution
 
 /** Authoring declaration for a Program's Client and initial Window. */
@@ -98,8 +75,11 @@ export type ClientConfig = Readonly<{
   /** Whether the Window initially fills its Desktop workspace. */
   maximize?: boolean
 
-  /** Settings used only by the development command. */
-  development?: ClientDevelopment
+  /** HTTP(S) URL serving this Client during development. */
+  devUrl?: string
+
+  /** Optional command that starts this Client's development server. */
+  devCommand?: string
 }>
 
 type Description = Pick<ProgramDefinition, "startup" | "launch"> & Readonly<{
