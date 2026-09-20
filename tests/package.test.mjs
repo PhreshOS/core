@@ -75,11 +75,15 @@ test("package contract", async () => {
 
     writeFileSync(
       join(consumer, "consumer.ts"),
-      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowTransaction, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
+      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type ServiceProgramMetadataOptions, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowTransaction, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
   const config: Config = defineConfig({
     identity: "package-consumer",
-    client: { location: "./client" }
+    client: {
+      location: "./client",
+      frame: { radius: "full", material: { opacity: 0.8 } },
+      transaction: { duration: 180, easing: "ease-out" }
+    }
   })
 
   declare const program: Program
@@ -94,11 +98,14 @@ test("package contract", async () => {
   const windowTransaction: WindowTransaction = transaction
   declare const presentation: WindowPresentation
   const geometry: WindowGeometry = {
-    position: { x: "0/1", y: "0/1" },
-    size: { width: "1/2", height: "1/2" }
+    x: "0/1",
+    y: "0/1",
+    width: "1/2",
+    height: "1/2"
   }
   declare const window: Window
   const setGeometry: Promise<void> = window.setGeometry(geometry)
+  const metadataOptions: ServiceProgramMetadataOptions = { icon: "small" }
   const outside: ContextMessage<string> = { from: null, payload: "owner-local" }
   const hiddenDestination: TrafficMessage<string> = { to: null, payload: "boundary-local" }
   declare const uploads: SystemUploads
@@ -127,10 +134,11 @@ test("package contract", async () => {
   void program.identity
   void forcedProgram
   void transaction
-  void presentation.transactionAndWait(windowTransaction).changeFrame(true)
+  void presentation.transactionAndWait(windowTransaction).setFrame(true)
   void presentation.transaction(transaction).follow()
   void presentation.unfollow()
   void setGeometry
+  void metadataOptions
   void outside
   void hiddenDestination
   void written

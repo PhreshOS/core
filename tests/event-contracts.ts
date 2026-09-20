@@ -89,7 +89,7 @@ function clientContextContract(context: ClientContext) {
   presentation.subscribe("move", position => void position.x)
   presentation.minimize()
   presentation.raise()
-  presentation.transaction({ duration: 120, easing: "ease-out" }).setGeometry({ position: { x: 0, y: 0 }, size: { width: 800, height: 600 } })
+  presentation.transaction({ duration: 120, easing: "ease-out" }).setGeometry({ x: 0, y: 0, width: 800, height: 600 })
   presentation.transactionAndWait({ duration: 120, easing: "ease-out" }).minimize(false)
   context.permissions.get("all")
   context.permissions.allows("network", ["https://api.example.com"])
@@ -140,7 +140,7 @@ function explicitlyOpenEndpoint(endpoint: Endpoint<{ changed: number }, unknown>
 void explicitlyOpenEndpoint
 
 function explicitlyOpenSystemService(system: System) {
-  const service = system.service<{ changed: number }, unknown>({
+  const service = system.service.prepare<{ changed: number }, unknown>({
     program: "application",
     process: "main",
     endpoint: "server"
@@ -148,6 +148,11 @@ function explicitlyOpenSystemService(system: System) {
 
   service.subscribe("changed", message => message.toFixed(0))
   service.subscribe("application-event", message => void message)
+  service.programMetadata({ icon: "small" }).then(metadata => {
+    metadata.name.toUpperCase()
+    metadata.version.toUpperCase()
+    metadata.icon.arrayBuffer()
+  })
 }
 
 void explicitlyOpenSystemService
@@ -167,7 +172,7 @@ function eventContracts(process: Process, server: ServerEndpoint, service: Serve
   server.traffic.subscribeAnswers(capture => void capture.message.outcome)
 
   service.subscribe("change", value => value.toFixed(0))
-  service.lifecycle.subscribe("start", value => void value)
+  service.lifecycle.subscribe("available", value => void value)
   service.ask("value")
   service.publish("refresh")
 

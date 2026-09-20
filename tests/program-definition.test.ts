@@ -7,6 +7,16 @@ describe("Program definition", function () {
     expectTypeOf<Config["launch"]>().toEqualTypeOf<ProgramDefinition["launch"]>()
     expectTypeOf<Config["startup"]>().toEqualTypeOf<ProgramDefinition["startup"]>()
     expectTypeOf<ProgramDefinition["startup"]>().toEqualTypeOf<true | Launch | undefined>()
+
+    const config: Config = {
+      identity: "window-contract",
+      client: {
+        location: "./client",
+        frame: { radius: "full", material: { opacity: 0.8 } },
+        transaction: { duration: 180, easing: "ease-out" }
+      }
+    }
+    void config
   })
   it("canonicalizes the shared runtime definition", function () {
     const definition = parseProgramDefinition({
@@ -21,6 +31,7 @@ describe("Program definition", function () {
 
     expect(definition.permissions?.network).toEqual(["https://api.example.com"])
     expect(definition.client?.header).toBe(false)
+    expect(definition.version).toBe("0.0.0")
     expect(Object.isFrozen(definition)).toBe(true)
   })
 
@@ -52,6 +63,7 @@ describe("Program definition", function () {
     expect(parseProgramDefinition({ identity: "example", storage: "/tmp/example", permissions: { files: true }, client: { location: "/client" } }).permissions).toEqual({})
     expect(parseProgramDefinition({ identity: "example", storage: "/tmp/example", extension: true, client: { location: "/client", extension: true } })).toEqual({
       identity: "example",
+      version: "0.0.0",
       storage: "/tmp/example",
       client: { location: "/client" }
     })

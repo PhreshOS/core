@@ -37,8 +37,79 @@ async function dispatch(system: ExecutionSystem, request: ExecuteRequest): Promi
     case "program": return executeProgram(system, request)
     case "process": return executeProcess(system, request)
     case "endpoint": return executeEndpoint(system, request)
+    case "service": return executeService(system, request)
     case "window": return executeWindow(system, request)
   }
+}
+
+async function executeService(
+  system: ExecutionSystem,
+  request:
+    | Request<"service", "list">
+    | Request<"service", "search">
+    | Request<"service", "inspect">
+    | Request<"service", "waitReady">
+    | Request<"service", "ask">
+    | Request<"service", "publish">
+    | Request<"service", "wait">
+    | Request<"service", "waitLifecycle">
+    | Request<"service", "waitDiscovery">
+) {
+  if (request.$operation === "list") return Promise.all((await system.service.list()).map(serviceView))
+  if (request.$operation === "search") return Promise.all((await system.service.search(request.name)).map(serviceView))
+  if (request.$operation === "waitDiscovery") {
+    const service = await system.service.wait(request.event, request.timeout)
+    return {
+      scope: "system",
+      event: request.event,
+      payload: await serviceView(service)
+    }
+  }
+
+  const target = system.service.prepare({
+    program: request.program,
+    process: request.process,
+    endpoint: request.endpoint
+  })
+
+  switch (request.$operation) {
+    case "inspect": break
+    case "waitReady": await target.waitReady(request.timeout); break
+    case "ask": {
+      const server = system.service.prepare({
+        program: request.program,
+        process: request.process,
+        endpoint: "server"
+      })
+      const asker = request.timeout === undefined ? server : server.timeout(request.timeout)
+      const answer = await (Object.hasOwn(request, "input")
+        ? asker.ask(request.event, request.input)
+        : asker.ask(request.event))
+      return answer === undefined ? null : answer
+    }
+    case "publish":
+      if (Object.hasOwn(request, "input")) target.publish(request.event, request.input)
+      else target.publish(request.event)
+      break
+    case "wait": return {
+      scope: "service",
+      program: request.program,
+      process: request.process,
+      endpoint: request.endpoint,
+      event: request.event,
+      payload: jsonMessage(await target.wait(request.event, request.timeout))
+    }
+    case "waitLifecycle": return {
+      scope: "service",
+      program: request.program,
+      process: request.process,
+      endpoint: request.endpoint,
+      event: request.event,
+      payload: jsonMessage(await target.lifecycle.wait(request.event, request.timeout))
+    }
+  }
+
+  return serviceView(target)
 }
 
 function executeOperation(request: Request<"operation", "list"> | Request<"operation", "describe">) {
@@ -181,10 +252,10 @@ async function executeWindow(
     | Request<"window", "setGeometry">
     | Request<"window", "minimize">
     | Request<"window", "maximize">
-    | Request<"window", "changeTitle">
-    | Request<"window", "changeHeader">
-    | Request<"window", "changeFrame">
-    | Request<"window", "changeOpeningTransaction">
+    | Request<"window", "setTitle">
+    | Request<"window", "setHeader">
+    | Request<"window", "setFrame">
+    | Request<"window", "setTransaction">
     | Request<"window", "raise">
     | Request<"window", "wait">
 ) {
@@ -201,13 +272,13 @@ async function executeWindow(
     }
     case "move": await window.move(request.position); break
     case "resize": await window.resize(request.size); break
-    case "setGeometry": await window.setGeometry({ position: request.position, size: request.size }); break
+    case "setGeometry": await window.setGeometry({ x: request.x, y: request.y, width: request.width, height: request.height }); break
     case "minimize": await window.minimize(request.minimized); break
     case "maximize": await window.maximize(request.maximized); break
-    case "changeTitle": await window.changeTitle(request.title); break
-    case "changeHeader": await window.changeHeader(request.header); break
-    case "changeFrame": await window.changeFrame(request.frame); break
-    case "changeOpeningTransaction": await window.changeOpeningTransaction(request.transaction); break
+    case "setTitle": await window.setTitle(request.title); break
+    case "setHeader": await window.setHeader(request.header); break
+    case "setFrame": await window.setFrame(request.frame); break
+    case "setTransaction": await window.setTransaction(request.transaction); break
     case "raise": await window.raise(); break
   }
 
@@ -382,12 +453,16 @@ async function endpointView(process: Process, name: "server" | "client") {
   }
 }
 
+async function serviceView(service: import("../service.js").Service) {
+  return { ...service.address(), available: await service.available() }
+}
+
 async function windowView(process: string, window: Window) {
   const [title, header, frame, transaction, position, size, minimized, maximized, front, layer] = await Promise.all([
     window.title(),
     window.header(),
     window.frame(),
-    window.openingTransaction(),
+    window.transaction(),
     window.position(),
     window.size(),
     window.minimized(),

@@ -15,7 +15,7 @@ export type ProgramSnapshot = HandleAddress & Readonly<{
   assetId: string
   installed?: boolean
   name: string
-  version: string | null
+  version: string
   description: string | null
   categories?: readonly string[]
   keywords?: readonly string[]
@@ -69,7 +69,7 @@ export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
     || typeof source.identity !== "string"
     || typeof source.assetId !== "string"
     || typeof source.name !== "string"
-    || source.version !== null && typeof source.version !== "string"
+    || typeof source.version !== "string"
     || source.description !== null && typeof source.description !== "string"
     || typeof source.hasAgent !== "boolean"
     || source.installed !== undefined && typeof source.installed !== "boolean") {

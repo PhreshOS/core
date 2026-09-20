@@ -29,7 +29,7 @@ import {
   Service,
   defineConfig,
   isRelativeValue,
-  isServiceKey,
+  isServiceAddress,
   layers,
   parsePermission,
   parsePermissions,
@@ -55,8 +55,11 @@ describe("public runtime", function () {
 
     const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
     const selected: WindowTransaction = true
+    // @ts-expect-error Frame Material accepts explicit overrides or false, not a default sentinel.
+    const invalidFrameMaterial: import("../source/main.js").WindowFrame = { material: true }
     void transaction
     void selected
+    void invalidFrameMaterial
 
     type EmptyRejected = {} extends AppearanceTransaction ? false : true
     type FalseAccepted = false extends WindowTransaction ? true : false
@@ -78,6 +81,13 @@ describe("public runtime", function () {
     expectTypeOf<Connection["signIn"]>().returns.resolves.toEqualTypeOf<Session>()
     expectTypeOf<Session["connections"]>().returns.resolves.toEqualTypeOf<Connection[]>()
     expectTypeOf<Session["signOut"]>().returns.resolves.toEqualTypeOf<void>()
+  })
+
+  it("keeps Service discovery concrete and address preparation discriminated", function () {
+    expectTypeOf<System["service"]["list"]>().returns.resolves.toEqualTypeOf<(ServerService | ClientService)[]>()
+    expectTypeOf<System["service"]["search"]>().returns.resolves.toEqualTypeOf<(ServerService | ClientService)[]>()
+
+    void declareServicePreparation
   })
 
   it("keeps one complete Program and Process contract", function () {
@@ -132,7 +142,7 @@ describe("public runtime", function () {
     expectTypeOf<Endpoint>().toHaveProperty("running")
     expectTypeOf<Endpoint>().not.toHaveProperty("exists")
     expectTypeOf<Service>().toHaveProperty("lifecycle")
-    expectTypeOf<Service>().toHaveProperty("exists")
+    expectTypeOf<Service>().toHaveProperty("available")
     expectTypeOf<Endpoint>().toHaveProperty("waitReady")
     expectTypeOf<Service>().toHaveProperty("waitReady")
     expectTypeOf<Service>().toHaveProperty("publish")
@@ -297,12 +307,13 @@ describe("public runtime", function () {
     void neither
   })
 
-  it("recognizes only complete public service keys", function () {
-    expect(isServiceKey({ program: "counter", process: "main", endpoint: "server" })).toBe(true)
-    expect(isServiceKey({ process: "1f4b222c-25d7-4ba8-85e5-d5e59cfe0928", endpoint: "server" })).toBe(true)
-    expect(isServiceKey({ process: "main", endpoint: "server" })).toBe(false)
-    expect(isServiceKey({ program: "counter", process: "main", endpoint: "process" })).toBe(false)
-    expect(isServiceKey({ program: "counter", process: "", endpoint: "client" })).toBe(false)
+  it("recognizes only complete public Service addresses", function () {
+    expect(isServiceAddress({ program: "counter", process: "main", endpoint: "server" })).toBe(true)
+    expect(isServiceAddress({ process: "1f4b222c-25d7-4ba8-85e5-d5e59cfe0928", endpoint: "server" })).toBe(false)
+    expect(isServiceAddress({ process: "main", endpoint: "server" })).toBe(false)
+    expect(isServiceAddress({ program: "Not An Identity", process: "main", endpoint: "server" })).toBe(false)
+    expect(isServiceAddress({ program: "counter", process: "main", endpoint: "process" })).toBe(false)
+    expect(isServiceAddress({ program: "counter", process: "", endpoint: "client" })).toBe(false)
   })
 
   it("accepts only finite linear geometry", function () {
@@ -312,3 +323,10 @@ describe("public runtime", function () {
     expect(isRelativeValue("calc(100% - 4px)")).toBe(false)
   })
 })
+
+function declareServicePreparation(system: System) {
+  const server: ServerService = system.service.prepare({ program: "notes", process: "main", endpoint: "server" })
+  const client: ClientService = system.service.prepare({ program: "notes", process: "main", endpoint: "client" })
+  void server
+  void client
+}

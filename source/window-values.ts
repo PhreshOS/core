@@ -43,8 +43,8 @@ export function parseWindowTransaction(value: unknown): WindowTransaction {
   return Object.freeze({ duration: source.duration, easing: parseEasing(source.easing) })
 }
 
-function parseFrameMaterial(value: unknown): boolean | Partial<AppearanceMaterial> {
-  if (typeof value === "boolean") return value
+function parseFrameMaterial(value: unknown): false | Partial<AppearanceMaterial> {
+  if (value === false) return false
 
   const source = record(value, "Window frame material")
   const result: Partial<Record<keyof AppearanceMaterial, number>> = {}

@@ -2,11 +2,12 @@ import type { Timeoutable } from "./timeout.js"
 import { parseNetworkScope, type NetworkScope } from "./network.js"
 import { parseStorageScope, type StorageScope } from "./storage.js"
 import type { Layer } from "./launch.js"
+import { isProgramIdentity } from "./program-identity.js"
 
 /** Every Program permission and the value domain accepted by it. */
 export const programPermissionCatalog = Object.freeze({
   all: "none",
-  services: "program",
+  services: "service",
   programs: "program",
   layers: "layer",
   network: "network",
@@ -27,6 +28,7 @@ export type PermissionValueDomain<Name extends PermissionName = PermissionName> 
 /** One selectable value belonging to an exact permission. */
 export type PermissionValue<Name extends PermissionName> = Name extends PermissionName
   ? PermissionValueDomain<Name> extends "program" ? string
+    : PermissionValueDomain<Name> extends "service" ? string
     : PermissionValueDomain<Name> extends "network" ? NetworkScope
       : PermissionValueDomain<Name> extends "storage" ? StorageScope
         : PermissionValueDomain<Name> extends "layer" ? Exclude<Layer, "window">
@@ -136,7 +138,10 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
 
   if (domain === "none") return values.length === 0 ? [] : null
   if (domain === "program") {
-    return values.every(value => typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) ? values : null
+    return values.every(isProgramIdentity) ? values : null
+  }
+  if (domain === "service") {
+    return values.every(value => typeof value === "string" && value.trim().length > 0) ? values : null
   }
   if (domain === "layer") {
     return values.every(value => value === "under" || value === "over" || value === "wallpaper" || value === "start-menu") ? values : null

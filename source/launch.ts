@@ -33,13 +33,13 @@ export function isLayer(value: unknown): value is Layer {
 
 /** Settings for one Server Endpoint execution context. */
 export type ServerLaunch = Readonly<{
-  /** Whether this execution context can be addressed through `system.service()`. */
+  /** Whether this execution context may become discoverable through `system.service`. */
   service?: boolean
 }>
 
 /** Settings for starting one Client Endpoint and explicitly replacing Window values. */
 export type ClientLaunch = Readonly<{
-  /** Whether this execution context can be addressed through `system.service()`. */
+  /** Whether this execution context may become discoverable through `system.service`. */
   service?: boolean
 
   /** Window title to use when this Client starts. */
@@ -51,7 +51,7 @@ export type ClientLaunch = Readonly<{
   /** Authoritative frame value used by layers that present customizable frames. */
   frame?: WindowFrame
 
-  /** Transaction used when an under or over Window first appears. */
+  /** Default transaction used by under and over Window presentations. */
   transaction?: WindowTransaction
 
   /** Window size to use after this start. */

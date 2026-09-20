@@ -5,7 +5,10 @@ import type { EndpointLifecycleEvents } from "../endpoint.js"
 import type { ProcessEvents } from "../process.js"
 import type { ProgramEvents } from "../program.js"
 import type { SystemProcessEvents, SystemProgramEvents } from "../system.js"
+import type { ServiceLifecycleEvents } from "../service.js"
+import type { SystemServiceEvents } from "../system.js"
 import type { WindowEvents } from "../window.js"
+import { isProgramIdentity } from "../program-identity.js"
 
 const jsonValue: z.ZodType<JsonValue> = z.lazy(() => z.union([
   z.null(),
@@ -46,7 +49,7 @@ const windowTransaction = z.union([z.boolean(), z.number().nonnegative(), appear
 const windowFrame = z.union([z.boolean(), z.looseObject({
   radius: z.union([z.number(), z.literal("full")]).optional(),
   color: z.string().optional(),
-  material: z.union([z.boolean(), z.looseObject({
+  material: z.union([z.literal(false), z.looseObject({
     grain: z.number().optional(),
     grainAmount: z.number().optional(),
     backdrop: z.number().optional(),
@@ -65,7 +68,7 @@ const clientLaunch = z.looseObject({
   title: z.string().optional().describe("Initial Window title"),
   header: z.boolean().optional().describe("Whether the standard Window header is shown"),
   frame: windowFrame.optional().describe("Authoritative Window frame"),
-  transaction: windowTransaction.optional().describe("Opening transaction for under and over presentations"),
+  transaction: windowTransaction.optional().describe("Default transaction for under and over presentations"),
   size: size.optional().describe("Initial Window size"),
   position: position.optional().describe("Initial Window position"),
   layer: z.enum(layers).optional().describe("Desktop Window layer"),
@@ -91,6 +94,12 @@ const endpointIdentity = {
   endpoint: z.enum(["server", "client"]).describe("Endpoint kind")
 } as const
 
+const serviceAddress = {
+  program: z.string().refine(isProgramIdentity, "A Service Program must be a canonical identity").describe("Owning Program identity"),
+  process: z.string().min(1).describe("Program-local Process and Service name"),
+  endpoint: z.enum(["server", "client"]).describe("Endpoint kind")
+} as const
+
 const windowIdentity = {
   program: endpointIdentity.program,
   process: endpointIdentity.process
@@ -106,7 +115,7 @@ const programResult = z.looseObject({
   identity: z.string().describe("Stable Program identity"),
   assetId: z.string().describe("Public Program asset identity"),
   name: z.string().describe("Human-readable Program name"),
-  version: z.string().nullable().describe("Declared Program version"),
+  version: z.string().describe("Resolved Program version"),
   description: z.string().nullable().describe("Declared Program description"),
   installed: z.boolean().describe("Whether production files are installed"),
   hasAgent: z.boolean().describe("Whether the Program provides agent documentation"),
@@ -149,12 +158,17 @@ const endpointResult = z.looseObject({
   service: z.boolean().describe("Whether the Endpoint execution context is a Service")
 }).describe("Endpoint state")
 
+const serviceResult = z.looseObject({
+  ...serviceAddress,
+  available: z.boolean().describe("Whether a ready Endpoint is currently available at this Service address")
+}).describe("Service state")
+
 const windowResult = z.looseObject({
   process: z.string().describe("Owning Process identity"),
   title: z.string().describe("Window title"),
   header: z.boolean().describe("Whether the Desktop-owned Window header is shown"),
   frame: windowFrame.describe("Authoritative Window frame"),
-  transaction: windowTransaction.describe("Opening presentation transaction"),
+  transaction: windowTransaction.describe("Default presentation transaction"),
   position,
   size,
   minimized: z.boolean().describe("Whether the Window is minimized"),
@@ -178,9 +192,16 @@ const individualProcessEvents = {
 const endpointLifecycleEvents = {
   start: "start", stop: "stop"
 } as const satisfies { [Event in keyof EndpointLifecycleEvents]: Event }
+const serviceLifecycleEvents = {
+  available: "available", unavailable: "unavailable"
+} as const satisfies { [Event in keyof ServiceLifecycleEvents]: Event }
+const systemServiceEvents = {
+  available: "available", unavailable: "unavailable"
+} as const satisfies { [Event in keyof SystemServiceEvents]: Event }
 const windowEvents = {
-  move: "move", resize: "resize", geometry: "geometry", minimize: "minimize",
-  maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", changeFrame: "changeFrame", front: "front"
+  move: "move", resize: "resize", minimize: "minimize",
+  maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", changeFrame: "changeFrame",
+  changeTransaction: "changeTransaction", front: "front"
 } as const satisfies { [Event in keyof WindowEvents]: Event }
 
 const programWaitRequest = request("program", "wait", {
@@ -212,7 +233,7 @@ const processWaitRequest = request("process", "wait", {
 })
 
 const lifecycleResult = z.looseObject({
-  scope: z.enum(["system", "program", "process", "endpoint", "window"]),
+  scope: z.enum(["system", "program", "process", "endpoint", "service", "window"]),
   program: z.string().optional(),
   process: z.string().optional(),
   endpoint: z.enum(["server", "client"]).optional(),
@@ -344,6 +365,42 @@ const executeOperations = Object.freeze([
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
 
+  defineOperation("service", "list", "List ready Services visible to the current System connection.", request("service", "list", {}), z.array(serviceResult)),
+  defineOperation("service", "search", "Find ready visible Services by their Process and Service name.", request("service", "search", {
+    name: z.string().min(1).describe("Process and Service name")
+  }), z.array(serviceResult)),
+  defineOperation("service", "inspect", "Read availability at one stable Service address.", request("service", "inspect", serviceAddress), serviceResult),
+  defineOperation("service", "waitReady", "Wait until one Service address becomes available.", request("service", "waitReady", {
+    ...serviceAddress,
+    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+  }), serviceResult),
+  defineOperation("service", "ask", "Ask a Server Service event and return its answer.", request("service", "ask", {
+    ...serviceAddress,
+    endpoint: z.literal("server"),
+    event: z.string().min(1).describe("Event name"),
+    input: jsonValue.optional().describe("Event input"),
+    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+  }), jsonValue),
+  defineOperation("service", "publish", "Publish one event to a Service without waiting for an answer.", request("service", "publish", {
+    ...serviceAddress,
+    event: z.string().min(1).describe("Event name"),
+    input: jsonValue.optional().describe("Event input")
+  }), serviceResult),
+  defineOperation("service", "wait", "Wait for one publication emitted by a Service.", request("service", "wait", {
+    ...serviceAddress,
+    event: z.string().min(1).describe("Event name"),
+    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+  }), lifecycleResult),
+  defineOperation("service", "waitLifecycle", "Wait for one availability transition at a stable Service address.", request("service", "waitLifecycle", {
+    ...serviceAddress,
+    event: z.enum(Object.values(serviceLifecycleEvents)).describe("Availability event"),
+    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+  }), lifecycleResult),
+  defineOperation("service", "waitDiscovery", "Wait for a change in the caller's visible Service discovery set.", request("service", "waitDiscovery", {
+    event: z.enum(Object.values(systemServiceEvents)).describe("Discovery event"),
+    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+  }), lifecycleResult),
+
   defineOperation("window", "inspect", "Read one authoritative Window's current state.", request("window", "inspect", windowIdentity), windowResult),
   defineOperation("window", "move", "Change one Window's stored position.", request("window", "move", {
     ...windowIdentity,
@@ -355,8 +412,10 @@ const executeOperations = Object.freeze([
   }), windowResult),
   defineOperation("window", "setGeometry", "Change one Window's position and size atomically.", request("window", "setGeometry", {
     ...windowIdentity,
-    position,
-    size
+    x: metric.describe("Horizontal position"),
+    y: metric.describe("Vertical position"),
+    width: metric.describe("Window width"),
+    height: metric.describe("Window height")
   }), windowResult),
   defineOperation("window", "minimize", "Change whether one Window is minimized.", request("window", "minimize", {
     ...windowIdentity,
@@ -366,19 +425,19 @@ const executeOperations = Object.freeze([
     ...windowIdentity,
     maximized: z.boolean().optional().describe("Whether the Window is maximized; defaults to true")
   }), windowResult),
-  defineOperation("window", "changeTitle", "Change one Window's human-readable title.", request("window", "changeTitle", {
+  defineOperation("window", "setTitle", "Set one Window's human-readable title.", request("window", "setTitle", {
     ...windowIdentity,
     title: z.string().describe("New Window title")
   }), windowResult),
-  defineOperation("window", "changeHeader", "Change whether one Window shows its Desktop-owned header.", request("window", "changeHeader", {
+  defineOperation("window", "setHeader", "Set whether one Window shows its Desktop-owned header.", request("window", "setHeader", {
     ...windowIdentity,
     header: z.boolean().describe("Whether the Window header is shown")
   }), windowResult),
-  defineOperation("window", "changeFrame", "Replace one Window's authoritative frame definition.", request("window", "changeFrame", {
+  defineOperation("window", "setFrame", "Set one Window's authoritative frame definition.", request("window", "setFrame", {
     ...windowIdentity,
     frame: windowFrame
   }), windowResult),
-  defineOperation("window", "changeOpeningTransaction", "Replace one Window's opening presentation transaction.", request("window", "changeOpeningTransaction", {
+  defineOperation("window", "setTransaction", "Set one Window's default presentation transaction.", request("window", "setTransaction", {
     ...windowIdentity,
     transaction: windowTransaction
   }), windowResult),

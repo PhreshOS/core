@@ -99,6 +99,15 @@ describe("Execute", () => {
       "process.wait",
       "endpoint.wait",
       "endpoint.waitLifecycle",
+      "service.list",
+      "service.search",
+      "service.inspect",
+      "service.waitReady",
+      "service.ask",
+      "service.publish",
+      "service.wait",
+      "service.waitLifecycle",
+      "service.waitDiscovery",
       "window.wait"
     ]) expect(operations.has(operation)).toBe(true)
 
@@ -108,6 +117,33 @@ describe("Execute", () => {
       program: "example",
       event: "install"
     })).toThrow(/individual Program/)
+  })
+
+  it("discovers and inspects Services through the public Service registry", async () => {
+    const address = { program: "notes", process: "main", endpoint: "server" as const }
+    const service = {
+      address: () => address,
+      available: () => Promise.resolve(true)
+    }
+    const system = {
+      service: {
+        list: () => Promise.resolve([service]),
+        search: (name: string) => Promise.resolve(name === "main" ? [service] : []),
+        prepare: () => service
+      }
+    } as unknown as ExecutionSystem
+
+    await expect(execute(system, {
+      $domain: "service",
+      $operation: "search",
+      name: "main"
+    })).resolves.toEqual([{ ...address, available: true }])
+
+    await expect(execute(system, {
+      $domain: "service",
+      $operation: "inspect",
+      ...address
+    })).resolves.toEqual({ ...address, available: true })
   })
 
   it("executes saved launches and lifecycle waits through public handles", async () => {

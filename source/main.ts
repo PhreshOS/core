@@ -79,8 +79,13 @@ export {
   ClientService,
   ServerService,
   Service,
-  isServiceKey,
-  type ServiceKey
+  isServiceAddress,
+  type ServiceAddress,
+  type ServiceEndpoint,
+  type ServiceLifecycle,
+  type ServiceLifecycleEvents,
+  type ServiceProgramMetadata,
+  type ServiceProgramMetadataOptions
 } from "./service.js"
 export { isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
@@ -159,7 +164,9 @@ export {
   type SystemProgramUninstall,
   type SystemSession,
   type SystemSessionEnd,
-  type SystemSessionEvents
+  type SystemSessionEvents,
+  type SystemService,
+  type SystemServiceEvents
 } from "./system.js"
 export { type LogKind, type LogRecord, type LogSource, type ProgramSql } from "./sql.js"
 
@@ -202,6 +209,7 @@ export {
   type SessionEvents
 } from "./session.js"
 export {
+  defaultProgramVersion,
   Program,
   type ClientDeclaration,
   type EndpointDeclaration,

@@ -7,6 +7,9 @@ import type { ProgramPermissions } from "./permissions.js"
 import type { WindowFrame } from "./window.js"
 import type { WindowTransaction } from "./appearance-transaction.js"
 
+/** Version assigned when a Program declaration omits one. */
+export const defaultProgramVersion = "0.0.0"
+
 /** Standard rendered sizes available for every Program icon. */
 export type ProgramIconSize = "small" | "medium" | "large"
 
@@ -53,7 +56,7 @@ export type ClientDeclaration = EndpointDeclaration & Readonly<{
   /** Default authoritative frame, or `null` for the layer default. */
   frame: WindowFrame | null
 
-  /** Default opening transaction, or `null` for the layer default. */
+  /** Default presentation transaction, or `null` for the layer default. */
   transaction: WindowTransaction | null
 
   /** Default Window size, or `null` when the system supplies it. */
@@ -145,8 +148,8 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Human-readable name. */
   public abstract readonly name: string
 
-  /** Declared version, or `null`. */
-  public abstract readonly version: string | null
+  /** Declared version, or the default Program version when omitted. */
+  public abstract readonly version: string
 
   /** Declared description, or `null`. */
   public abstract readonly description: string | null

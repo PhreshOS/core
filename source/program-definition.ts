@@ -4,15 +4,16 @@ import type { ClientDefinition, ProgramDefinition, ServerDefinition } from "./sy
 import { isRelativeValue } from "./value.js"
 import { parseLaunch } from "./launch-validation.js"
 import { parseWindowFrame, parseWindowTransaction } from "./window-values.js"
+import { isProgramIdentity } from "./program-identity.js"
+import { defaultProgramVersion } from "./program.js"
 
-const identityPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 type ProgramDefinitionBase = Omit<ProgramDefinition, "server" | "client">
 
 /** Validates and canonicalizes one complete Program definition at an unknown boundary. */
 export function parseProgramDefinition(value: unknown): ProgramDefinition {
   const source = object(value, "Program definition")
 
-  if (typeof source.identity !== "string" || !identityPattern.test(source.identity)) {
+  if (!isProgramIdentity(source.identity)) {
     throw new Error("A Program's identity must be kebab-case")
   }
 
@@ -41,7 +42,7 @@ export function parseProgramDefinition(value: unknown): ProgramDefinition {
   const base = {
     identity: source.identity,
     ...present("name", name),
-    ...present("version", version),
+    version: version ?? defaultProgramVersion,
     ...present("description", description),
     ...present("categories", list(source.categories, "categories", 20)),
     ...present("keywords", list(source.keywords, "keywords", 50)),

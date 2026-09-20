@@ -5,7 +5,7 @@ import type { Window, WindowEvents, WindowOperations } from "./window.js"
 /** Mutations whose visual application can be grouped under one transaction. */
 export interface WindowPresentationTransactionOperations extends Pick<
   WindowOperations,
-  "move" | "resize" | "setGeometry" | "minimize" | "maximize" | "changeFrame"
+  "move" | "resize" | "setGeometry" | "minimize" | "maximize" | "setFrame"
 > {
   /** Applies the authoritative state supported by this presentation. */
   follow(): Promise<void>

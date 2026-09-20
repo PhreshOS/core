@@ -18,7 +18,7 @@ describe("Launch", () => {
     expect(parseLaunch({ server: false, client: true })).toEqual({ server: false, client: true })
   })
 
-  it("preserves explicit Window frame and opening transaction values", () => {
+  it("preserves explicit Window frame and default transaction values", () => {
     expect(parseLaunch({ client: {
       frame: { radius: "full", color: "primary", material: { opacity: 0.8 } },
       transaction: { duration: 120_000, easing: "ease-out" }
@@ -28,6 +28,7 @@ describe("Launch", () => {
     } })
 
     expect(() => parseLaunch({ client: { frame: { radius: 2 } } })).toThrow("radius")
+    expect(() => parseLaunch({ client: { frame: { material: true } } })).toThrow("object")
     expect(() => parseLaunch({ client: { frame: { material: { opacity: 2 } } } })).toThrow("opacity")
     expect(() => parseLaunch({ client: { transaction: -1 } })).toThrow("non-negative")
   })

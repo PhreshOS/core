@@ -2,7 +2,7 @@ import type { WritableAppearance } from "./appearance.js"
 import type { Program } from "./program.js"
 import type { Launch, Layer, Position, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
-import type { ClientService, ServerService, ServiceKey } from "./service.js"
+import type { ClientService, ServerService, Service, ServiceAddress, ServiceEndpoint } from "./service.js"
 import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
@@ -48,6 +48,7 @@ export type ClientDefinition = Readonly<{
 type ProgramDefinitionBase = Readonly<{
   identity: string
   name?: string
+  /** Program version. Omission resolves to `0.0.0`. */
   version?: string
   description?: string
   categories?: readonly string[]
@@ -186,6 +187,40 @@ export interface SystemSession extends Subscribable<SystemSessionEvents, never> 
   find(identity: string): Promise<Session | null>
 }
 
+/** Availability changes in the caller's visible Service discovery scope. */
+export type SystemServiceEvents = {
+  /** A ready Service became visible to this caller. */
+  available: Service
+
+  /** A Service ceased to be ready or visible to this caller. */
+  unavailable: Service
+}
+
+type ServiceHandle<Endpoint extends ServiceEndpoint, Events extends object, Fallback> = Endpoint extends "server"
+  ? ServerService<Events, Fallback>
+  : ClientService<Events, Fallback>
+
+/** Discoverable Endpoint Services and stable Service address handles. */
+export interface SystemService extends Subscribable<SystemServiceEvents, never> {
+  /** Returns every ready Service visible to the caller. */
+  list(): Promise<(ServerService | ClientService)[]>
+
+  /** Returns every ready visible Service whose Process has this name. */
+  search(name: string): Promise<(ServerService | ClientService)[]>
+
+  /** Prepares a canonical local handle from the address's Endpoint discriminant. */
+  prepare<Endpoint extends ServiceEndpoint>(address: ServiceAddress<Endpoint>): ServiceHandle<Endpoint, {}, unknown>
+
+  /** Prepares one canonical local Server Service handle with an explicit event contract. */
+  prepare<Events extends object = {}, Fallback = unknown>(address: ServiceAddress<"server">): ServerService<Events, Fallback>
+
+  /** Prepares one canonical local Client Service handle with an explicit event contract. */
+  prepare<Events extends object = {}, Fallback = unknown>(address: ServiceAddress<"client">): ClientService<Events, Fallback>
+
+  /** Prepares one canonical local Service handle without communicating. */
+  prepare(address: ServiceAddress): ServerService | ClientService
+}
+
 /** Transport-neutral authoritative System contract shared by environment adapters. */
 export interface System {
   readonly storage: Storage
@@ -194,6 +229,7 @@ export interface System {
   readonly process: SystemProcess
   readonly connection: SystemConnection
   readonly session: SystemSession
+  readonly service: SystemService
   readonly uploads: SystemUploads
   readonly network: Network
 
@@ -203,9 +239,6 @@ export interface System {
   /** Runs one shell command whose complete process tree belongs to the returned iterator. */
   shell(command: string, options?: ShellOptions): AsyncGenerator<ShellEvent, void, void>
 
-  service<Endpoint extends ServiceKey["endpoint"]>(key: Omit<ServiceKey, "endpoint"> & Readonly<{ endpoint: Endpoint }>): Endpoint extends "server" ? ServerService : ClientService
-  service<Events extends object = {}, Fallback = unknown>(key: ServiceKey & { endpoint: "server" }): ServerService<Events, Fallback>
-  service<Events extends object = {}, Fallback = unknown>(key: ServiceKey & { endpoint: "client" }): ClientService<Events, Fallback>
 }
 
 // Keep Window's event vocabulary explicitly reachable from this contract.

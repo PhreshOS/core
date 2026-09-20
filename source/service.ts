@@ -1,21 +1,50 @@
 import type { Askable } from "./askable.js"
-import type { EndpointLifecycle } from "./endpoint.js"
 import type { Publishable } from "./publishable.js"
+import type { ProgramIconSize } from "./program.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
+import { isProgramIdentity } from "./program-identity.js"
 
-/** Stable public coordinates of one Endpoint service. */
-export type ServiceKey = Readonly<{
-  /** Program identity required when {@link process} is a Program-local name. */
-  program?: string
+/** Endpoint kind addressed by a Service. */
+export type ServiceEndpoint = "server" | "client"
 
-  /** Process identity or Program-local Process name. */
+/** Stable symbolic address of one discoverable Endpoint. */
+export type ServiceAddress<Endpoint extends ServiceEndpoint = ServiceEndpoint> = Readonly<{
+  /** Stable identity of the Program that owns the named Process. */
+  program: string
+
+  /** Program-local Process name, which acts as the Service name. */
   process: string
 
-  /** Configured Endpoint kind addressed by this service. */
-  endpoint: "server" | "client"
+  /** Endpoint kind exposed through this Service address. */
+  endpoint: Endpoint
 }>
 
-/** Stable communication handle for one Endpoint service address. */
+/** Repeating availability transitions of one stable Service address. */
+export type ServiceLifecycleEvents = {
+  /** A ready Endpoint became available in Service mode at this address. */
+  available: undefined
+
+  /** The Endpoint at this address ceased to be an available Service. */
+  unavailable: undefined
+}
+
+/** Availability lifecycle of one stable Service address. */
+export interface ServiceLifecycle extends Subscribable<ServiceLifecycleEvents, never> {}
+
+/** Live Program presentation metadata exposed through an available Service. */
+export type ServiceProgramMetadata = Readonly<{
+  name: string
+  version: string
+  icon: Blob
+}>
+
+/** Options for reading Program presentation metadata through a Service. */
+export type ServiceProgramMetadataOptions = Readonly<{
+  /** Requested icon size. Defaults to `medium`. */
+  icon?: ProgramIconSize
+}>
+
+/** Stable communication handle for one Service address. */
 export abstract class Service<Events extends object = {}, Fallback = unknown>
   implements Publishable, Subscribable<Events, Fallback> {
   protected constructor() {}
@@ -27,54 +56,56 @@ export abstract class Service<Events extends object = {}, Fallback = unknown>
   public abstract readonly wait: Subscribable<Events, Fallback>["wait"]
   public abstract readonly events: Subscribable<Events, Fallback>["events"]
 
-  /** Start and stop transitions of the addressed Endpoint. */
-  public abstract readonly lifecycle: EndpointLifecycle
+  /** Repeating availability transitions at this stable address. */
+  public abstract readonly lifecycle: ServiceLifecycle
 
-  /** Returns whether the addressed Endpoint currently has a running execution context. */
-  public abstract exists(): Promise<boolean>
+  /** Returns the immutable symbolic address represented by this handle. */
+  public abstract address(): ServiceAddress
+
+  /** Returns whether a ready Endpoint is currently available as this Service. */
+  public abstract available(): Promise<boolean>
+
+  /** Reads Program metadata from the currently available Service provider. */
+  public abstract programMetadata(options?: ServiceProgramMetadataOptions): Promise<ServiceProgramMetadata>
 
   /**
-   * Waits until the addressed Endpoint service can be used.
-   *
-   * A Client service is ready when its Client execution context is running. A Server
-   * service additionally has to announce readiness. The SDK uses its
-   * ten-second deadline unless one is supplied.
+   * Waits until a ready Endpoint is available in Service mode at this address.
+   * The SDK uses its ten-second deadline unless one is supplied.
    */
   public abstract waitReady(timeout?: number): Promise<void>
 }
 
-/** Stable handle for one Server-provided service. */
+/** Stable handle for one Server Service address. */
 export abstract class ServerService<Events extends object = {}, Fallback = unknown>
   extends Service<Events, Fallback> {
   protected constructor() {
     super()
   }
 
+  public abstract override address(): ServiceAddress<"server">
   public abstract ask<Answer = unknown>(event: string): Promise<Answer>
   public abstract ask<Answer = unknown, Payload = unknown>(event: string, payload: Payload): Promise<Answer>
   public abstract timeout(milliseconds: number): ReturnType<Askable["timeout"]>
 }
 
-/** Stable handle for one Client-provided service. */
+/** Stable handle for one Client Service address. */
 export abstract class ClientService<Events extends object = {}, Fallback = unknown>
   extends Service<Events, Fallback> {
   protected constructor() {
     super()
   }
+
+  public abstract override address(): ServiceAddress<"client">
 }
 
-
-/** Returns whether a boundary value is a complete service key. */
-export function isServiceKey(value: unknown): value is ServiceKey {
+/** Returns whether a boundary value is a complete Service address. */
+export function isServiceAddress(value: unknown): value is ServiceAddress {
   if (typeof value !== "object" || value === null) return false
 
-  const candidate = value as Partial<ServiceKey>
+  const candidate = value as Partial<ServiceAddress>
 
-  return (candidate.program === undefined || typeof candidate.program === "string" && candidate.program.length > 0)
+  return isProgramIdentity(candidate.program)
     && typeof candidate.process === "string"
-    && candidate.process.length > 0
-    && (candidate.program !== undefined || processIdentity.test(candidate.process))
+    && candidate.process.trim().length > 0
     && (candidate.endpoint === "server" || candidate.endpoint === "client")
 }
-
-const processIdentity = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i

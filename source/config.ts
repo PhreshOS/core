@@ -1,6 +1,8 @@
 import type { Layer, Position, Size } from "./launch.js"
 import type { ProgramPermissionDeclarations } from "./permissions.js"
 import type { ProgramDefinition } from "./system.js"
+import type { WindowFrame } from "./window.js"
+import type { WindowTransaction } from "./appearance-transaction.js"
 
 /** One explicit way to execute a Program's Server. */
 export type ServerExecution =
@@ -61,6 +63,12 @@ export type ClientConfig = Readonly<{
   /** Whether a standard Window initially shows its Desktop-owned header. */
   header?: boolean
 
+  /** Initial authoritative frame, interpreted by the selected presentation layer. */
+  frame?: WindowFrame
+
+  /** Default transaction used by presentation layers that support transactions. */
+  transaction?: WindowTransaction
+
   /** Initial Window size. */
   size?: Size
 
@@ -89,7 +97,7 @@ type Description = Pick<ProgramDefinition, "startup" | "launch"> & Readonly<{
   /** Human-readable Program name. Defaults to {@link identity}. */
   name?: string
 
-  /** Program version shown to people and included in packages. */
+  /** Program version shown to people and included in packages. Defaults to `0.0.0`. */
   version?: string
 
   /** Short human-readable explanation of what the Program does. */

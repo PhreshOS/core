@@ -7,7 +7,7 @@ const program = {
   assetId: "asset-reference",
   installed: true,
   name: "Example",
-  version: null,
+  version: "0.0.0",
   description: null,
   hasAgent: false,
   server: { start: true, service: false },
