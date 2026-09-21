@@ -6,8 +6,9 @@ import { subscribableDefinition, type Subscribable, type SubscribableDefinition 
 import type { ProgramPermissions } from "./permissions.js"
 import type { WindowFrame } from "./window.js"
 import type { WindowTransaction } from "./appearance-transaction.js"
+import type { ProgramDefinition } from "./system.js"
 
-/** Version assigned when a Program declaration omits one. */
+/** Version assigned when a Program definition omits one. */
 export const defaultProgramVersion = "0.0.0"
 
 /** Standard rendered sizes available for every Program icon. */
@@ -24,8 +25,8 @@ export type ProgramCommandChunk = Readonly<{
 
 /** Installation decisions applied by System. */
 export type ProgramInstallOptions = Readonly<{
-  /** Create this Process after installation, before startup. `true` uses an empty Launch. */
-  launch?: true | Launch
+  /** Override the Program definition's post-install launch. `true` uses Endpoint defaults; `false` disables it. */
+  launch?: boolean | Launch
   /** Delete existing installed Program storage. Omission preserves it. */
   purge?: boolean
 }>
@@ -93,15 +94,6 @@ export type ProgramProcessRunEvent =
   | (Readonly<{ event: "output" }> & ProgramCommandChunk)
   | Readonly<{ event: "exited", process: Process, exit: Exit }>
 
-/** Saved Process launch used when the Program's icon is opened. */
-export interface ProgramLaunch {
-  /** Returns the stored launch, or null when no launch has been saved. */
-  get(): Promise<Launch | null>
-
-  /** Replaces the stored launch without creating a Process. */
-  set(launch: Launch): Promise<void>
-}
-
 /** Persistent Process launch used when the System starts. */
 export interface ProgramStartup {
   /** Returns the configured launch, or `null` when startup is disabled. */
@@ -127,6 +119,9 @@ export type ProgramEvents = {
 
   /** Whether every installed resource, including storage, was removed. */
   uninstall: Readonly<{ purge: boolean }>
+
+  /** Whether this Program is retained as a pinned Program. */
+  pinned: boolean
 }
 
 /** The stable domain root from which Processes are created. */
@@ -181,11 +176,17 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Persistent Process launch applied when the System starts. */
   public abstract readonly startup: ProgramStartup
 
-  /** Saved configuration for opening this Program from its icon. */
-  public abstract readonly launch: ProgramLaunch
-
-  /** Authoritative permission state managed for this Program. */
+  /** Effective permission state resolved from stored assignments and the Program definition. */
   public abstract readonly permissions: ProgramPermissions
+
+  /** Returns whether this Program is pinned. */
+  public abstract pinned(): Promise<boolean>
+
+  /** Pins this Program. */
+  public abstract pin(): Promise<void>
+
+  /** Unpins this Program. */
+  public abstract unpin(): Promise<void>
 
   /**
    * Returns one standard PNG representation of this Program's icon.
@@ -194,6 +195,9 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
    * @param size Rendered size. Omission selects `medium`.
    */
   public abstract icon(size?: ProgramIconSize): Promise<Blob>
+
+  /** Returns the complete canonical definition accepted by System Program creation. */
+  public abstract definition(): Promise<ProgramDefinition>
 
   /** Reads this Program's agent documentation, or `null` when none is declared. */
   public abstract agent(): Promise<string | null>

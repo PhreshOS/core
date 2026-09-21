@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  applyAppearanceUpdate,
   appearanceLimits,
   createAppearanceSnapshot,
   defaultAppearance,
@@ -135,6 +136,23 @@ describe("Appearance", function () {
         light: { ...defaultAppearance.colors.light, extension: "future" }
       }
     })).toEqual(defaultAppearance)
+  })
+
+  it("recursively merges partial updates into a complete snapshot", function () {
+    const appearance = applyAppearanceUpdate(defaultAppearance, {
+      colors: { dark: { danger: "#aa0000" } },
+      material: { light: { opacity: 0.5 } },
+      transaction: { duration: 240 }
+    })
+
+    expect(appearance.colors.dark.danger).toBe("#aa0000")
+    expect(appearance.colors.dark.primary).toBe(defaultAppearance.colors.dark.primary)
+    expect(appearance.colors.light).toEqual(defaultAppearance.colors.light)
+    expect(appearance.material.light.opacity).toBe(0.5)
+    expect(appearance.material.light.grain).toBe(defaultAppearance.material.light.grain)
+    expect(appearance.transaction).toEqual({ duration: 240, easing: "ease-out" })
+    expect(() => applyAppearanceUpdate(defaultAppearance, {})).toThrow("at least one Appearance field")
+    expect(() => applyAppearanceUpdate(defaultAppearance, { material: { dark: { opacity: 2 } } })).toThrow("Appearance material opacity")
   })
 
   it("publishes the complete bounded material ranges", function () {

@@ -9,6 +9,7 @@ import type { ServiceLifecycleEvents } from "../service.js"
 import type { SystemServiceEvents } from "../system.js"
 import type { WindowEvents } from "../window.js"
 import { isProgramIdentity } from "../program-identity.js"
+import { programPermissionCatalog } from "../permissions.js"
 
 const jsonValue: z.ZodType<JsonValue> = z.lazy(() => z.union([
   z.null(),
@@ -178,10 +179,10 @@ const windowResult = z.looseObject({
 }).describe("Window state")
 
 const programRegistryEvents = {
-  create: "create", forget: "forget", install: "install", uninstall: "uninstall"
+  create: "create", forget: "forget", install: "install", uninstall: "uninstall", pinned: "pinned"
 } as const satisfies { [Event in keyof SystemProgramEvents]: Event }
 const individualProgramEvents = {
-  processCreate: "processCreate", processExit: "processExit", forget: "forget", uninstall: "uninstall"
+  processCreate: "processCreate", processExit: "processExit", forget: "forget", uninstall: "uninstall", pinned: "pinned"
 } as const satisfies { [Event in keyof ProgramEvents]: Event }
 const systemProcessEvents = {
   create: "create", exit: "exit"
@@ -291,13 +292,55 @@ const executeOperations = Object.freeze([
   defineOperation("program", "agent", "Read one Program's agent documentation.", request("program", "agent", {
     identity: z.string().describe("Program identity")
   }), z.looseObject({ program: z.string(), content: z.string().nullable() })),
-  defineOperation("program", "getLaunch", "Read the Process launch saved for one Program icon.", request("program", "getLaunch", {
+  defineOperation("program", "definition", "Read one Program's complete canonical definition.", request("program", "definition", {
+    identity: z.string().describe("Program identity")
+  }), jsonValue),
+  defineOperation("program", "getStartup", "Read one Program's stored System-start launch.", request("program", "getStartup", {
     identity: z.string().describe("Program identity")
   }), launch.nullable()),
-  defineOperation("program", "setLaunch", "Replace the Process launch saved for one Program icon.", request("program", "setLaunch", {
+  defineOperation("program", "enableStartup", "Enable one Program at System start.", request("program", "enableStartup", {
     identity: z.string().describe("Program identity"),
-    launch: launch.describe("Saved Process launch")
+    launch: launch.optional().describe("Startup Process launch; omission uses Endpoint defaults")
   }), launch),
+  defineOperation("program", "disableStartup", "Disable one Program at System start.", request("program", "disableStartup", {
+    identity: z.string().describe("Program identity")
+  }), z.null()),
+  defineOperation("program", "pinned", "Read whether one Program is pinned.", request("program", "pinned", {
+    identity: z.string().describe("Program identity")
+  }), z.boolean()),
+  defineOperation("program", "pin", "Pin one Program.", request("program", "pin", {
+    identity: z.string().describe("Program identity")
+  }), z.literal(true)),
+  defineOperation("program", "unpin", "Unpin one Program.", request("program", "unpin", {
+    identity: z.string().describe("Program identity")
+  }), z.literal(false)),
+  defineOperation("program", "getPermission", "Read one effective Program permission.", request("program", "getPermission", {
+    identity: z.string().describe("Program identity"),
+    permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
+  }), z.union([z.array(z.string()), z.literal(false), z.null()])),
+  defineOperation("program", "listPermissions", "Read all effective Program permissions.", request("program", "listPermissions", {
+    identity: z.string().describe("Program identity")
+  }), z.record(z.string(), z.union([z.array(z.string()), z.literal(false), z.null()]))),
+  defineOperation("program", "allowsPermission", "Test whether one Program permission allows a request.", request("program", "allowsPermission", {
+    identity: z.string().describe("Program identity"),
+    permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name"),
+    value: z.union([z.literal(true), z.array(z.string())]).optional().describe("Requested permission value")
+  }), z.boolean()),
+  defineOperation("program", "allowPermission", "Allow one exact stored Program permission assignment.", request("program", "allowPermission", {
+    identity: z.string().describe("Program identity"),
+    permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name"),
+    value: z.union([z.literal(true), z.array(z.string())]).optional().describe("Complete allowed permission value")
+  }), z.array(z.string())),
+  defineOperation("program", "denyPermission", "Deny one stored Program permission.", request("program", "denyPermission", {
+    identity: z.string().describe("Program identity"),
+    permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
+  }), z.literal(false)),
+  defineOperation("program", "requestPermission", "Request an owner decision for one Program permission.", request("program", "requestPermission", {
+    identity: z.string().describe("Program identity"),
+    permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name"),
+    value: z.union([z.literal(true), z.array(z.string())]).optional().describe("Complete requested permission value"),
+    timeout: z.number().finite().nonnegative().optional().describe("Owner-decision deadline in milliseconds")
+  }), z.union([z.array(z.string()), z.literal(false), z.null()])),
   defineOperation("program", "logs", "Query one Program's captured Endpoint logs.", request("program", "logs", {
     identity: z.string().describe("Program identity"),
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, process, source, kind, content."),

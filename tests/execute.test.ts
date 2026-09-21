@@ -92,8 +92,19 @@ describe("Execute", () => {
     const operations = new Set(listExecuteOperations().map(value => `${value.domain}.${value.operation}`))
 
     for (const operation of [
-      "program.getLaunch",
-      "program.setLaunch",
+      "program.definition",
+      "program.getStartup",
+      "program.enableStartup",
+      "program.disableStartup",
+      "program.pinned",
+      "program.pin",
+      "program.unpin",
+      "program.getPermission",
+      "program.listPermissions",
+      "program.allowsPermission",
+      "program.allowPermission",
+      "program.denyPermission",
+      "program.requestPermission",
       "program.logs",
       "program.wait",
       "process.wait",
@@ -146,8 +157,13 @@ describe("Execute", () => {
     })).resolves.toEqual({ ...address, available: true })
   })
 
-  it("executes saved launches and lifecycle waits through public handles", async () => {
-    let saved: unknown = null
+  it("executes Program state and lifecycle waits through public handles", async () => {
+    const programDefinition = {
+      identity: "example",
+      version: "0.0.0",
+      storage: "./storage",
+      client: { location: "./client" }
+    }
     const window = {
       wait(event: string, timeout?: number) {
         expect([event, timeout]).toEqual(["resize", 250])
@@ -155,11 +171,28 @@ describe("Execute", () => {
       }
     }
     const process = { identity: "process", client: { window } }
+    let startup: unknown = null
+    let pinned = false
+    const permissions: { network: string[] | false } = { network: ["https://api.example.com"] }
     const program = {
       identity: "example",
-      launch: {
-        get: () => Promise.resolve(saved),
-        async set(value: unknown) { saved = value }
+      definition: () => Promise.resolve(programDefinition),
+      startup: {
+        get: () => Promise.resolve(startup),
+        async enable(value: unknown = {}) { startup = value },
+        async disable() { startup = null }
+      },
+      pinned: () => Promise.resolve(pinned),
+      async pin() { pinned = true },
+      async unpin() { pinned = false },
+      permissions: {
+        get: (name: "network") => Promise.resolve(permissions[name] ?? null),
+        all: () => Promise.resolve(permissions),
+        allows: () => Promise.resolve(true),
+        async allow(name: "network", value: true | string[] = true) { permissions[name] = value === true ? [] : value },
+        async deny(name: "network") { permissions[name] = false },
+        request: (_name: "network", value: true | string[] = true) => Promise.resolve(value === true ? [] : value),
+        timeout: () => ({ request: (_name: "network", value: true | string[] = true) => Promise.resolve(value === true ? [] : value) })
       }
     }
     const system = {
@@ -169,16 +202,59 @@ describe("Execute", () => {
 
     await expect(execute(system, {
       $domain: "program",
-      $operation: "setLaunch",
+      $operation: "definition",
+      identity: "example"
+    })).resolves.toEqual(programDefinition)
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "enableStartup",
       identity: "example",
       launch: { client: { maximize: true } }
     })).resolves.toEqual({ client: { maximize: true } })
 
     await expect(execute(system, {
       $domain: "program",
-      $operation: "getLaunch",
+      $operation: "getStartup",
       identity: "example"
     })).resolves.toEqual({ client: { maximize: true } })
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "pin",
+      identity: "example"
+    })).resolves.toBe(true)
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "getPermission",
+      identity: "example",
+      permission: "network"
+    })).resolves.toEqual(["https://api.example.com"])
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "allowPermission",
+      identity: "example",
+      permission: "network",
+      value: ["https://other.example.com"]
+    })).resolves.toEqual(["https://other.example.com"])
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "requestPermission",
+      identity: "example",
+      permission: "network",
+      value: ["https://api.example.com"],
+      timeout: 250
+    })).resolves.toEqual(["https://api.example.com"])
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "denyPermission",
+      identity: "example",
+      permission: "network"
+    })).resolves.toBe(false)
 
     await expect(execute(system, {
       $domain: "window",

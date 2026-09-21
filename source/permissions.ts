@@ -35,7 +35,7 @@ export type PermissionValue<Name extends PermissionName> = Name extends Permissi
           : never
   : never
 
-/** Canonical stored value of one permission. Lists represent unordered sets. */
+/** Canonical effective value of one permission. Lists represent unordered sets. */
 export type Permission<Name extends PermissionName = PermissionName> = readonly PermissionValue<Name>[] | false | null
 
 /** Values accepted where one exact permission is assigned. */
@@ -50,12 +50,12 @@ export type PermissionRequest<Name extends PermissionName = PermissionName> =
   | true
   | readonly PermissionValue<Name>[]
 
-/** Canonical stored values indexed only by system-defined permission names. */
+/** Canonical permission values indexed only by system-defined permission names. */
 export type Permissions = Partial<{
   [Name in PermissionName]: Permission<Name>
 }>
 
-/** Permission assignments written into authoritative storage at Program creation. */
+/** Permission defaults explicitly requested by a Program definition. */
 export type ProgramPermissionDeclarations = Readonly<{
   [Name in PermissionName]?: true | readonly PermissionValue<Name>[]
 }>
@@ -85,27 +85,20 @@ export function parseProgramPermissionDeclarations(value: unknown): ProgramPermi
 }
 
 /** Permission request using one caller-selected deadline. */
-export interface TimedContextPermissions {
+export interface TimedProgramPermissions {
   /** Requests owner approval, replaces the stored permission, and returns that canonical permission. */
   request<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<Permission<Name>>
 }
 
-/** Stored permissions and owner requests belonging to the executing Program. */
-export interface ContextPermissions extends TimedContextPermissions, Timeoutable<TimedContextPermissions> {
-  /** Returns the exact stored assignment without applying fallback authority. */
-  get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
-
-  /** Returns whether the current stored permission allows the requested capability. */
-  allows<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<boolean>
-}
-
-/** The authoritative permission state belonging to one Program. */
-export interface ProgramPermissions {
+/** Effective permission state and owner approval requests belonging to one Program. */
+export interface ProgramPermissions extends TimedProgramPermissions, Timeoutable<TimedProgramPermissions> {
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
   all(): Promise<Permissions>
   allows<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<boolean>
-  set<Name extends PermissionName>(name: Name, permission: Exclude<PermissionInput<Name>, null>): Promise<void>
-  delete<Name extends PermissionName>(name: Name): Promise<void>
+  /** Replaces the complete stored assignment with one allowed value. */
+  allow<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<void>
+  /** Replaces the complete stored assignment with an explicit denial. */
+  deny<Name extends PermissionName>(name: Name): Promise<void>
 }
 
 /** Whether one unknown value names a permission in the closed Core catalog. */

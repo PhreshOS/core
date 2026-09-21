@@ -57,11 +57,9 @@ type ProgramDefinitionBase = Readonly<{
   icon?: string
   agent?: string
   storage: string
-  /** Startup configuration written at creation and installation; omission preserves stored configuration. */
-  startup?: true | Launch
-  /** Icon launch configuration written at creation and installation; omission preserves stored configuration. */
-  launch?: true | Launch
-  /** Permission declarations applied to this Program's authoritative permission state. */
+  /** Process launched once after installation. `true` uses Endpoint defaults. */
+  installLaunch?: true | Launch
+  /** Permission requests used when stored state has no assignment for a permission. */
   permissions?: ProgramPermissionDeclarations
 }>
 
@@ -73,6 +71,11 @@ export type ProgramDefinition = ProgramDefinitionBase & (
 export type SystemProgramUninstall = Readonly<{
   program: Program
   purge: boolean
+}>
+
+export type SystemProgramPinned = Readonly<{
+  program: Program
+  pinned: boolean
 }>
 
 export type SystemProcessExit = Exit & Readonly<{ process: Process }>
@@ -130,6 +133,7 @@ export type SystemProgramEvents = {
   forget: Program
   install: Program
   uninstall: SystemProgramUninstall
+  pinned: SystemProgramPinned
 }
 
 export type SystemProcessEvents = {

@@ -35,13 +35,6 @@ export interface ServiceLifecycle extends Subscribable<ServiceLifecycleEvents, n
 export type ServiceProgramMetadata = Readonly<{
   name: string
   version: string
-  icon: Blob
-}>
-
-/** Options for reading Program presentation metadata through a Service. */
-export type ServiceProgramMetadataOptions = Readonly<{
-  /** Requested icon size. Defaults to `medium`. */
-  icon?: ProgramIconSize
 }>
 
 /** Stable communication handle for one Service address. */
@@ -66,7 +59,10 @@ export abstract class Service<Events extends object = {}, Fallback = unknown>
   public abstract available(): Promise<boolean>
 
   /** Reads Program metadata from the currently available Service provider. */
-  public abstract programMetadata(options?: ServiceProgramMetadataOptions): Promise<ServiceProgramMetadata>
+  public abstract programMetadata(): Promise<ServiceProgramMetadata>
+
+  /** Reads one PNG Program icon from the currently available Service provider. */
+  public abstract programIcon(size?: ProgramIconSize): Promise<Blob>
 
   /**
    * Waits until a ready Endpoint is available in Service mode at this address.

@@ -90,7 +90,7 @@ export type ClientConfig = Readonly<{
   devCommand?: string
 }>
 
-type Description = Pick<ProgramDefinition, "startup" | "launch"> & Readonly<{
+type Description = Pick<ProgramDefinition, "installLaunch"> & Readonly<{
   /** Stable public identity written in kebab-case. */
   identity: string
 
@@ -121,7 +121,7 @@ type Description = Pick<ProgramDefinition, "startup" | "launch"> & Readonly<{
   /** Command run before production start, installation, and packaging. */
   buildCommand?: string
 
-  /** Permissions written into authoritative Program storage at creation. */
+  /** Permission requests used when stored state has no assignment. */
   permissions?: ProgramPermissionDeclarations
 }>
 

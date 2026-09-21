@@ -75,7 +75,7 @@ test("package contract", async () => {
 
     writeFileSync(
       join(consumer, "consumer.ts"),
-      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type ServiceProgramMetadataOptions, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowTransaction, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
+      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
   const config: Config = defineConfig({
     identity: "package-consumer",
@@ -105,13 +105,14 @@ test("package contract", async () => {
   }
   declare const window: Window
   const setGeometry: Promise<void> = window.setGeometry(geometry)
-  const metadataOptions: ServiceProgramMetadataOptions = { icon: "small" }
+  const definition = program.definition()
   const outside: ContextMessage<string> = { from: null, payload: "owner-local" }
   const hiddenDestination: TrafficMessage<string> = { to: null, payload: "boundary-local" }
   declare const uploads: SystemUploads
   declare const desktopViewport: DesktopViewportSource
   declare const desktopPreferences: DesktopPreferencesSource
   declare const writableDesktopPreferences: WritableDesktopPreferencesSource
+  declare const writableAppearance: WritableAppearance
   declare const desktop: Desktop
   const written: Promise<Upload> = uploads.write("hello")
   const uploadStat: Promise<FileStat | null> = uploads.stat("00000000-0000-0000-0000-000000000000.txt")
@@ -128,17 +129,21 @@ test("package contract", async () => {
   const updateScale = writableDesktopPreferences.update({ scale: desktopPreferencesLimits.scale.minimum })
   const resetScale = writableDesktopPreferences.update({ scale: "default" })
   const parsedScale = parseDesktopPreferencesUpdate({ scale: 1.25 })
+  const updateAppearance = writableAppearance.update({ colors: { dark: { danger: "#ff0000" } } })
+  // @ts-expect-error An Appearance update must request at least one field.
+  writableAppearance.update({})
   void config
   void uploadStat
   void writable
   void program.identity
+  void definition
   void forcedProgram
   void transaction
   void presentation.transactionAndWait(windowTransaction).setFrame(true)
   void presentation.transaction(transaction).follow()
   void presentation.unfollow()
   void setGeometry
-  void metadataOptions
+  void updateAppearance
   void outside
   void hiddenDestination
   void written

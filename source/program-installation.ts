@@ -6,7 +6,9 @@ export function parseProgramInstallOptions(value: unknown): ProgramInstallOption
   const source = options(value)
   return Object.freeze({
     ...purge(source),
-    ...(source.launch === undefined ? {} : { launch: source.launch === true ? true as const : parseLaunch(source.launch) })
+    ...(source.launch === undefined ? {} : {
+      launch: typeof source.launch === "boolean" ? source.launch : parseLaunch(source.launch)
+    })
   })
 }
 

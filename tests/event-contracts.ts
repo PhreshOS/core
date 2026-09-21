@@ -120,6 +120,14 @@ function clientContextContract(context: ClientContext) {
 
 void clientContextContract
 
+function serverContextPermissionContract(context: import("../source/main.js").ServerContext) {
+  context.permissions.get("all")
+  context.permissions.request("uploads")
+  context.permissions.timeout(120_000).request("network", ["https://api.example.com"])
+}
+
+void serverContextPermissionContract
+
 function explicitlyOpenService(service: Service<{ changed: number }, unknown>) {
   service.subscribe("changed", message => message.toFixed(0))
   service.subscribe("application-event", message => void message)
@@ -148,11 +156,11 @@ function explicitlyOpenSystemService(system: System) {
 
   service.subscribe("changed", message => message.toFixed(0))
   service.subscribe("application-event", message => void message)
-  service.programMetadata({ icon: "small" }).then(metadata => {
+  service.programMetadata().then(metadata => {
     metadata.name.toUpperCase()
     metadata.version.toUpperCase()
-    metadata.icon.arrayBuffer()
   })
+  service.programIcon("small").then(icon => icon.arrayBuffer())
 }
 
 void explicitlyOpenSystemService
@@ -211,24 +219,25 @@ function systemHandlesRemainCanonical(
   program.permissions.get("services")
   program.permissions.all()
   program.permissions.allows("services", ["flambo"])
-  program.permissions.set("all", true)
-  program.permissions.set("services", ["flambo"])
-  program.permissions.set("programs", true)
-  program.permissions.set("appearance", [])
-  program.permissions.set("desktopPreferences", true)
+  program.permissions.allow("all")
+  program.permissions.allow("services", ["flambo"])
+  program.permissions.allow("programs")
+  program.permissions.allow("appearance", [])
+  program.permissions.allow("desktopPreferences")
+  program.permissions.deny("network")
+  program.permissions.request("uploads")
+  program.permissions.timeout(120_000).request("network", ["https://api.example.com"])
 
   // @ts-expect-error Program-scoped permission values are Program identities.
-  program.permissions.set("services", [42])
+  program.permissions.allow("services", [42])
 
   // @ts-expect-error Value-less permissions do not accept Program identities.
-  program.permissions.set("desktopPreferences", ["settings"])
+  program.permissions.allow("desktopPreferences", ["settings"])
+  // @ts-expect-error Permission assignments have no deletion operation; false is an explicit denial.
   program.permissions.delete("all")
 
-  // @ts-expect-error Program permission names are closed by the Core catalog.
-  program.permissions.delete("files")
-
   // @ts-expect-error Assignment values belong to the selected permission.
-  program.permissions.set("all", ["read"])
+  program.permissions.allow("all", ["read"])
 
   // @ts-expect-error Permissions belong to the Program, never one Process.
   process.permissions

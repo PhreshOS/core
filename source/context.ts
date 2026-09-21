@@ -6,7 +6,7 @@ import type { Process } from "./process.js"
 import type { Program } from "./program.js"
 import type { ServerEndpoint } from "./server-endpoint.js"
 import type { Captures, Subscribable } from "./subscribable.js"
-import type { ContextPermissions } from "./permissions.js"
+import type { ProgramPermissions } from "./permissions.js"
 import type { Window } from "./window.js"
 
 /** One application value arriving through the executing Endpoint's Context. */
@@ -39,6 +39,7 @@ export interface Context<Events extends object = {}, From = Endpoint | null>
 /** Shared operations belonging to one executing Program endpoint. */
 export interface EndpointContext<Events extends object = {}>
   extends Context<Events, Endpoint | null> {
+  readonly permissions: ProgramPermissions
   process(): Promise<Process>
   name(): Promise<string | null>
   parent(): Promise<Process | null>
@@ -55,7 +56,6 @@ export interface ClientContext<Events extends object = {}> extends EndpointConte
   readonly server: ServerEndpoint
   readonly window: Window
   readonly presentation: WindowPresentation
-  readonly permissions: ContextPermissions
 }
 
 /** Handles one question addressed to the currently executing Server Endpoint. */

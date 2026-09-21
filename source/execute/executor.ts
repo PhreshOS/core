@@ -123,8 +123,19 @@ async function executeProgram(
     | Request<"program", "list">
     | Request<"program", "find">
     | Request<"program", "agent">
-    | Request<"program", "getLaunch">
-    | Request<"program", "setLaunch">
+    | Request<"program", "definition">
+    | Request<"program", "getStartup">
+    | Request<"program", "enableStartup">
+    | Request<"program", "disableStartup">
+    | Request<"program", "pinned">
+    | Request<"program", "pin">
+    | Request<"program", "unpin">
+    | Request<"program", "getPermission">
+    | Request<"program", "listPermissions">
+    | Request<"program", "allowsPermission">
+    | Request<"program", "allowPermission">
+    | Request<"program", "denyPermission">
+    | Request<"program", "requestPermission">
     | Request<"program", "logs">
     | Request<"program", "wait">
 ) {
@@ -138,11 +149,40 @@ async function executeProgram(
   if (request.$operation === "find") return program ? programView(program) : null
   if (!program) throw new Error(`Unknown Program "${request.identity}"`)
   if (request.$operation === "agent") return { program: program.identity, content: await program.agent() }
-  if (request.$operation === "getLaunch") return program.launch.get()
+  if (request.$operation === "definition") return program.definition()
   if (request.$operation === "logs") return program.logs.query(request.statement, request.values)
+  if (request.$operation === "getStartup") return program.startup.get()
+  if (request.$operation === "enableStartup") {
+    await program.startup.enable(request.launch)
+    return program.startup.get()
+  }
+  if (request.$operation === "disableStartup") {
+    await program.startup.disable()
+    return null
+  }
+  if (request.$operation === "pinned") return program.pinned()
+  if (request.$operation === "pin") {
+    await program.pin()
+    return true
+  }
+  if (request.$operation === "unpin") {
+    await program.unpin()
+    return false
+  }
+  if (request.$operation === "getPermission") return program.permissions.get(request.permission)
+  if (request.$operation === "listPermissions") return program.permissions.all()
+  if (request.$operation === "allowsPermission") return program.permissions.allows(request.permission, request.value)
+  if (request.$operation === "requestPermission") {
+    const permissions = request.timeout === undefined ? program.permissions : program.permissions.timeout(request.timeout)
+    return permissions.request(request.permission, request.value)
+  }
+  if (request.$operation === "denyPermission") {
+    await program.permissions.deny(request.permission)
+    return false
+  }
 
-  await program.launch.set(request.launch)
-  return program.launch.get()
+  await program.permissions.allow(request.permission, request.value)
+  return program.permissions.get(request.permission)
 }
 
 async function executeProcess(
@@ -303,6 +343,14 @@ async function waitForProgram(system: ExecutionSystem, request: Request<"program
           payload: { program: await programView(value.program), purge: value.purge }
         }
       }
+      case "pinned": {
+        const value = await system.program.wait("pinned", request.timeout)
+        return {
+          scope: "system",
+          event: request.event,
+          payload: { program: await programView(value.program), pinned: value.pinned }
+        }
+      }
       default: throw new Error(`${request.event} belongs to an individual Program`)
     }
   }
@@ -332,6 +380,12 @@ async function waitForProgram(system: ExecutionSystem, request: Request<"program
       program: program.identity,
       event: request.event,
       payload: await program.wait("uninstall", request.timeout)
+    }
+    case "pinned": return {
+      scope: "program",
+      program: program.identity,
+      event: request.event,
+      payload: await program.wait("pinned", request.timeout)
     }
     default: throw new Error(`${request.event} belongs to the Program registry`)
   }

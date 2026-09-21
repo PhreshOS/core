@@ -9,7 +9,7 @@ test("installation preserves independent launch and purge decisions", () => {
   input.launch.options.mode = "changed"
   expect(parsed).toEqual({ launch: { name: "main", replace: true, options: { mode: "editor" } }, purge: false })
   expect(parseProgramInstallOptions({ extension: true })).toEqual({})
-  for (const value of [true, false, null, { launch: false }, { purge: "yes" }]) {
+  for (const value of [true, false, null, { purge: "yes" }]) {
     expect(() => parseProgramInstallOptions(value)).toThrow()
   }
 })

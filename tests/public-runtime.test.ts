@@ -97,9 +97,9 @@ describe("public runtime", function () {
     expectTypeOf<Processes>().toEqualTypeOf<Process[]>()
     expectTypeOf<Found>().toEqualTypeOf<Process | null>()
     expectTypeOf<Program>().toHaveProperty("assetId")
-    expectTypeOf<Program["launch"]["get"]>().returns.toEqualTypeOf<Promise<Launch | null>>()
-    expectTypeOf<Program["launch"]["set"]>().parameters.toEqualTypeOf<[launch: Launch]>()
-    expectTypeOf<Program["launch"]["set"]>().returns.toEqualTypeOf<Promise<void>>()
+    expectTypeOf<Program["startup"]["get"]>().returns.toEqualTypeOf<Promise<Launch | null>>()
+    expectTypeOf<Program["pinned"]>().returns.toEqualTypeOf<Promise<boolean>>()
+    expectTypeOf<Program["pin"]>().returns.toEqualTypeOf<Promise<void>>()
     expectTypeOf<Program["data"]>().toEqualTypeOf<Storage>()
   })
 

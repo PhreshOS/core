@@ -49,8 +49,7 @@ export function parseProgramDefinition(value: unknown): ProgramDefinition {
     ...present("website", website),
     ...present("icon", icon),
     ...present("agent", agent),
-    ...present<"startup", ProgramDefinition["startup"]>("startup", source.startup === undefined || source.startup === true ? source.startup : parseLaunch(source.startup)),
-    ...present<"launch", ProgramDefinition["launch"]>("launch", source.launch === undefined || source.launch === true ? source.launch : parseLaunch(source.launch)),
+    ...present<"installLaunch", ProgramDefinition["installLaunch"]>("installLaunch", source.installLaunch === undefined || source.installLaunch === true ? source.installLaunch : parseLaunch(source.installLaunch)),
     ...(source.permissions === undefined ? {} : { permissions: parseProgramPermissionDeclarations(source.permissions) }),
     storage: source.storage
   } satisfies ProgramDefinitionBase

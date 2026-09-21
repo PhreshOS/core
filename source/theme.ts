@@ -27,13 +27,13 @@ export type DesktopPreferences = Readonly<{
   scale: number
 }>
 
-/** At least one raw preference to replace on the current Desktop. */
+/** At least one raw preference to merge into the current Desktop preferences. */
 export type DesktopPreferencesUpdate =
   | Readonly<{ theme: ThemePreference, animations?: AnimationsPreference, scale?: DesktopScalePreference }>
   | Readonly<{ theme?: ThemePreference, animations: AnimationsPreference, scale?: DesktopScalePreference }>
   | Readonly<{ theme?: ThemePreference, animations?: AnimationsPreference, scale: DesktopScalePreference }>
 
-/** Validates one requested Desktop preference replacement at an unknown boundary. */
+/** Validates one requested partial Desktop preference update at an unknown boundary. */
 export function parseDesktopPreferencesUpdate(value: unknown): DesktopPreferencesUpdate {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("Desktop preferences must be an object")

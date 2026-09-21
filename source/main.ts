@@ -59,7 +59,6 @@ export {
   parsePermissionName,
   parsePermissions,
   type ProgramPermissionDeclarations,
-  type ContextPermissions,
   type Permission,
   type PermissionInput,
   type PermissionName,
@@ -68,7 +67,7 @@ export {
   type PermissionValueDomain,
   type Permissions,
   type ProgramPermissions,
-  type TimedContextPermissions
+  type TimedProgramPermissions
 } from "./permissions.js"
 export { parseProgramDefinition } from "./program-definition.js"
 export { parseLaunch } from "./launch-validation.js"
@@ -84,8 +83,7 @@ export {
   type ServiceEndpoint,
   type ServiceLifecycle,
   type ServiceLifecycleEvents,
-  type ServiceProgramMetadata,
-  type ServiceProgramMetadataOptions
+  type ServiceProgramMetadata
 } from "./service.js"
 export { isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
@@ -112,10 +110,12 @@ export {
 } from "./desktop.js"
 export {
   appearanceLimits,
+  applyAppearanceUpdate,
   createAppearanceSnapshot,
   parseAppearance,
   defaultAppearance,
   type Appearance,
+  type AppearanceUpdate,
   type AppearanceColor,
   type AppearanceColors,
   type AppearanceEvents,
@@ -221,8 +221,7 @@ export {
   type ProgramProcessExit,
   type ProgramProcessRunEvent,
   type ProgramProcessRunOptions,
-  type ProgramStartup,
-  type ProgramLaunch
+  type ProgramStartup
 } from "./program.js"
 export {
   type Window,

@@ -2,11 +2,9 @@ import { describe, expect, expectTypeOf, it } from "vitest"
 import { parseProgramDefinition, type Config, type Launch, type ProgramDefinition } from "../source/main.js"
 
 describe("Program definition", function () {
-  it("shares launch and startup contracts with authoring configuration", () => {
-    expectTypeOf<Config["launch"]>().toEqualTypeOf<true | Launch | undefined>()
-    expectTypeOf<Config["launch"]>().toEqualTypeOf<ProgramDefinition["launch"]>()
-    expectTypeOf<Config["startup"]>().toEqualTypeOf<ProgramDefinition["startup"]>()
-    expectTypeOf<ProgramDefinition["startup"]>().toEqualTypeOf<true | Launch | undefined>()
+  it("shares the install launch contract with authoring configuration", () => {
+    expectTypeOf<Config["installLaunch"]>().toEqualTypeOf<true | Launch | undefined>()
+    expectTypeOf<Config["installLaunch"]>().toEqualTypeOf<ProgramDefinition["installLaunch"]>()
 
     const config: Config = {
       identity: "window-contract",
@@ -35,26 +33,14 @@ describe("Program definition", function () {
     expect(Object.isFrozen(definition)).toBe(true)
   })
 
-  it("preserves icon launch intent", () => {
+  it("preserves post-install launch intent", () => {
     const base = { identity: "example", storage: "/tmp/example", client: { location: "/client" } }
     for (const launch of [undefined, true, {}, { options: { document: "welcome.txt" } }]) {
-      const parsed = parseProgramDefinition({ ...base, launch })
-      expect(parsed.launch).toEqual(launch)
+      const parsed = parseProgramDefinition({ ...base, installLaunch: launch })
+      expect(parsed.installLaunch).toEqual(launch)
     }
     for (const launch of [false, null, "true", [], { options: { count: 1 } }]) {
-      expect(() => parseProgramDefinition({ ...base, launch })).toThrow()
-    }
-  })
-
-  it("preserves startup selection and its launch options", function () {
-    const base = { identity: "example", storage: "/tmp/example", client: { location: "/client" } }
-    for (const startup of [undefined, true, {}, { options: { document: "welcome.txt" }, client: { minimize: true } }]) {
-      const parsed = parseProgramDefinition({ ...base, startup })
-      expect(parsed.startup).toEqual(startup)
-    }
-    expect(parseProgramDefinition({ ...base, startup: { client: { extension: true } } }).startup).toEqual({ client: {} })
-    for (const startup of [false, null, "true", [], { options: { count: 1 } }, { client: { size: { width: Infinity, height: 10 } } }]) {
-      expect(() => parseProgramDefinition({ ...base, startup })).toThrow()
+      expect(() => parseProgramDefinition({ ...base, installLaunch: launch })).toThrow()
     }
   })
 

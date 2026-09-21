@@ -57,6 +57,33 @@ export type Appearance = Readonly<{
   desktopWallpaper: ThemedValue<string | null>
 }>
 
+type AppearanceUpdateFields = Readonly<{
+  colors?: Readonly<{
+    light?: Readonly<Partial<AppearanceColors>>
+    dark?: Readonly<Partial<AppearanceColors>>
+  }>
+  spacing?: number
+  radius?: number
+  shadow?: Readonly<{
+    light?: Readonly<Partial<AppearanceShadow>>
+    dark?: Readonly<Partial<AppearanceShadow>>
+  }>
+  material?: Readonly<{
+    light?: Readonly<Partial<AppearanceMaterial>>
+    dark?: Readonly<Partial<AppearanceMaterial>>
+  }>
+  transaction?: Readonly<Partial<AppearanceTransaction>>
+  signInWallpaper?: Readonly<Partial<ThemedValue<string | null>>>
+  desktopWallpaper?: Readonly<Partial<ThemedValue<string | null>>>
+}>
+
+/** At least one partial Appearance field merged recursively into one complete snapshot. */
+export type AppearanceUpdate = {
+  [Field in keyof AppearanceUpdateFields]-?: Readonly<
+    Required<Pick<AppearanceUpdateFields, Field>> & Omit<AppearanceUpdateFields, Field>
+  >
+}[keyof AppearanceUpdateFields]
+
 /** System-owned bounds for Appearance customization. */
 export const appearanceLimits = Object.freeze({
   spacing: Object.freeze({ minimum: 6, maximum: 18 }),
@@ -158,6 +185,27 @@ export function parseAppearance(value: unknown): Appearance {
   })
 }
 
+/** Validates and recursively merges one partial update into a complete Appearance. */
+export function applyAppearanceUpdate(appearance: Appearance, value: unknown): Appearance {
+  const update = record(value, "Appearance update")
+  const keys = ["colors", "spacing", "radius", "shadow", "material", "transaction", "signInWallpaper", "desktopWallpaper"] as const
+
+  if (!keys.some(key => Object.hasOwn(update, key))) throw new Error("An Appearance update must contain at least one Appearance field")
+
+  // A supplied nested object owns only its supplied leaves. Keeping this merge
+  // here ensures every SDK and transport interprets a partial Appearance alike.
+  return parseAppearance({
+    colors: Object.hasOwn(update, "colors") ? mergeThemedRecord(appearance.colors, update.colors, "Appearance colors update") : appearance.colors,
+    spacing: Object.hasOwn(update, "spacing") ? update.spacing : appearance.spacing,
+    radius: Object.hasOwn(update, "radius") ? update.radius : appearance.radius,
+    shadow: Object.hasOwn(update, "shadow") ? mergeThemedRecord(appearance.shadow, update.shadow, "Appearance shadow update") : appearance.shadow,
+    material: Object.hasOwn(update, "material") ? mergeThemedRecord(appearance.material, update.material, "Appearance material update") : appearance.material,
+    transaction: Object.hasOwn(update, "transaction") ? { ...appearance.transaction, ...record(update.transaction, "Appearance transaction update") } : appearance.transaction,
+    signInWallpaper: Object.hasOwn(update, "signInWallpaper") ? mergeThemedValue(appearance.signInWallpaper, update.signInWallpaper, "Appearance sign-in wallpaper update") : appearance.signInWallpaper,
+    desktopWallpaper: Object.hasOwn(update, "desktopWallpaper") ? mergeThemedValue(appearance.desktopWallpaper, update.desktopWallpaper, "Appearance desktop wallpaper update") : appearance.desktopWallpaper
+  })
+}
+
 /** Live events published after the authoritative Appearance changes. */
 export type AppearanceEvents = { change: Appearance }
 
@@ -166,9 +214,9 @@ export interface AppearanceSource extends Subscribable<AppearanceEvents, never> 
   readonly snapshot: () => Promise<Appearance>
 }
 
-/** Server authority that validates and replaces the complete Appearance. */
+/** Server authority that validates and merges partial Appearance values. */
 export interface WritableAppearance extends AppearanceSource {
-  readonly update: (appearance: Appearance) => Promise<void>
+  readonly update: (appearance: AppearanceUpdate) => Promise<void>
 }
 
 function themed<Value>(value: ThemedValue<Value>, clone: (value: Value) => Value = same) {
@@ -220,6 +268,22 @@ function parseWallpaper(value: unknown) {
 function parseThemed<Value>(value: unknown, parse: (value: unknown) => Value, name: string): ThemedValue<Value> {
   const source = record(value, name)
   return Object.freeze({ light: parse(source.light), dark: parse(source.dark) })
+}
+
+function mergeThemedRecord<Value extends object>(current: ThemedValue<Value>, value: unknown, name: string): ThemedValue<Value> {
+  const update = record(value, name)
+  return {
+    light: Object.hasOwn(update, "light") ? { ...current.light, ...record(update.light, `${name} light`) } : current.light,
+    dark: Object.hasOwn(update, "dark") ? { ...current.dark, ...record(update.dark, `${name} dark`) } : current.dark
+  }
+}
+
+function mergeThemedValue<Value>(current: ThemedValue<Value>, value: unknown, name: string): ThemedValue<Value> {
+  const update = record(value, name)
+  return {
+    light: Object.hasOwn(update, "light") ? update.light as Value : current.light,
+    dark: Object.hasOwn(update, "dark") ? update.dark as Value : current.dark
+  }
 }
 
 function record(value: unknown, name: string): Record<string, unknown> {
