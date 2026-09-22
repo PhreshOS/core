@@ -86,7 +86,7 @@ export function parseProgramPermissionDeclarations(value: unknown): ProgramPermi
 
 /** Permission request using one caller-selected deadline. */
 export interface TimedProgramPermissions {
-  /** Requests owner approval, replaces the stored permission, and returns that canonical permission. */
+  /** Returns an equal effective assignment immediately; otherwise requests owner approval and replaces stored state. */
   request<Name extends PermissionName>(name: Name, permission?: PermissionRequest<Name>): Promise<Permission<Name>>
 }
 

@@ -161,6 +161,7 @@ export {
   type SystemProgram,
   type SystemWindowEvents,
   type SystemProgramEvents,
+  type SystemProgramPermissions,
   type SystemProgramUninstall,
   type SystemSession,
   type SystemSessionEnd,

@@ -10,7 +10,7 @@ import type { WindowEvents } from "./window.js"
 import type { WindowFrame } from "./window.js"
 import type { WindowTransaction } from "./appearance-transaction.js"
 import type { Network } from "./network.js"
-import type { ProgramPermissionDeclarations } from "./permissions.js"
+import type { Permissions, ProgramPermissionDeclarations } from "./permissions.js"
 import type { Connection } from "./connection.js"
 import type { Session, SessionEndReason } from "./session.js"
 import type { ExecuteRequest, ExecuteResult } from "./execute/contract.js"
@@ -79,6 +79,10 @@ export type SystemProgramPinned = Readonly<{
   program: Program
   pinned: boolean
 }>
+export type SystemProgramPermissions = Readonly<{
+  program: Program
+  permissions: Permissions
+}>
 
 export type SystemProcessExit = Exit & Readonly<{ process: Process }>
 
@@ -136,6 +140,7 @@ export type SystemProgramEvents = {
   install: Program
   uninstall: SystemProgramUninstall
   pinned: SystemProgramPinned
+  permissions: SystemProgramPermissions
 }
 
 export type SystemProcessEvents = {

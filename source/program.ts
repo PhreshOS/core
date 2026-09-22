@@ -3,7 +3,7 @@ import type { Exit, Process } from "./process.js"
 import type { ProgramSql } from "./sql.js"
 import type { ProgramStore, Storage } from "./storage.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
-import type { ProgramPermissions } from "./permissions.js"
+import type { ProgramPermissions, Permissions } from "./permissions.js"
 import type { WindowFrame } from "./window.js"
 import type { WindowTransaction } from "./appearance-transaction.js"
 import type { ProgramDefinition } from "./system.js"
@@ -125,6 +125,8 @@ export type ProgramEvents = {
 
   /** Whether this Program is retained as a pinned Program. */
   pinned: boolean
+  /** Complete effective permissions after an authoritative change. */
+  permissions: Permissions
 }
 
 /** The stable domain root from which Processes are created. */

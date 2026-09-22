@@ -179,10 +179,10 @@ const windowResult = z.looseObject({
 }).describe("Window state")
 
 const programRegistryEvents = {
-  create: "create", forget: "forget", install: "install", uninstall: "uninstall", pinned: "pinned"
+  create: "create", forget: "forget", install: "install", uninstall: "uninstall", pinned: "pinned", permissions: "permissions"
 } as const satisfies { [Event in keyof SystemProgramEvents]: Event }
 const individualProgramEvents = {
-  processCreate: "processCreate", processExit: "processExit", forget: "forget", uninstall: "uninstall", pinned: "pinned"
+  processCreate: "processCreate", processExit: "processExit", forget: "forget", uninstall: "uninstall", pinned: "pinned", permissions: "permissions"
 } as const satisfies { [Event in keyof ProgramEvents]: Event }
 const systemProcessEvents = {
   create: "create", exit: "exit"
