@@ -12,6 +12,7 @@ const program = {
   hasAgent: false,
   server: { start: true, service: false },
   client: {
+    sandbox: true,
     start: true,
     service: false,
     title: null,

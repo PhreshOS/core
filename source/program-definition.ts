@@ -100,6 +100,7 @@ function parseClient(value: unknown): ClientDefinition {
   const source = object(value, "Client definition")
 
   if (typeof source.location !== "string") throw new Error("A Client must have a location")
+  const sandbox = optionalBoolean(source.sandbox, "A Client's sandbox mode")
   const start = optionalBoolean(source.start, "A Client's start default")
   const service = optionalBoolean(source.service, "A Client's service default")
   const minimize = optionalBoolean(source.minimize, "A Client's minimize default")
@@ -112,6 +113,7 @@ function parseClient(value: unknown): ClientDefinition {
 
   return Object.freeze({
     location: source.location,
+    ...present("sandbox", sandbox),
     ...present("start", start),
     ...present("service", service),
     ...present("title", title),

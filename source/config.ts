@@ -51,6 +51,9 @@ export type ClientConfig = Readonly<{
   /** Production directory containing the Client and its `index.html`. */
   location: string
 
+  /** Whether the Client document runs in a browser sandbox. Defaults to `true`. */
+  sandbox?: boolean
+
   /** Whether a default Process starts its Client. Defaults to `true`. */
   start?: boolean
 

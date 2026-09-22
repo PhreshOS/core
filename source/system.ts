@@ -31,6 +31,8 @@ export type ServerDefinition = ServerDefinitionBase & (
 
 export type ClientDefinition = Readonly<{
   location: string
+  /** Whether the Client document runs in a browser sandbox. Defaults to `true`. */
+  sandbox?: boolean
   start?: boolean
   service?: boolean
   title?: string

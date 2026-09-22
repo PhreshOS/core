@@ -167,12 +167,14 @@ function parseEndpointDeclaration(value: unknown): EndpointDeclaration {
 function parseClientDeclaration(value: unknown): ClientDeclaration {
   const source = object(value, "Client declaration")
 
-  if (typeof source.start !== "boolean"
+  if (typeof source.sandbox !== "boolean"
+    || typeof source.start !== "boolean"
     || typeof source.service !== "boolean") {
     throw invalid("Client declaration")
   }
 
   return Object.freeze({
+    sandbox: source.sandbox,
     start: source.start,
     service: source.service,
     title: nullableText(source.title, "Client declaration"),

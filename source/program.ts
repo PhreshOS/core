@@ -48,6 +48,9 @@ export type EndpointDeclaration = Readonly<{
 
 /** Resolved Client declaration and its default Window state. */
 export type ClientDeclaration = EndpointDeclaration & Readonly<{
+  /** Whether the Client document runs in a browser sandbox. */
+  sandbox: boolean
+
   /** Default Window title, or `null` when the system supplies it. */
   title: string | null
 
