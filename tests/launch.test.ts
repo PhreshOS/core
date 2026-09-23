@@ -18,21 +18,6 @@ describe("Launch", () => {
     expect(parseLaunch({ server: false, client: true })).toEqual({ server: false, client: true })
   })
 
-  it("preserves explicit Window surface and default transaction values", () => {
-    expect(parseLaunch({ client: {
-      surface: { radius: "full", color: "primary", material: { opacity: 0.8 } },
-      transaction: { duration: 120_000, easing: "ease-out" }
-    } })).toEqual({ client: {
-      surface: { radius: "full", color: "primary", material: { opacity: 0.8 } },
-      transaction: { duration: 120_000, easing: "ease-out" }
-    } })
-
-    expect(() => parseLaunch({ client: { surface: { radius: 2 } } })).toThrow("radius")
-    expect(() => parseLaunch({ client: { surface: { material: true } } })).toThrow("object")
-    expect(() => parseLaunch({ client: { surface: { material: { opacity: 2 } } } })).toThrow("opacity")
-    expect(() => parseLaunch({ client: { transaction: -1 } })).toThrow("non-negative")
-  })
-
   it("validates consumed values and ignores additional properties", () => {
     expect(parseLaunch({ extension: true, client: { extension: true } })).toEqual({ client: {} })
     for (const value of [null, [], true, { name: "" }, { options: null }, { options: ["x"] }, { server: { service: "yes" } }, { client: { layer: "top" } }, { client: { maximize: 1 } }, { client: { header: "hidden" } }]) {

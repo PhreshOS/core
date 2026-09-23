@@ -1,9 +1,9 @@
 import { appearanceLimits, type AppearanceMaterial } from "./appearance.js"
-import type { AppearanceTransaction, Easing, WindowTransaction } from "./appearance-transaction.js"
-import type { WindowSurface } from "./window.js"
+import type { AppearanceTransaction, Easing, WindowPresentationTransaction } from "./appearance-transaction.js"
+import type { WindowPresentationSurface } from "./window-presentation.js"
 
-/** Validates and canonicalizes one authoritative Window surface value. */
-export function parseWindowSurface(value: unknown): WindowSurface {
+/** Validates and canonicalizes one Desktop-painted Window presentation surface. */
+export function parseWindowPresentationSurface(value: unknown): WindowPresentationSurface {
   if (typeof value === "boolean") return value
 
   const source = record(value, "Window surface")
@@ -29,9 +29,8 @@ export function parseWindowSurface(value: unknown): WindowSurface {
   })
 }
 
-/** Validates timing selected for Window presentation without applying Appearance's customization cap. */
-export function parseWindowTransaction(value: unknown): WindowTransaction {
-  if (typeof value === "boolean") return value
+/** Validates explicit timing selected for a Window presentation operation. */
+export function parseWindowPresentationTransaction(value: unknown): WindowPresentationTransaction {
   if (typeof value === "number") {
     if (!finite(value) || value < 0) throw new Error("A Window transaction duration must be finite non-negative milliseconds")
     return value

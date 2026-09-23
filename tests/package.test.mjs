@@ -75,14 +75,12 @@ test("package contract", async () => {
 
     writeFileSync(
       join(consumer, "consumer.ts"),
-      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowPresentationState, type WindowTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
+      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowPresentationTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
 
   const config: Config = defineConfig({
     identity: "package-consumer",
     client: {
-      location: "./client",
-      surface: { radius: "full", material: { opacity: 0.8 } },
-      transaction: { duration: 180, easing: "ease-out" }
+      location: "./client"
     }
   })
 
@@ -93,12 +91,12 @@ test("package contract", async () => {
   // @ts-expect-error Program creation belongs to the Program capability
   system.forceCreateProgram("./phresh.config.ts")
   type WindowHasSurface = "surface" extends keyof Window ? true : false
-  const windowHasSurface: WindowHasSurface = true
+  const windowHasSurface: WindowHasSurface = false
   const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
-  const windowTransaction: WindowTransaction = transaction
+  const windowTransaction: WindowPresentationTransaction = transaction
   declare const presentation: WindowPresentation
-  declare const presentationState: WindowPresentationState
-  const presentationLayer = presentationState.layer
+  const presentationLayer = presentation.layer()
+  const moveGesture = presentation.beginMoveGesture({ origin: { x: 0, y: 0 }, point: { x: 8, y: 8 } })
   const geometry: WindowGeometry = {
     x: "0/1",
     y: "0/1",
@@ -142,9 +140,11 @@ test("package contract", async () => {
   void forcedProgram
   void transaction
   void presentationLayer
+  void moveGesture.ready
+  void moveGesture.finished
   void presentation.transactionAndWait(windowTransaction).setSurface(true)
-  void presentation.transaction(transaction).follow()
-  void presentation.unfollow()
+  void presentation.setSurface(false)
+  void presentation.transaction(transaction).setGeometry(geometry)
   void setGeometry
   void updateAppearance
   void outside

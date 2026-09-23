@@ -1,8 +1,6 @@
 import type { Layer, Position, Size } from "./launch.js"
 import type { ProgramPermissionDeclarations } from "./permissions.js"
 import type { ProgramDefinition } from "./system.js"
-import type { WindowSurface } from "./window.js"
-import type { WindowTransaction } from "./appearance-transaction.js"
 
 /** One explicit way to execute a Program's Server. */
 export type ServerExecution =
@@ -65,12 +63,6 @@ export type ClientConfig = Readonly<{
 
   /** Whether a standard Window initially shows its Desktop-owned header. */
   header?: boolean
-
-  /** Initial authoritative surface, interpreted by the selected presentation layer. */
-  surface?: WindowSurface
-
-  /** Default transaction used by presentation layers that support transactions. */
-  transaction?: WindowTransaction
 
   /** Initial Window size. */
   size?: Size

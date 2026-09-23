@@ -4,8 +4,6 @@ import type { ProgramSql } from "./sql.js"
 import type { ProgramStore, Storage } from "./storage.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 import type { ProgramPermissions, Permissions } from "./permissions.js"
-import type { WindowSurface } from "./window.js"
-import type { WindowTransaction } from "./appearance-transaction.js"
 import type { ProgramDefinition } from "./system.js"
 
 /** Version assigned when a Program definition omits one. */
@@ -56,12 +54,6 @@ export type ClientDeclaration = EndpointDeclaration & Readonly<{
 
   /** Default standard Window header state, or `null` for the system default. */
   header: boolean | null
-
-  /** Default authoritative surface, or `null` for the layer default. */
-  surface: WindowSurface | null
-
-  /** Default presentation transaction, or `null` for the layer default. */
-  transaction: WindowTransaction | null
 
   /** Default Window size, or `null` when the system supplies it. */
   size: Size | null

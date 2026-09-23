@@ -17,8 +17,6 @@ const program = {
     service: false,
     title: null,
     header: null,
-    surface: null,
-    transaction: null,
     size: null,
     position: null,
     layer: null,

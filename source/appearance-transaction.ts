@@ -13,5 +13,5 @@ export type AppearanceTransaction = Readonly<{
   easing: Easing
 }>
 
-/** Timing selected for a Window presentation operation. */
-export type WindowTransaction = boolean | number | AppearanceTransaction
+/** Explicit timing selected for a Window presentation operation. */
+export type WindowPresentationTransaction = number | AppearanceTransaction

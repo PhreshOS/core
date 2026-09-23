@@ -1,70 +1,84 @@
-import type { WindowTransaction } from "./appearance-transaction.js"
-import type { Subscribable } from "./subscribable.js"
-import type { Window, WindowEvents, WindowSurface, WindowOperations, WindowState } from "./window.js"
+import type { AppearanceColor, AppearanceMaterial } from "./appearance.js"
+import type { WindowPresentationTransaction } from "./appearance-transaction.js"
+import type { Position, Size } from "./launch.js"
+import type { WindowGeometry, WindowLayer } from "./window.js"
 
-type WindowPresentationGeometryState = Readonly<Pick<
-  WindowState,
-  "position" | "size" | "minimized" | "maximized" | "front"
->>
+/** No Material or explicit Appearance-owned overrides for one optional presentation surface. */
+export type WindowPresentationSurfaceMaterial = false | Partial<AppearanceMaterial>
 
-/** Complete readable values used by one Desktop to represent a Window. */
-export type WindowPresentationState =
-  | (WindowPresentationGeometryState & Readonly<{
-      layer: "window"
-      title: string
-      header: boolean
-      surface: WindowSurface
-    }>)
-  | (WindowPresentationGeometryState & Readonly<{
-      layer: "under" | "over" | "shell"
-      surface: WindowSurface
-    }>)
-  | Readonly<{ layer: "wallpaper" }>
+/** One optional Desktop-painted surface behind a presented Client document. */
+export type WindowPresentationSurface = false | true | Readonly<{
+  /** Core Appearance radius in pixels, or a completely rounded boundary. */
+  radius?: number | "full"
 
-/** Mutations whose visual application can be grouped under one transaction. */
-export interface WindowPresentationTransactionOperations extends Pick<
-  WindowOperations,
-  "move" | "resize" | "setGeometry" | "minimize" | "maximize" | "setSurface"
-> {
-  /** Applies supported authoritative values; resolves unchanged when none apply. */
-  follow(): Promise<void>
+  /** An Appearance color role or an explicit CSS color. */
+  color?: AppearanceColor | (string & {})
+
+  /** Default Material, no Material, or explicit Core Material overrides. */
+  material?: WindowPresentationSurfaceMaterial
+}>
+
+/** One pointer position in the executing Client document's viewport. */
+export type WindowMovePoint = Readonly<{ x: number, y: number }>
+
+/** The press origin and first intentional movement that initiate one move. */
+export type WindowMoveGestureStart = Readonly<{
+  origin: WindowMovePoint
+  point: WindowMovePoint
+}>
+
+/** One move whose continuous pointer interaction is owned by the presenting Desktop. */
+export interface WindowMoveGesture {
+  /** Resolves after the presenting Desktop is ready to receive pointer events. */
+  readonly ready: Promise<void>
+
+  /** Resolves after the Desktop ends or cancels the interaction. */
+  readonly finished: Promise<void>
+
+  /** Cancels the interaction when its initiating Client lifecycle ends first. */
+  cancel(): void
 }
 
-/** Mutations applied to the values one Desktop relies on to represent a Client Window. */
-export interface WindowPresentationOperations extends WindowOperations {
-  /** Applies supported authoritative values; resolves unchanged when none apply. */
-  follow(): Promise<void>
+/** Starts one host-owned move from a pointer interaction initiated by presented content. */
+export type BeginWindowMoveGesture = (start: WindowMoveGestureStart) => WindowMoveGesture
 
-  /** Stops applying later authoritative changes and preserves current presentation state. */
-  unfollow(): Promise<void>
+/** Raw presentation mutations that can be visually transacted. */
+export interface WindowPresentationTransactionOperations {
+  /** Moves the local presentation to one position. */
+  move(position: Position): Promise<void>
+
+  /** Resizes the local presentation to one size. */
+  resize(size: Size): Promise<void>
+
+  /** Changes local position and size as one operation. */
+  setGeometry(geometry: WindowGeometry): Promise<void>
+
+  /** Replaces or removes the Desktop-painted surface behind the Client document. */
+  setSurface(surface: WindowPresentationSurface): Promise<void>
 }
 
 /**
- * The values one Desktop relies on to represent the executing Client Window.
+ * Controls the executing Client Window's presentation in its current Desktop.
  *
- * These values describe the Desktop's presentation input, not measurements of
- * where or how the rendered Window currently appears. They may follow the
- * authoritative Window or diverge where the layer permits local control.
- * Property reads and property mutations reject when the current layer has no
- * corresponding presentation concept. `follow()` and `unfollow()` remain
- * valid even when there is no applicable value. Event observation stays
- * silent for unsupported behavior because subscriptions are asynchronous
- * observations.
+ * `layer()` is always available and equals the authoritative Window layer for
+ * this execution context. Standard Windows accept `beginMoveGesture()` and
+ * reject raw mutations. Under, over, and shell presentations accept raw
+ * mutations and reject `beginMoveGesture()`. Wallpaper presentations reject
+ * both because their fixed representation belongs to the Desktop.
  */
-export interface WindowPresentation extends WindowPresentationOperations, Subscribable<WindowEvents, never> {
-  title: Window["title"]
-  header: Window["header"]
-  surface: Window["surface"]
-  position: Window["position"]
-  size: Window["size"]
-  minimized: Window["minimized"]
-  maximized: Window["maximized"]
-  front: Window["front"]
-  layer: Window["layer"]
+export interface WindowPresentation extends WindowPresentationTransactionOperations {
+  /** Returns the layer containing this presentation and its authoritative Window. */
+  layer(): Promise<WindowLayer>
 
-  /** Binds applicable mutations to a visual transaction and resolves after acceptance. */
-  transaction(transaction: WindowTransaction): WindowPresentationTransactionOperations
+  /** Hands a Client-originated pointer move to a standard Window's Desktop. */
+  beginMoveGesture: BeginWindowMoveGesture
 
-  /** Binds applicable mutations and resolves each request after its visual transaction finishes. */
-  transactionAndWait(transaction: WindowTransaction): WindowPresentationTransactionOperations
+  /** Brings this raw presentation to the front of its own layer. */
+  raise(): Promise<void>
+
+  /** Applies supported mutations with Appearance timing or explicit timing. */
+  transaction(transaction?: WindowPresentationTransaction): WindowPresentationTransactionOperations
+
+  /** Applies supported mutations and resolves them after their visual transition finishes. */
+  transactionAndWait(transaction?: WindowPresentationTransaction): WindowPresentationTransactionOperations
 }

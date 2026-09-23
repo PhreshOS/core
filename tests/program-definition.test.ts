@@ -10,9 +10,7 @@ describe("Program definition", function () {
       identity: "window-contract",
       client: {
         location: "./client",
-        sandbox: false,
-        surface: { radius: "full", material: { opacity: 0.8 } },
-        transaction: { duration: 180, easing: "ease-out" }
+        sandbox: false
       }
     }
     void config

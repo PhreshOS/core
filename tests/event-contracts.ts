@@ -86,11 +86,11 @@ function clientContextContract(context: ClientContext) {
   authoritative.subscribe("move", position => void position.x)
   authoritative.position()
   const presentation = context.presentation
-  presentation.subscribe("move", position => void position.x)
-  presentation.minimize()
+  presentation.layer()
+  presentation.beginMoveGesture({ origin: { x: 0, y: 0 }, point: { x: 8, y: 8 } }).ready
   presentation.raise()
   presentation.transaction({ duration: 120, easing: "ease-out" }).setGeometry({ x: 0, y: 0, width: 800, height: 600 })
-  presentation.transactionAndWait({ duration: 120, easing: "ease-out" }).minimize(false)
+  presentation.transactionAndWait().setSurface(false)
   context.permissions.get("all")
   context.permissions.allows("network", ["https://api.example.com"])
   context.permissions.request("all", [])

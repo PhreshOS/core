@@ -35,31 +35,6 @@ const size = z.looseObject({
   height: metric.describe("Window height")
 }).describe("Window size")
 
-const easing = z.union([
-  z.enum(["linear", "ease", "ease-in", "ease-out", "ease-in-out"]),
-  z.tuple([z.number(), z.number(), z.number(), z.number()]).readonly()
-])
-
-const appearanceTransaction = z.looseObject({
-  duration: z.number().nonnegative(),
-  easing
-})
-
-const windowTransaction = z.union([z.boolean(), z.number().nonnegative(), appearanceTransaction])
-
-const windowSurface = z.union([z.boolean(), z.looseObject({
-  radius: z.union([z.number(), z.literal("full")]).optional(),
-  color: z.string().optional(),
-  material: z.union([z.literal(false), z.looseObject({
-    grain: z.number().optional(),
-    grainAmount: z.number().optional(),
-    backdrop: z.number().optional(),
-    opacity: z.number().optional(),
-    distortion: z.number().optional(),
-    saturation: z.number().optional()
-  })]).optional()
-})])
-
 const serverLaunch = z.looseObject({
   service: z.boolean().optional().describe("Whether the Server Endpoint is addressable as a Service")
 }).describe("Server Endpoint launch settings")
@@ -68,8 +43,6 @@ const clientLaunch = z.looseObject({
   service: z.boolean().optional().describe("Whether the Client Endpoint is addressable as a Service"),
   title: z.string().optional().describe("Initial Window title"),
   header: z.boolean().optional().describe("Whether the standard Window header is shown"),
-  surface: windowSurface.optional().describe("Authoritative Window surface"),
-  transaction: windowTransaction.optional().describe("Default transaction for under and over presentations"),
   size: size.optional().describe("Initial Window size"),
   position: position.optional().describe("Initial Window position"),
   layer: z.enum(layers).optional().describe("Desktop Window layer"),
@@ -129,8 +102,6 @@ const programResult = z.looseObject({
     service: z.boolean(),
     title: z.string().nullable(),
     header: z.boolean().nullable(),
-    surface: windowSurface.nullable(),
-    transaction: windowTransaction.nullable(),
     size: size.nullable(),
     position: position.nullable(),
     layer: z.enum(layers).nullable(),
@@ -168,8 +139,6 @@ const windowResult = z.looseObject({
   process: z.string().describe("Owning Process identity"),
   title: z.string().describe("Window title"),
   header: z.boolean().describe("Whether the Desktop-owned Window header is shown"),
-  surface: windowSurface.describe("Authoritative Window surface"),
-  transaction: windowTransaction.describe("Default presentation transaction"),
   position,
   size,
   minimized: z.boolean().describe("Whether the Window is minimized"),
@@ -201,8 +170,7 @@ const systemServiceEvents = {
 } as const satisfies { [Event in keyof SystemServiceEvents]: Event }
 const windowEvents = {
   move: "move", resize: "resize", minimize: "minimize",
-  maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", changeSurface: "changeSurface",
-  changeTransaction: "changeTransaction", front: "front"
+  maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", front: "front"
 } as const satisfies { [Event in keyof WindowEvents]: Event }
 
 const programWaitRequest = request("program", "wait", {
@@ -475,14 +443,6 @@ const executeOperations = Object.freeze([
   defineOperation("window", "setHeader", "Set whether one Window shows its Desktop-owned header.", request("window", "setHeader", {
     ...windowIdentity,
     header: z.boolean().describe("Whether the Window header is shown")
-  }), windowResult),
-  defineOperation("window", "setSurface", "Set one Window's authoritative surface definition.", request("window", "setSurface", {
-    ...windowIdentity,
-    surface: windowSurface
-  }), windowResult),
-  defineOperation("window", "setTransaction", "Set one Window's default presentation transaction.", request("window", "setTransaction", {
-    ...windowIdentity,
-    transaction: windowTransaction
   }), windowResult),
   defineOperation("window", "raise", "Raise one Window within its own layer.", request("window", "raise", windowIdentity), windowResult),
   defineOperation("window", "wait", "Wait for one authoritative Window state change.", request("window", "wait", {

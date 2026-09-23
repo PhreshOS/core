@@ -9,7 +9,7 @@ import {
   type Context,
   type Launch,
   type WindowPresentation,
-  type WindowPresentationState,
+  type WindowPresentationSurface,
   type Permission,
   type PermissionName,
   type PermissionValue,
@@ -20,7 +20,7 @@ import {
   type ShellOptions,
   type System,
   type AppearanceTransaction,
-  type WindowTransaction,
+  type WindowPresentationTransaction,
   type Upload,
   type WritableContent,
   Endpoint,
@@ -42,40 +42,40 @@ import {
   parseShellEvent,
   parseAuthenticationCredentials,
   parseAuthenticationRequirements,
-  parseAuthenticationState
+  parseAuthenticationState,
+  parseWindowPresentationSurface
 } from "../source/main.js"
 
 describe("public runtime", function () {
   it("defines the current Desktop presentation beside authoritative Window state", function () {
     expectTypeOf<WindowPresentation>().toHaveProperty("setGeometry")
-    expectTypeOf<WindowPresentation>().toHaveProperty("minimize")
-    expectTypeOf<WindowPresentation>().toHaveProperty("follow")
-    expectTypeOf<WindowPresentation>().toHaveProperty("unfollow")
+    expectTypeOf<WindowPresentation>().toHaveProperty("setSurface")
+    expectTypeOf<WindowPresentation>().toHaveProperty("beginMoveGesture")
+    expectTypeOf<WindowPresentation>().toHaveProperty("layer")
     expectTypeOf<WindowPresentation>().toHaveProperty("raise")
     expectTypeOf<WindowPresentation>().toHaveProperty("transaction")
     expectTypeOf<WindowPresentation>().toHaveProperty("transactionAndWait")
-    expectTypeOf<WindowPresentation>().toHaveProperty("subscribe")
-    expectTypeOf<WindowPresentation>().toHaveProperty("title")
-    expectTypeOf<Extract<WindowPresentationState, { layer: "window" }>>().toHaveProperty("title")
-    type UnderHasTitle = "title" extends keyof Extract<WindowPresentationState, { surface: unknown }> ? true : false
-    type WallpaperHasPosition = "position" extends keyof Extract<WindowPresentationState, { layer: "wallpaper" }> ? true : false
-    const underHasTitle: UnderHasTitle = false
-    const wallpaperHasPosition: WallpaperHasPosition = false
 
     const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
-    const selected: WindowTransaction = true
+    const selected: WindowPresentationTransaction = transaction
+    const absentSurface: WindowPresentationSurface = false
     // @ts-expect-error Surface Material accepts explicit overrides or false, not a default sentinel.
-    const invalidSurfaceMaterial: import("../source/main.js").WindowSurface = { material: true }
+    const invalidSurfaceMaterial: WindowPresentationSurface = { material: true }
+    // @ts-expect-error An absent Surface uses false, consistently with other Window values.
+    const invalidAbsentSurface: WindowPresentationSurface = null
+    expect(parseWindowPresentationSurface(false)).toBe(false)
+    expect(parseWindowPresentationSurface(true)).toBe(true)
+    expect(() => parseWindowPresentationSurface(null)).toThrow(/must be an object/)
     void transaction
     void selected
-    void underHasTitle
-    void wallpaperHasPosition
+    void absentSurface
     void invalidSurfaceMaterial
+    void invalidAbsentSurface
 
     type EmptyRejected = {} extends AppearanceTransaction ? false : true
-    type FalseAccepted = false extends WindowTransaction ? true : false
+    type BooleanRejected = boolean extends WindowPresentationTransaction ? false : true
     expectTypeOf<EmptyRejected>().toEqualTypeOf<true>()
-    expectTypeOf<FalseAccepted>().toEqualTypeOf<true>()
+    expectTypeOf<BooleanRejected>().toEqualTypeOf<true>()
   })
 
   it("preserves the domain class hierarchy", function () {

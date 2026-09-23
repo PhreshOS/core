@@ -1,6 +1,4 @@
 import type { Value } from "./value.js"
-import type { WindowTransaction } from "./appearance-transaction.js"
-import type { WindowSurface } from "./window.js"
 
 /** A Window's top-left position. */
 export type Position = Readonly<{
@@ -47,12 +45,6 @@ export type ClientLaunch = Readonly<{
 
   /** Whether a standard Window shows its Desktop-owned header after this start. */
   header?: boolean
-
-  /** Authoritative surface value used by layers that present customizable surfaces. */
-  surface?: WindowSurface
-
-  /** Default transaction used by Window presentations that support transactions. */
-  transaction?: WindowTransaction
 
   /** Window size to use after this start. */
   size?: Size

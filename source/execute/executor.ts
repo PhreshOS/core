@@ -294,8 +294,6 @@ async function executeWindow(
     | Request<"window", "maximize">
     | Request<"window", "setTitle">
     | Request<"window", "setHeader">
-    | Request<"window", "setSurface">
-    | Request<"window", "setTransaction">
     | Request<"window", "raise">
     | Request<"window", "wait">
 ) {
@@ -317,8 +315,6 @@ async function executeWindow(
     case "maximize": await window.maximize(request.maximized); break
     case "setTitle": await window.setTitle(request.title); break
     case "setHeader": await window.setHeader(request.header); break
-    case "setSurface": await window.setSurface(request.surface); break
-    case "setTransaction": await window.setTransaction(request.transaction); break
     case "raise": await window.raise(); break
   }
 
@@ -512,11 +508,9 @@ async function serviceView(service: import("../service.js").Service) {
 }
 
 async function windowView(process: string, window: Window) {
-  const [title, header, surface, transaction, position, size, minimized, maximized, front, layer] = await Promise.all([
+  const [title, header, position, size, minimized, maximized, front, layer] = await Promise.all([
     window.title(),
     window.header(),
-    window.surface(),
-    window.transaction(),
     window.position(),
     window.size(),
     window.minimized(),
@@ -525,7 +519,7 @@ async function windowView(process: string, window: Window) {
     window.layer()
   ])
 
-  return { process, title, header, surface, transaction, position, size, minimized, maximized, front, layer }
+  return { process, title, header, position, size, minimized, maximized, front, layer }
 }
 
 function exitView(value: Readonly<{ status: "exited" | "signaled", code: number | null, signal: string | null }>) {
