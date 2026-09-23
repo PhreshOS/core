@@ -1,12 +1,12 @@
 import { appearanceLimits, type AppearanceMaterial } from "./appearance.js"
 import type { AppearanceTransaction, Easing, WindowTransaction } from "./appearance-transaction.js"
-import type { WindowFrame } from "./window.js"
+import type { WindowSurface } from "./window.js"
 
-/** Validates and canonicalizes one authoritative Window frame value. */
-export function parseWindowFrame(value: unknown): WindowFrame {
+/** Validates and canonicalizes one authoritative Window surface value. */
+export function parseWindowSurface(value: unknown): WindowSurface {
   if (typeof value === "boolean") return value
 
-  const source = record(value, "Window frame")
+  const source = record(value, "Window surface")
   const radius = source.radius
   const color = source.color
   const material = source.material
@@ -14,18 +14,18 @@ export function parseWindowFrame(value: unknown): WindowFrame {
   if (radius !== undefined && radius !== "full") {
     const limits = appearanceLimits.radius
     if (!finite(radius) || radius < limits.minimum || radius > limits.maximum) {
-      throw new Error(`A Window frame radius must be "full" or a finite number from ${limits.minimum} to ${limits.maximum}`)
+      throw new Error(`A Window surface radius must be "full" or a finite number from ${limits.minimum} to ${limits.maximum}`)
     }
   }
 
   if (color !== undefined && (typeof color !== "string" || color.length === 0)) {
-    throw new Error("A Window frame color must be a non-empty color value")
+    throw new Error("A Window surface color must be a non-empty color value")
   }
 
   return Object.freeze({
     ...(radius === undefined ? {} : { radius }),
     ...(color === undefined ? {} : { color }),
-    ...(material === undefined ? {} : { material: parseFrameMaterial(material) })
+    ...(material === undefined ? {} : { material: parseSurfaceMaterial(material) })
   })
 }
 
@@ -43,10 +43,10 @@ export function parseWindowTransaction(value: unknown): WindowTransaction {
   return Object.freeze({ duration: source.duration, easing: parseEasing(source.easing) })
 }
 
-function parseFrameMaterial(value: unknown): false | Partial<AppearanceMaterial> {
+function parseSurfaceMaterial(value: unknown): false | Partial<AppearanceMaterial> {
   if (value === false) return false
 
-  const source = record(value, "Window frame material")
+  const source = record(value, "Window surface material")
   const result: Partial<Record<keyof AppearanceMaterial, number>> = {}
 
   for (const name of materialNames) {
@@ -54,7 +54,7 @@ function parseFrameMaterial(value: unknown): false | Partial<AppearanceMaterial>
     if (entry === undefined) continue
     const limits = appearanceLimits.material[name]
     if (!finite(entry) || entry < limits.minimum || entry > limits.maximum) {
-      throw new Error(`Window frame material ${name} must be a finite number from ${limits.minimum} to ${limits.maximum}`)
+      throw new Error(`Window surface material ${name} must be a finite number from ${limits.minimum} to ${limits.maximum}`)
     }
     result[name] = entry
   }

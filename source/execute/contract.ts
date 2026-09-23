@@ -47,7 +47,7 @@ const appearanceTransaction = z.looseObject({
 
 const windowTransaction = z.union([z.boolean(), z.number().nonnegative(), appearanceTransaction])
 
-const windowFrame = z.union([z.boolean(), z.looseObject({
+const windowSurface = z.union([z.boolean(), z.looseObject({
   radius: z.union([z.number(), z.literal("full")]).optional(),
   color: z.string().optional(),
   material: z.union([z.literal(false), z.looseObject({
@@ -68,7 +68,7 @@ const clientLaunch = z.looseObject({
   service: z.boolean().optional().describe("Whether the Client Endpoint is addressable as a Service"),
   title: z.string().optional().describe("Initial Window title"),
   header: z.boolean().optional().describe("Whether the standard Window header is shown"),
-  frame: windowFrame.optional().describe("Authoritative Window frame"),
+  surface: windowSurface.optional().describe("Authoritative Window surface"),
   transaction: windowTransaction.optional().describe("Default transaction for under and over presentations"),
   size: size.optional().describe("Initial Window size"),
   position: position.optional().describe("Initial Window position"),
@@ -129,7 +129,7 @@ const programResult = z.looseObject({
     service: z.boolean(),
     title: z.string().nullable(),
     header: z.boolean().nullable(),
-    frame: windowFrame.nullable(),
+    surface: windowSurface.nullable(),
     transaction: windowTransaction.nullable(),
     size: size.nullable(),
     position: position.nullable(),
@@ -168,7 +168,7 @@ const windowResult = z.looseObject({
   process: z.string().describe("Owning Process identity"),
   title: z.string().describe("Window title"),
   header: z.boolean().describe("Whether the Desktop-owned Window header is shown"),
-  frame: windowFrame.describe("Authoritative Window frame"),
+  surface: windowSurface.describe("Authoritative Window surface"),
   transaction: windowTransaction.describe("Default presentation transaction"),
   position,
   size,
@@ -201,7 +201,7 @@ const systemServiceEvents = {
 } as const satisfies { [Event in keyof SystemServiceEvents]: Event }
 const windowEvents = {
   move: "move", resize: "resize", minimize: "minimize",
-  maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", changeFrame: "changeFrame",
+  maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", changeSurface: "changeSurface",
   changeTransaction: "changeTransaction", front: "front"
 } as const satisfies { [Event in keyof WindowEvents]: Event }
 
@@ -476,9 +476,9 @@ const executeOperations = Object.freeze([
     ...windowIdentity,
     header: z.boolean().describe("Whether the Window header is shown")
   }), windowResult),
-  defineOperation("window", "setFrame", "Set one Window's authoritative frame definition.", request("window", "setFrame", {
+  defineOperation("window", "setSurface", "Set one Window's authoritative surface definition.", request("window", "setSurface", {
     ...windowIdentity,
-    frame: windowFrame
+    surface: windowSurface
   }), windowResult),
   defineOperation("window", "setTransaction", "Set one Window's default presentation transaction.", request("window", "setTransaction", {
     ...windowIdentity,

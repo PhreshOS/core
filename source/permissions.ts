@@ -16,7 +16,7 @@ export const programPermissionCatalog = Object.freeze({
   appearance: "none",
   desktopPreferences: "none",
   desktopConnection: "none",
-  connections: "none"
+  authentication: "none"
 } as const)
 
 /** One permission name recognized by every PhreshOS environment. */
@@ -137,7 +137,7 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
     return values.every(value => typeof value === "string" && value.trim().length > 0) ? values : null
   }
   if (domain === "layer") {
-    return values.every(value => value === "under" || value === "over" || value === "wallpaper" || value === "start-menu") ? values : null
+    return values.every(value => value === "under" || value === "over" || value === "wallpaper" || value === "shell") ? values : null
   }
   if (domain === "network") {
     try { return values.map(parseNetworkScope) }

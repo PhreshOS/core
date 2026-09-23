@@ -20,6 +20,7 @@ describe("Appearance", function () {
     expect(defaultAppearance.colors.dark.primary).toBe("#4c9cff")
     expect(defaultAppearance.spacing).toBe(12)
     expect(defaultAppearance.transaction).toEqual({ duration: 120, easing: "ease-out" })
+    expect(defaultAppearance.taskbar).toEqual({ position: "bottom", size: 44 })
     expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
     expect(defaultAppearance.material.light.grain).toBe(0.04)
   })
@@ -112,6 +113,7 @@ describe("Appearance", function () {
     expect(Object.isFrozen(appearance.colors)).toBe(true)
     expect(Object.isFrozen(appearance.colors.light)).toBe(true)
     expect(Object.isFrozen(appearance.transaction)).toBe(true)
+    expect(Object.isFrozen(appearance.taskbar)).toBe(true)
     expect(Object.isFrozen(appearance.material.light)).toBe(true)
   })
 
@@ -128,6 +130,8 @@ describe("Appearance", function () {
       light: { ...defaultAppearance.material.light, opacity: 2 },
       dark: defaultAppearance.material.dark
     } })).toThrow("Appearance material opacity")
+    expect(() => parseAppearance({ ...defaultAppearance, taskbar: { position: "center", size: 44 } })).toThrow("Appearance taskbar position")
+    expect(() => parseAppearance({ ...defaultAppearance, taskbar: { position: "bottom", size: 101 } })).toThrow("Appearance taskbar size")
     expect(parseAppearance({
       ...defaultAppearance,
       extension: true,
@@ -142,7 +146,8 @@ describe("Appearance", function () {
     const appearance = applyAppearanceUpdate(defaultAppearance, {
       colors: { dark: { danger: "#aa0000" } },
       material: { light: { opacity: 0.5 } },
-      transaction: { duration: 240 }
+      transaction: { duration: 240 },
+      taskbar: { position: "left" }
     })
 
     expect(appearance.colors.dark.danger).toBe("#aa0000")
@@ -151,12 +156,14 @@ describe("Appearance", function () {
     expect(appearance.material.light.opacity).toBe(0.5)
     expect(appearance.material.light.grain).toBe(defaultAppearance.material.light.grain)
     expect(appearance.transaction).toEqual({ duration: 240, easing: "ease-out" })
+    expect(appearance.taskbar).toEqual({ position: "left", size: 44 })
     expect(() => applyAppearanceUpdate(defaultAppearance, {})).toThrow("at least one Appearance field")
     expect(() => applyAppearanceUpdate(defaultAppearance, { material: { dark: { opacity: 2 } } })).toThrow("Appearance material opacity")
   })
 
   it("publishes the complete bounded material ranges", function () {
     expect(appearanceLimits.transaction.duration).toEqual({ minimum: 0, maximum: 60_000 })
+    expect(appearanceLimits.taskbar.size).toEqual({ minimum: 0, maximum: 100 })
     expect(appearanceLimits.material).toEqual({
       grain: { minimum: 0, maximum: 1 },
       grainAmount: { minimum: 0, maximum: 1 },

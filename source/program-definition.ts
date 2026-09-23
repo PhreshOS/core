@@ -3,7 +3,7 @@ import { parseProgramPermissionDeclarations } from "./permissions.js"
 import type { ClientDefinition, ProgramDefinition, ServerDefinition } from "./system.js"
 import { isRelativeValue } from "./value.js"
 import { parseLaunch } from "./launch-validation.js"
-import { parseWindowFrame, parseWindowTransaction } from "./window-values.js"
+import { parseWindowSurface, parseWindowTransaction } from "./window-values.js"
 import { isProgramIdentity } from "./program-identity.js"
 import { defaultProgramVersion } from "./program.js"
 
@@ -106,7 +106,7 @@ function parseClient(value: unknown): ClientDefinition {
   const minimize = optionalBoolean(source.minimize, "A Client's minimize default")
   const maximize = optionalBoolean(source.maximize, "A Client's maximize default")
   const header = optionalBoolean(source.header, "A Client's header default")
-  const frame = source.frame === undefined ? undefined : parseWindowFrame(source.frame)
+  const surface = source.surface === undefined ? undefined : parseWindowSurface(source.surface)
   const transaction = source.transaction === undefined ? undefined : parseWindowTransaction(source.transaction)
   const title = optionalText(source.title, "A Client's title")
   const layer = optionalLayer(source.layer)
@@ -118,7 +118,7 @@ function parseClient(value: unknown): ClientDefinition {
     ...present("service", service),
     ...present("title", title),
     ...present("header", header),
-    ...present("frame", frame),
+    ...present("surface", surface),
     ...present("transaction", transaction),
     ...present("size", source.size === undefined ? undefined : size(source.size)),
     ...present("position", source.position === undefined ? undefined : position(source.position)),

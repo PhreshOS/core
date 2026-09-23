@@ -7,12 +7,11 @@ import type { Storage } from "./storage.js"
 import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
-import type { WindowFrame } from "./window.js"
+import type { WindowSurface } from "./window.js"
 import type { WindowTransaction } from "./appearance-transaction.js"
 import type { Network } from "./network.js"
 import type { Permissions, ProgramPermissionDeclarations } from "./permissions.js"
-import type { Connection } from "./connection.js"
-import type { Session, SessionEndReason } from "./session.js"
+import type { SystemAuthentication } from "./authentication.js"
 import type { ExecuteRequest, ExecuteResult } from "./execute/contract.js"
 
 type ServerDefinitionBase = Readonly<{
@@ -37,7 +36,7 @@ export type ClientDefinition = Readonly<{
   service?: boolean
   title?: string
   header?: boolean
-  frame?: WindowFrame
+  surface?: WindowSurface
   transaction?: WindowTransaction
   size?: Size
   position?: Position
@@ -168,36 +167,6 @@ export interface SystemProcess extends Subscribable<SystemProcessEvents, never> 
   find(identity: string): Promise<Process | null>
 }
 
-/** Lifecycle events in the System Connection registry. */
-export type SystemConnectionEvents = {
-  create: Connection
-  disconnect: Connection
-}
-
-/** Live browser Connections known by the System. */
-export interface SystemConnection extends Subscribable<SystemConnectionEvents, never> {
-  list(): Promise<Connection[]>
-  find(identity: string): Promise<Connection | null>
-}
-
-/** One Session ending in the authoritative System registry. */
-export type SystemSessionEnd = Readonly<{
-  session: Session
-  reason: SessionEndReason
-}>
-
-/** Lifecycle events in the System Session registry. */
-export type SystemSessionEvents = {
-  create: Session
-  end: SystemSessionEnd
-}
-
-/** Authentication Sessions known by the System. */
-export interface SystemSession extends Subscribable<SystemSessionEvents, never> {
-  list(): Promise<Session[]>
-  find(identity: string): Promise<Session | null>
-}
-
 /** Availability changes in the caller's visible Service discovery scope. */
 export type SystemServiceEvents = {
   /** A ready Service became visible to this caller. */
@@ -238,8 +207,7 @@ export interface System {
   readonly appearance: WritableAppearance
   readonly program: SystemProgram
   readonly process: SystemProcess
-  readonly connection: SystemConnection
-  readonly session: SystemSession
+  readonly authentication: SystemAuthentication
   readonly service: SystemService
   readonly uploads: SystemUploads
   readonly network: Network

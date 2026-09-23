@@ -71,7 +71,7 @@ export {
 } from "./permissions.js"
 export { parseProgramDefinition } from "./program-definition.js"
 export { parseLaunch } from "./launch-validation.js"
-export { parseWindowFrame, parseWindowTransaction } from "./window-values.js"
+export { parseWindowSurface, parseWindowTransaction } from "./window-values.js"
 export { parseProgramInstallOptions, parseProgramUninstallOptions } from "./program-installation.js"
 export { type Askable, type TimedAskable } from "./askable.js"
 export {
@@ -123,6 +123,8 @@ export {
   type AppearanceSource,
   type AppearanceMaterial,
   type AppearanceShadow,
+  type AppearanceTaskbar,
+  type TaskbarPosition,
   type ThemedValue,
   type WritableAppearance
 } from "./appearance.js"
@@ -153,8 +155,6 @@ export {
   type ShellEvent,
   type ShellOptions,
   type System,
-  type SystemConnection,
-  type SystemConnectionEvents,
   type SystemProcess,
   type SystemProcessEvents,
   type SystemProcessExit,
@@ -163,9 +163,6 @@ export {
   type SystemProgramEvents,
   type SystemProgramPermissions,
   type SystemProgramUninstall,
-  type SystemSession,
-  type SystemSessionEnd,
-  type SystemSessionEvents,
   type SystemService,
   type SystemServiceEvents
 } from "./system.js"
@@ -205,6 +202,17 @@ export { ClientEndpoint, type ClientTraffic } from "./client-endpoint.js"
 export { Process, type Exit, type ProcessEvents } from "./process.js"
 export { Connection, type ConnectionEvents } from "./connection.js"
 export {
+  parseAuthenticationCredentials,
+  parseAuthenticationRequirements,
+  parseAuthenticationState,
+  type AuthenticationCredentials,
+  type AuthenticationRequirements,
+  type AuthenticationSessionEnd,
+  type AuthenticationState,
+  type SystemAuthentication,
+  type SystemAuthenticationEvents
+} from "./authentication.js"
+export {
   Session,
   type SessionEndReason,
   type SessionEvents
@@ -231,12 +239,13 @@ export {
   type WindowGeometry,
   type WindowLayer,
   type WindowState,
-  type WindowFrame,
-  type WindowFrameMaterial
+  type WindowSurface,
+  type WindowSurfaceMaterial
 } from "./window.js"
 export {
   type WindowPresentation,
   type WindowPresentationOperations,
+  type WindowPresentationState,
   type WindowPresentationTransactionOperations
 } from "./window-presentation.js"
 export { type AppearanceTransaction, type Easing, type WindowTransaction } from "./appearance-transaction.js"

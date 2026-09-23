@@ -6,11 +6,11 @@ import type { Subscribable } from "./subscribable.js"
 /** The authoritative runtime layer occupied by a Window. */
 export type WindowLayer = Layer
 
-/** No Material or explicit Appearance-owned overrides for one optional Desktop frame. */
-export type WindowFrameMaterial = false | Partial<AppearanceMaterial>
+/** No Material or explicit Appearance-owned overrides for one optional Desktop surface. */
+export type WindowSurfaceMaterial = false | Partial<AppearanceMaterial>
 
-/** The frame surrounding a Window presentation, or `false` when it is absent. */
-export type WindowFrame = boolean | Readonly<{
+/** The Desktop-painted backing surface of a Window, or `false` when it is absent. */
+export type WindowSurface = boolean | Readonly<{
   /** Core Appearance radius in pixels, or a completely rounded boundary. */
   radius?: number | "full"
 
@@ -18,7 +18,7 @@ export type WindowFrame = boolean | Readonly<{
   color?: AppearanceColor | (string & {})
 
   /** Default Material, no Material, or explicit Core Material overrides. */
-  material?: WindowFrameMaterial
+  material?: WindowSurfaceMaterial
 }>
 
 /** Complete position and size committed as one authoritative Window change. */
@@ -44,8 +44,8 @@ export type WindowEvents = {
   /** The Desktop-owned header visibility changed. */
   changeHeader: boolean
 
-  /** The authoritative frame definition changed. */
-  changeFrame: WindowFrame
+  /** The authoritative surface definition changed. */
+  changeSurface: WindowSurface
 
   /** The default presentation transaction changed. */
   changeTransaction: WindowTransaction
@@ -62,8 +62,8 @@ export type WindowState = Readonly<{
   /** Whether the Desktop-owned header is shown. */
   header: boolean
 
-  /** Authoritative frame definition retained independently of presentation support. */
-  frame: WindowFrame
+  /** Authoritative surface definition retained independently of presentation support. */
+  surface: WindowSurface
 
   /** Default transaction for presentation operations that support one. */
   transaction: WindowTransaction
@@ -88,7 +88,7 @@ export type WindowState = Readonly<{
 
 }>
 
-/** Authoritative Window state permanently owned by one Client Endpoint. */
+/** The authoritative truth of a Window, permanently owned by one Client Endpoint. */
 export interface Window extends WindowOperations, Subscribable<WindowEvents, never> {
   /** Returns the current title. */
   title(): Promise<string>
@@ -96,8 +96,8 @@ export interface Window extends WindowOperations, Subscribable<WindowEvents, nev
   /** Returns whether the Desktop-owned header is shown. */
   header(): Promise<boolean>
 
-  /** Returns the authoritative frame definition. */
-  frame(): Promise<WindowFrame>
+  /** Returns the authoritative surface definition. */
+  surface(): Promise<WindowSurface>
 
   /** Returns the default presentation transaction. */
   transaction(): Promise<WindowTransaction>
@@ -147,8 +147,8 @@ export interface WindowOperations {
   /** Sets whether the Desktop-owned header is shown. */
   setHeader(header: boolean): Promise<void>
 
-  /** Sets the authoritative frame definition. */
-  setFrame(frame: WindowFrame): Promise<void>
+  /** Sets the authoritative surface definition. */
+  setSurface(surface: WindowSurface): Promise<void>
 
   /** Brings the Window to the front of its own layer. */
   raise(): Promise<void>

@@ -1,6 +1,6 @@
 import type { Value } from "./value.js"
 import type { WindowTransaction } from "./appearance-transaction.js"
-import type { WindowFrame } from "./window.js"
+import type { WindowSurface } from "./window.js"
 
 /** A Window's top-left position. */
 export type Position = Readonly<{
@@ -20,8 +20,8 @@ export type Size = Readonly<{
   height: Value
 }>
 
-/** Every structurally isolated desktop layer. */
-export const layers = ["window", "under", "over", "wallpaper", "start-menu"] as const
+/** Every structurally isolated Desktop layer, ordered from back to front. */
+export const layers = ["wallpaper", "under", "window", "over", "shell"] as const
 
 /** A structurally isolated desktop layer. */
 export type Layer = (typeof layers)[number]
@@ -48,10 +48,10 @@ export type ClientLaunch = Readonly<{
   /** Whether a standard Window shows its Desktop-owned header after this start. */
   header?: boolean
 
-  /** Authoritative frame value used by layers that present customizable frames. */
-  frame?: WindowFrame
+  /** Authoritative surface value used by layers that present customizable surfaces. */
+  surface?: WindowSurface
 
-  /** Default transaction used by under and over Window presentations. */
+  /** Default transaction used by Window presentations that support transactions. */
   transaction?: WindowTransaction
 
   /** Window size to use after this start. */

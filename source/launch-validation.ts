@@ -1,6 +1,6 @@
 import { isLayer, layers, type ClientLaunch, type Launch, type ServerLaunch } from "./launch.js"
 import { isRelativeValue } from "./value.js"
-import { parseWindowFrame, parseWindowTransaction } from "./window-values.js"
+import { parseWindowSurface, parseWindowTransaction } from "./window-values.js"
 
 /** Validate one Process launch without resolving Program or Desktop defaults. */
 export function parseLaunch(value: unknown): Launch {
@@ -38,7 +38,7 @@ function client(value: unknown): ClientLaunch {
   for (const key of ["service", "header", "minimize", "maximize"] as const) {
     if (source[key] !== undefined) result[key] = boolean(source[key], key)
   }
-  if (source.frame !== undefined) result.frame = parseWindowFrame(source.frame)
+  if (source.surface !== undefined) result.surface = parseWindowSurface(source.surface)
   if (source.transaction !== undefined) result.transaction = parseWindowTransaction(source.transaction)
   if (source.title !== undefined) {
     if (typeof source.title !== "string") throw new Error("A Window title must be text")

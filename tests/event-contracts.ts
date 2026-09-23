@@ -103,7 +103,7 @@ function clientContextContract(context: ClientContext) {
   context.permissions.request("appearance")
   context.permissions.request("desktopPreferences", [])
   context.permissions.request("desktopConnection")
-  context.permissions.request("connections")
+  context.permissions.request("authentication")
 
   // @ts-expect-error Value-less permissions do not accept Program identities.
   context.permissions.request("appearance", ["flambo"])

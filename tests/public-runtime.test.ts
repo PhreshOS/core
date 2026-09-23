@@ -9,6 +9,7 @@ import {
   type Context,
   type Launch,
   type WindowPresentation,
+  type WindowPresentationState,
   type Permission,
   type PermissionName,
   type PermissionValue,
@@ -38,7 +39,10 @@ import {
   describeStorageScope,
   networkScopeCovers,
   parseRelativeValue,
-  parseShellEvent
+  parseShellEvent,
+  parseAuthenticationCredentials,
+  parseAuthenticationRequirements,
+  parseAuthenticationState
 } from "../source/main.js"
 
 describe("public runtime", function () {
@@ -52,14 +56,21 @@ describe("public runtime", function () {
     expectTypeOf<WindowPresentation>().toHaveProperty("transactionAndWait")
     expectTypeOf<WindowPresentation>().toHaveProperty("subscribe")
     expectTypeOf<WindowPresentation>().toHaveProperty("title")
+    expectTypeOf<Extract<WindowPresentationState, { layer: "window" }>>().toHaveProperty("title")
+    type UnderHasTitle = "title" extends keyof Extract<WindowPresentationState, { surface: unknown }> ? true : false
+    type WallpaperHasPosition = "position" extends keyof Extract<WindowPresentationState, { layer: "wallpaper" }> ? true : false
+    const underHasTitle: UnderHasTitle = false
+    const wallpaperHasPosition: WallpaperHasPosition = false
 
     const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
     const selected: WindowTransaction = true
-    // @ts-expect-error Frame Material accepts explicit overrides or false, not a default sentinel.
-    const invalidFrameMaterial: import("../source/main.js").WindowFrame = { material: true }
+    // @ts-expect-error Surface Material accepts explicit overrides or false, not a default sentinel.
+    const invalidSurfaceMaterial: import("../source/main.js").WindowSurface = { material: true }
     void transaction
     void selected
-    void invalidFrameMaterial
+    void underHasTitle
+    void wallpaperHasPosition
+    void invalidSurfaceMaterial
 
     type EmptyRejected = {} extends AppearanceTransaction ? false : true
     type FalseAccepted = false extends WindowTransaction ? true : false
@@ -75,12 +86,27 @@ describe("public runtime", function () {
   })
 
   it("defines Connection and Session as canonical System domains", function () {
-    expectTypeOf<System["connection"]["list"]>().returns.resolves.toEqualTypeOf<Connection[]>()
-    expectTypeOf<System["session"]["list"]>().returns.resolves.toEqualTypeOf<Session[]>()
+    expectTypeOf<System["authentication"]["connections"]>().returns.resolves.toEqualTypeOf<Connection[]>()
+    expectTypeOf<System["authentication"]["sessions"]>().returns.resolves.toEqualTypeOf<Session[]>()
+    expectTypeOf<System["authentication"]["connection"]>().returns.resolves.toEqualTypeOf<Connection | null>()
+    expectTypeOf<System["authentication"]["session"]>().returns.resolves.toEqualTypeOf<Session | null>()
     expectTypeOf<Connection["session"]>().returns.resolves.toEqualTypeOf<Session | null>()
     expectTypeOf<Connection["signIn"]>().returns.resolves.toEqualTypeOf<Session>()
     expectTypeOf<Session["connections"]>().returns.resolves.toEqualTypeOf<Connection[]>()
     expectTypeOf<Session["signOut"]>().returns.resolves.toEqualTypeOf<void>()
+  })
+
+  it("defines public Authentication state separately from immutable requirements", function () {
+    expect(parseAuthenticationCredentials({ username: "owner", password: "password", ignored: true })).toEqual({ username: "owner", password: "password" })
+    expect(parseAuthenticationState({ username: "owner", ignored: true })).toEqual({ username: "owner" })
+    expect(parseAuthenticationState({ username: null })).toEqual({ username: null })
+    expect(parseAuthenticationRequirements({
+      username: { minimumLength: 1, maximumLength: 64 },
+      password: { minimumLength: 8, maximumLength: 1024 }
+    })).toEqual({
+      username: { minimumLength: 1, maximumLength: 64 },
+      password: { minimumLength: 8, maximumLength: 1024 }
+    })
   })
 
   it("keeps Service discovery concrete and address preparation discriminated", function () {
@@ -160,7 +186,7 @@ describe("public runtime", function () {
   })
 
   it("keeps the finite public registries narrow", function () {
-    expect(layers).toEqual(["window", "under", "over", "wallpaper", "start-menu"])
+    expect(layers).toEqual(["wallpaper", "under", "window", "over", "shell"])
   })
 
   it("separates the Client context, Desktop, and global System contracts", function () {
@@ -177,10 +203,10 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences" | "desktopConnection" | "connections">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "appearance" | "desktopPreferences" | "desktopConnection" | "authentication">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
-    expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over" | "wallpaper" | "start-menu">()
+    expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over" | "wallpaper" | "shell">()
     expectTypeOf<PermissionValue<"network">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"storage">>().toEqualTypeOf<string>()
     expectTypeOf<Permission>().toEqualTypeOf<readonly string[] | false | null>()
@@ -200,7 +226,7 @@ describe("public runtime", function () {
     expect(parsePermission("uploads", [])).toEqual([])
     expect(parsePermission("appearance", [])).toEqual([])
     expect(parsePermission("desktopPreferences", [])).toEqual([])
-    expect(parsePermission("connections", [])).toEqual([])
+    expect(parsePermission("authentication", [])).toEqual([])
     expect(parsePermission("desktopConnection", [])).toEqual([])
     expect(parsePermission("all", false)).toBe(false)
     expect(parsePermission("all", null)).toBeNull()
@@ -265,7 +291,7 @@ describe("public runtime", function () {
         appearance: [],
         desktopPreferences: true,
         desktopConnection: true,
-        connections: true
+        authentication: true
       },
       client: { location: "./client" }
     })

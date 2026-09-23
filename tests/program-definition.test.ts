@@ -11,7 +11,7 @@ describe("Program definition", function () {
       client: {
         location: "./client",
         sandbox: false,
-        frame: { radius: "full", material: { opacity: 0.8 } },
+        surface: { radius: "full", material: { opacity: 0.8 } },
         transaction: { duration: 180, easing: "ease-out" }
       }
     }

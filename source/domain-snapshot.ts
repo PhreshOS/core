@@ -2,7 +2,7 @@ import { isRelativeValue } from "./value.js"
 import { isLayer, type Position, type Size } from "./launch.js"
 import type { ClientDeclaration, EndpointDeclaration } from "./program.js"
 import type { SessionEndReason } from "./session.js"
-import { parseWindowFrame, parseWindowTransaction } from "./window-values.js"
+import { parseWindowSurface, parseWindowTransaction } from "./window-values.js"
 
 /** Stable coordinates shared by every handle for one runtime entity. */
 export type HandleAddress = Readonly<{
@@ -179,7 +179,7 @@ function parseClientDeclaration(value: unknown): ClientDeclaration {
     service: source.service,
     title: nullableText(source.title, "Client declaration"),
     header: nullableBoolean(source.header, "Client declaration"),
-    frame: source.frame === null ? null : parseWindowFrame(source.frame),
+    surface: source.surface === null ? null : parseWindowSurface(source.surface),
     transaction: source.transaction === null ? null : parseWindowTransaction(source.transaction),
     size: source.size === null ? null : parseSize(source.size),
     position: source.position === null ? null : parsePosition(source.position),

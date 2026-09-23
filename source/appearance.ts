@@ -45,6 +45,14 @@ export type AppearanceShadow = Readonly<{
   opacity: number
 }>
 
+export type TaskbarPosition = "top" | "left" | "bottom" | "right"
+
+/** Unthemed System placement settings for the built-in Taskbar. */
+export type AppearanceTaskbar = Readonly<{
+  position: TaskbarPosition
+  size: number
+}>
+
 /** Complete, unresolved visual state owned by the System. */
 export type Appearance = Readonly<{
   colors: ThemedValue<AppearanceColors>
@@ -53,6 +61,7 @@ export type Appearance = Readonly<{
   shadow: ThemedValue<AppearanceShadow>
   material: ThemedValue<AppearanceMaterial>
   transaction: AppearanceTransaction
+  taskbar: AppearanceTaskbar
   signInWallpaper: ThemedValue<string | null>
   desktopWallpaper: ThemedValue<string | null>
 }>
@@ -73,6 +82,7 @@ type AppearanceUpdateFields = Readonly<{
     dark?: Readonly<Partial<AppearanceMaterial>>
   }>
   transaction?: Readonly<Partial<AppearanceTransaction>>
+  taskbar?: Readonly<Partial<AppearanceTaskbar>>
   signInWallpaper?: Readonly<Partial<ThemedValue<string | null>>>
   desktopWallpaper?: Readonly<Partial<ThemedValue<string | null>>>
 }>
@@ -90,6 +100,9 @@ export const appearanceLimits = Object.freeze({
   radius: Object.freeze({ minimum: 6, maximum: 18 }),
   transaction: Object.freeze({
     duration: Object.freeze({ minimum: 0, maximum: 60_000 })
+  }),
+  taskbar: Object.freeze({
+    size: Object.freeze({ minimum: 0, maximum: 100 })
   }),
   shadow: Object.freeze({
     x: Object.freeze({ minimum: -48, maximum: 48 }),
@@ -110,6 +123,7 @@ export const appearanceLimits = Object.freeze({
   spacing: AppearanceRange
   radius: AppearanceRange
   transaction: Readonly<{ duration: AppearanceRange }>
+  taskbar: Readonly<{ size: AppearanceRange }>
   shadow: Readonly<Record<keyof AppearanceShadow, AppearanceRange>>
   material: Readonly<Record<keyof AppearanceMaterial, AppearanceRange>>
 }>
@@ -151,6 +165,7 @@ export const defaultAppearance = createAppearanceSnapshot({
     dark: { grain: 0.03, grainAmount: 0.95, backdrop: 12, opacity: 0.8, distortion: 0, saturation: 1.77 }
   },
   transaction: { duration: 120, easing: "ease-out" },
+  taskbar: { position: "bottom", size: 44 },
   signInWallpaper: { light: null, dark: null },
   desktopWallpaper: { light: null, dark: null }
 })
@@ -164,6 +179,7 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
     shadow: themed(appearance.shadow, value => Object.freeze({ ...value })),
     material: themed(appearance.material, value => Object.freeze({ ...value })),
     transaction: Object.freeze({ ...appearance.transaction }),
+    taskbar: Object.freeze({ ...appearance.taskbar }),
     signInWallpaper: themed(appearance.signInWallpaper),
     desktopWallpaper: themed(appearance.desktopWallpaper)
   })
@@ -180,6 +196,7 @@ export function parseAppearance(value: unknown): Appearance {
     shadow: parseThemed(source.shadow, parseShadow, "Appearance shadow"),
     material: parseThemed(source.material, parseMaterial, "Appearance material"),
     transaction: parseTransaction(source.transaction),
+    taskbar: parseTaskbar(source.taskbar),
     signInWallpaper: parseThemed(source.signInWallpaper, parseWallpaper, "sign-in wallpaper"),
     desktopWallpaper: parseThemed(source.desktopWallpaper, parseWallpaper, "desktop wallpaper")
   })
@@ -188,7 +205,7 @@ export function parseAppearance(value: unknown): Appearance {
 /** Validates and recursively merges one partial update into a complete Appearance. */
 export function applyAppearanceUpdate(appearance: Appearance, value: unknown): Appearance {
   const update = record(value, "Appearance update")
-  const keys = ["colors", "spacing", "radius", "shadow", "material", "transaction", "signInWallpaper", "desktopWallpaper"] as const
+  const keys = ["colors", "spacing", "radius", "shadow", "material", "transaction", "taskbar", "signInWallpaper", "desktopWallpaper"] as const
 
   if (!keys.some(key => Object.hasOwn(update, key))) throw new Error("An Appearance update must contain at least one Appearance field")
 
@@ -201,6 +218,7 @@ export function applyAppearanceUpdate(appearance: Appearance, value: unknown): A
     shadow: Object.hasOwn(update, "shadow") ? mergeThemedRecord(appearance.shadow, update.shadow, "Appearance shadow update") : appearance.shadow,
     material: Object.hasOwn(update, "material") ? mergeThemedRecord(appearance.material, update.material, "Appearance material update") : appearance.material,
     transaction: Object.hasOwn(update, "transaction") ? { ...appearance.transaction, ...record(update.transaction, "Appearance transaction update") } : appearance.transaction,
+    taskbar: Object.hasOwn(update, "taskbar") ? { ...appearance.taskbar, ...record(update.taskbar, "Appearance taskbar update") } : appearance.taskbar,
     signInWallpaper: Object.hasOwn(update, "signInWallpaper") ? mergeThemedValue(appearance.signInWallpaper, update.signInWallpaper, "Appearance sign-in wallpaper update") : appearance.signInWallpaper,
     desktopWallpaper: Object.hasOwn(update, "desktopWallpaper") ? mergeThemedValue(appearance.desktopWallpaper, update.desktopWallpaper, "Appearance desktop wallpaper update") : appearance.desktopWallpaper
   })
@@ -257,6 +275,20 @@ function parseTransaction(value: unknown): AppearanceTransaction {
   return Object.freeze({
     duration: bounded(source.duration, appearanceLimits.transaction.duration, "Appearance transaction duration"),
     easing: Array.isArray(easing) ? Object.freeze([...easing]) as AppearanceTransaction["easing"] : easing
+  })
+}
+
+function parseTaskbar(value: unknown): AppearanceTaskbar {
+  const source = record(value, "Appearance taskbar")
+  const position = source.position
+
+  if (position !== "top" && position !== "left" && position !== "bottom" && position !== "right") {
+    throw new Error("Appearance taskbar position is invalid")
+  }
+
+  return Object.freeze({
+    position,
+    size: bounded(source.size, appearanceLimits.taskbar.size, "Appearance taskbar size")
   })
 }
 
