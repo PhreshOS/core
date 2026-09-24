@@ -251,6 +251,11 @@ const executeOperations = Object.freeze([
     operation: z.string().describe("Operation name")
   }), operationDescription.nullable()),
 
+  defineOperation("system", "logs", "Query records produced by the PhreshOS System.", request("system", "logs", {
+    statement: z.string().min(1).describe("Table: logs. Columns: createdAt, level, source, kind, content, data."),
+    values: z.array(jsonValue).optional().describe("Bound statement values")
+  }), z.array(logRow)),
+
   defineOperation("program", "list", "List Programs visible to the current System connection.", request("program", "list", {
     installedOnly: z.boolean().optional().describe("Return only installed Programs")
   }), z.array(programResult)),
@@ -303,12 +308,6 @@ const executeOperations = Object.freeze([
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
   }), z.literal(false)),
-  defineOperation("program", "requestPermission", "Request an owner decision for one Program permission.", request("program", "requestPermission", {
-    identity: z.string().describe("Program identity"),
-    permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name"),
-    value: z.union([z.literal(true), z.array(z.string())]).optional().describe("Complete requested permission value"),
-    timeout: z.number().finite().nonnegative().optional().describe("Owner-decision deadline in milliseconds")
-  }), z.union([z.array(z.string()), z.literal(false), z.null()])),
   defineOperation("program", "logs", "Query one Program's captured Endpoint logs.", request("program", "logs", {
     identity: z.string().describe("Program identity"),
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, process, source, kind, content."),

@@ -8,9 +8,10 @@ import type { Subscribable } from "./subscribable.js"
 import type { SystemUploads } from "./uploads.js"
 import type { WindowEvents } from "./window.js"
 import type { Network } from "./network.js"
-import type { Permissions, ProgramPermissionDeclarations } from "./permissions.js"
+import type { Permissions, ProgramPermissionDeclarations, SystemPermissions } from "./permissions.js"
 import type { SystemAuthentication } from "./authentication.js"
 import type { ExecuteRequest, ExecuteResult } from "./execute/contract.js"
+import type { SystemLogs } from "./sql.js"
 
 type ServerDefinitionBase = Readonly<{
   location: string
@@ -204,6 +205,8 @@ export interface System {
   readonly program: SystemProgram
   readonly process: SystemProcess
   readonly authentication: SystemAuthentication
+  readonly permissions: SystemPermissions
+  readonly logs: SystemLogs
   readonly service: SystemService
   readonly uploads: SystemUploads
   readonly network: Network

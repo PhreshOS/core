@@ -92,6 +92,7 @@ describe("Execute", () => {
     const operations = new Set(listExecuteOperations().map(value => `${value.domain}.${value.operation}`))
 
     for (const operation of [
+      "system.logs",
       "program.definition",
       "program.getStartup",
       "program.enableStartup",
@@ -104,7 +105,6 @@ describe("Execute", () => {
       "program.allowsPermission",
       "program.allowPermission",
       "program.denyPermission",
-      "program.requestPermission",
       "program.logs",
       "program.wait",
       "process.wait",
@@ -128,6 +128,27 @@ describe("Execute", () => {
       program: "example",
       event: "install"
     })).toThrow(/individual Program/)
+  })
+
+  it("queries System logs through the System log handle", async () => {
+    const calls: unknown[] = []
+    const system = {
+      logs: {
+        query(statement: string, values?: unknown[]) {
+          calls.push([statement, values])
+          return Promise.resolve([{ level: "error" }])
+        }
+      }
+    } as unknown as ExecutionSystem
+
+    await expect(execute(system, {
+      $domain: "system",
+      $operation: "logs",
+      statement: "select * from logs where level = ?",
+      values: ["error"]
+    })).resolves.toEqual([{ level: "error" }])
+
+    expect(calls).toEqual([["select * from logs where level = ?", ["error"]]])
   })
 
   it("discovers and inspects Services through the public Service registry", async () => {
@@ -239,15 +260,6 @@ describe("Execute", () => {
       permission: "network",
       value: ["https://other.example.com"]
     })).resolves.toEqual(["https://other.example.com"])
-
-    await expect(execute(system, {
-      $domain: "program",
-      $operation: "requestPermission",
-      identity: "example",
-      permission: "network",
-      value: ["https://api.example.com"],
-      timeout: 250
-    })).resolves.toEqual(["https://api.example.com"])
 
     await expect(execute(system, {
       $domain: "program",

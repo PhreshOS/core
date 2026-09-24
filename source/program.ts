@@ -1,6 +1,6 @@
 import type { Launch, Layer, Position, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
-import type { ProgramSql } from "./sql.js"
+import type { ProgramLogs, ProgramSql } from "./sql.js"
 import type { ProgramStore, Storage } from "./storage.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 import type { ProgramPermissions, Permissions } from "./permissions.js"
@@ -165,7 +165,7 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   public abstract readonly store: ProgramStore
 
   /** Read-only SQL access to captured Client and Server output. */
-  public abstract readonly logs: ProgramSql
+  public abstract readonly logs: ProgramLogs
 
   /** Writable SQLite database owned by this Program. */
   public abstract readonly database: ProgramSql

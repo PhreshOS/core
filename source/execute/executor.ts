@@ -34,12 +34,17 @@ export async function execute<RequestValue extends ExecuteRequest>(
 async function dispatch(system: ExecutionSystem, request: ExecuteRequest): Promise<unknown> {
   switch (request.$domain) {
     case "operation": return executeOperation(request)
+    case "system": return executeSystem(system, request)
     case "program": return executeProgram(system, request)
     case "process": return executeProcess(system, request)
     case "endpoint": return executeEndpoint(system, request)
     case "service": return executeService(system, request)
     case "window": return executeWindow(system, request)
   }
+}
+
+function executeSystem(system: ExecutionSystem, request: Request<"system", "logs">) {
+  return system.logs.query(request.statement, request.values)
 }
 
 async function executeService(
@@ -135,7 +140,6 @@ async function executeProgram(
     | Request<"program", "allowsPermission">
     | Request<"program", "allowPermission">
     | Request<"program", "denyPermission">
-    | Request<"program", "requestPermission">
     | Request<"program", "logs">
     | Request<"program", "wait">
 ) {
@@ -172,10 +176,6 @@ async function executeProgram(
   if (request.$operation === "getPermission") return program.permissions.get(request.permission)
   if (request.$operation === "listPermissions") return program.permissions.all()
   if (request.$operation === "allowsPermission") return program.permissions.allows(request.permission, request.value)
-  if (request.$operation === "requestPermission") {
-    const permissions = request.timeout === undefined ? program.permissions : program.permissions.timeout(request.timeout)
-    return permissions.request(request.permission, request.value)
-  }
   if (request.$operation === "denyPermission") {
     await program.permissions.deny(request.permission)
     return false

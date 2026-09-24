@@ -166,6 +166,49 @@ function explicitlyOpenSystemService(system: System) {
 
 void explicitlyOpenSystemService
 
+function logContracts(system: System, program: Program) {
+  system.logs.subscribe("log", record => {
+    record.level.toUpperCase()
+    record.source.toUpperCase()
+  })
+  program.logs.subscribe("log", record => {
+    record.process.toUpperCase()
+    record.source.toUpperCase()
+  })
+}
+
+void logContracts
+
+async function systemPermissionContract(system: System) {
+  const requests = await system.permissions.requests()
+  const request = requests[0]
+
+  if (request) {
+    request.identity.toUpperCase()
+    request.from.process()
+    request.createdAt.getTime()
+    request.expiresAt.getTime()
+    request.name.toUpperCase()
+    request.scope.map(value => String(value))
+    await request.pending()
+    await request.allow()
+    await request.deny()
+    await request.cancel()
+    request.subscribe("resolve", permission => void permission)
+  }
+
+  system.permissions.subscribe("permissionRequest", pending => void pending.from)
+  system.permissions.subscribe("permissionResolve", ({ request: resolved, permission }) => {
+    void resolved.identity
+    void permission
+  })
+
+  // @ts-expect-error the System permission registry exposes only request lifecycles.
+  system.permissions.allow("network")
+}
+
+void systemPermissionContract
+
 function eventContracts(process: Process, server: ServerEndpoint, service: ServerService<{ change: number }>) {
   const stop = process.subscribe(capture => {
     const code: number | null = capture.message.code
@@ -226,8 +269,6 @@ function systemHandlesRemainCanonical(
   program.permissions.allow("appearance", [])
   program.permissions.allow("desktopPreferences")
   program.permissions.deny("network")
-  program.permissions.request("uploads")
-  program.permissions.timeout(120_000).request("network", ["https://api.example.com"])
 
   // @ts-expect-error Program-scoped permission values are Program identities.
   program.permissions.allow("services", [42])

@@ -55,6 +55,7 @@ export {
   programPermissionCatalog,
   isPermissionName,
   parsePermission,
+  parsePermissionRequestSnapshot,
   parseProgramPermissionDeclarations,
   parsePermissionName,
   parsePermissions,
@@ -62,12 +63,20 @@ export {
   type Permission,
   type PermissionInput,
   type PermissionName,
-  type PermissionRequest,
+  PermissionRequest,
+  type PermissionRequestEvents,
+  type PermissionRequestInput,
+  type PermissionRequestSnapshot,
+  type PermissionScope,
   type PermissionValue,
   type PermissionValueDomain,
   type Permissions,
   type ProgramPermissions,
-  type TimedProgramPermissions
+  type ContextPermissions,
+  type SystemPermissionEvents,
+  type SystemPermissionResolve,
+  type SystemPermissions,
+  type TimedContextPermissions
 } from "./permissions.js"
 export { parseProgramDefinition } from "./program-definition.js"
 export { parseLaunch } from "./launch-validation.js"
@@ -166,7 +175,21 @@ export {
   type SystemService,
   type SystemServiceEvents
 } from "./system.js"
-export { type LogKind, type LogRecord, type LogSource, type ProgramSql } from "./sql.js"
+export {
+  parseProgramLogRecord,
+  parseSystemLogRecord,
+  type LogEvents,
+  type LogKind,
+  type Logs,
+  type LogSource,
+  type ProgramLogRecord,
+  type ProgramLogs,
+  type ProgramSql,
+  type SqlQuery,
+  type SystemLogLevel,
+  type SystemLogRecord,
+  type SystemLogs
+} from "./sql.js"
 
 export {
   Endpoint,
