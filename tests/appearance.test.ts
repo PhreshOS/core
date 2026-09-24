@@ -20,7 +20,7 @@ describe("Appearance", function () {
     expect(defaultAppearance.colors.dark.primary).toBe("#4c9cff")
     expect(defaultAppearance.spacing).toBe(12)
     expect(defaultAppearance.transaction).toEqual({ duration: 120, easing: "ease-out" })
-    expect(defaultAppearance.taskbar).toEqual({ position: "bottom", size: 44 })
+    expect(defaultAppearance.taskbar).toEqual({ position: "bottom", size: 44, overlay: false })
     expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
     expect(defaultAppearance.material.light.grain).toBe(0.04)
   })
@@ -132,6 +132,7 @@ describe("Appearance", function () {
     } })).toThrow("Appearance material opacity")
     expect(() => parseAppearance({ ...defaultAppearance, taskbar: { position: "center", size: 44 } })).toThrow("Appearance taskbar position")
     expect(() => parseAppearance({ ...defaultAppearance, taskbar: { position: "bottom", size: 101 } })).toThrow("Appearance taskbar size")
+    expect(() => parseAppearance({ ...defaultAppearance, taskbar: { position: "bottom", size: 44, overlay: "yes" } })).toThrow("Appearance taskbar overlay")
     expect(parseAppearance({
       ...defaultAppearance,
       extension: true,
@@ -156,7 +157,10 @@ describe("Appearance", function () {
     expect(appearance.material.light.opacity).toBe(0.5)
     expect(appearance.material.light.grain).toBe(defaultAppearance.material.light.grain)
     expect(appearance.transaction).toEqual({ duration: 240, easing: "ease-out" })
-    expect(appearance.taskbar).toEqual({ position: "left", size: 44 })
+    expect(appearance.taskbar).toEqual({ position: "left", size: 44, overlay: false })
+
+    const overlay = applyAppearanceUpdate(appearance, { taskbar: { overlay: true } })
+    expect(overlay.taskbar).toEqual({ position: "left", size: 44, overlay: true })
     expect(() => applyAppearanceUpdate(defaultAppearance, {})).toThrow("at least one Appearance field")
     expect(() => applyAppearanceUpdate(defaultAppearance, { material: { dark: { opacity: 2 } } })).toThrow("Appearance material opacity")
   })

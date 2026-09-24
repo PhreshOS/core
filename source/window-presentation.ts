@@ -73,6 +73,9 @@ export interface WindowPresentation extends WindowPresentationTransactionOperati
   /** Hands a Client-originated pointer move to a standard Window's Desktop. */
   beginMoveGesture: BeginWindowMoveGesture
 
+  /** Enables or disables interaction with this raw presentation. */
+  setInteractive(interactive: boolean): Promise<void>
+
   /** Brings this raw presentation to the front of its own layer. */
   raise(): Promise<void>
 

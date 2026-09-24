@@ -9,6 +9,7 @@ import {
   type Context,
   type Launch,
   type WindowPresentation,
+  type WindowPresentationTransactionOperations,
   type WindowPresentationSurface,
   type Permission,
   type PermissionName,
@@ -51,10 +52,12 @@ describe("public runtime", function () {
     expectTypeOf<WindowPresentation>().toHaveProperty("setGeometry")
     expectTypeOf<WindowPresentation>().toHaveProperty("setSurface")
     expectTypeOf<WindowPresentation>().toHaveProperty("beginMoveGesture")
+    expectTypeOf<WindowPresentation>().toHaveProperty("setInteractive")
     expectTypeOf<WindowPresentation>().toHaveProperty("layer")
     expectTypeOf<WindowPresentation>().toHaveProperty("raise")
     expectTypeOf<WindowPresentation>().toHaveProperty("transaction")
     expectTypeOf<WindowPresentation>().toHaveProperty("transactionAndWait")
+    expectTypeOf<WindowPresentationTransactionOperations>().not.toHaveProperty("setInteractive")
 
     const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
     const selected: WindowPresentationTransaction = transaction

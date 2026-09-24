@@ -144,6 +144,7 @@ test("package contract", async () => {
   void moveGesture.finished
   void presentation.transactionAndWait(windowTransaction).setSurface(true)
   void presentation.setSurface(false)
+  void presentation.setInteractive(false)
   void presentation.transaction(transaction).setGeometry(geometry)
   void setGeometry
   void updateAppearance

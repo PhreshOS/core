@@ -51,6 +51,8 @@ export type TaskbarPosition = "top" | "left" | "bottom" | "right"
 export type AppearanceTaskbar = Readonly<{
   position: TaskbarPosition
   size: number
+  /** Whether the Taskbar is intended to overlay standard Window space. */
+  overlay: boolean
 }>
 
 /** Complete, unresolved visual state owned by the System. */
@@ -165,7 +167,7 @@ export const defaultAppearance = createAppearanceSnapshot({
     dark: { grain: 0.03, grainAmount: 0.95, backdrop: 12, opacity: 0.8, distortion: 0, saturation: 1.77 }
   },
   transaction: { duration: 120, easing: "ease-out" },
-  taskbar: { position: "bottom", size: 44 },
+  taskbar: { position: "bottom", size: 44, overlay: false },
   signInWallpaper: { light: null, dark: null },
   desktopWallpaper: { light: null, dark: null }
 })
@@ -288,8 +290,14 @@ function parseTaskbar(value: unknown): AppearanceTaskbar {
 
   return Object.freeze({
     position,
-    size: bounded(source.size, appearanceLimits.taskbar.size, "Appearance taskbar size")
+    size: bounded(source.size, appearanceLimits.taskbar.size, "Appearance taskbar size"),
+    overlay: boolean(source.overlay, "Appearance taskbar overlay")
   })
+}
+
+function boolean(value: unknown, name: string) {
+  if (typeof value !== "boolean") throw new Error(`${name} must be true or false`)
+  return value
 }
 
 function parseWallpaper(value: unknown) {
