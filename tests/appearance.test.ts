@@ -10,14 +10,16 @@ import {
 
 describe("Appearance", function () {
   it("keeps complete default light and dark values", function () {
-    expect(defaultAppearance.colors.light.background).toBe("#fff9f5")
-    expect(defaultAppearance.colors.dark.background).toBe("#121a21")
-    expect(defaultAppearance.colors.light.foreground).toBe("#183447")
-    expect(defaultAppearance.colors.dark.foreground).toBe("#edf8fc")
-    expect(defaultAppearance.colors.light.default).toBe("#f7b37b")
-    expect(defaultAppearance.colors.dark.default).toBe("#32251a")
-    expect(defaultAppearance.colors.light.primary).toBe("#4c9cff")
-    expect(defaultAppearance.colors.dark.primary).toBe("#4c9cff")
+    expect(defaultAppearance.colors.light).toEqual({
+      background: "#fbf8f4", foreground: "#2b211a", default: "#fffdfa",
+      primary: "#f5b37d", secondary: "#3f7de0", success: "#3f9a4e",
+      warning: "#d99a1e", danger: "#d8483b", info: "#1b9aa6"
+    })
+    expect(defaultAppearance.colors.dark).toEqual({
+      background: "#0a131f", foreground: "#e7edf5", default: "#15202d",
+      primary: "#f5b37d", secondary: "#6ea2ff", success: "#6cc47a",
+      warning: "#f0bd4f", danger: "#f07564", info: "#4cc9d3"
+    })
     expect(defaultAppearance.spacing).toBe(12)
     expect(defaultAppearance.transaction).toEqual({ duration: 120, easing: "ease-out" })
     expect(defaultAppearance.taskbar).toEqual({ position: "bottom", size: 44, overlay: false })
@@ -45,8 +47,8 @@ describe("Appearance", function () {
   })
 
   it("owns independent, immutable shadow values", function () {
-    const light = { x: 0, y: 0, blur: 15, spread: 0, opacity: 0.06 }
-    const dark = { x: 0, y: 0, blur: 15, spread: 0, opacity: 0.25 }
+    const light = { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 }
+    const dark = { x: 0, y: 0, blur: 12, spread: 0, opacity: 0.3 }
     expect(defaultAppearance.shadow).toEqual({ light, dark })
     const input = { ...light, y: 12 }
     const snapshot = createAppearanceSnapshot({ ...defaultAppearance, shadow: { light: input, dark } })
@@ -120,7 +122,7 @@ describe("Appearance", function () {
   it("validates consumed values and ignores additional properties", function () {
     expect(parseAppearance(defaultAppearance)).toEqual(defaultAppearance)
     const { default: omitted, ...withoutDefault } = defaultAppearance.colors.light
-    expect(omitted).toBe("#f7b37b")
+    expect(omitted).toBe("#fffdfa")
     expect(() => parseAppearance({
       ...defaultAppearance,
       colors: { ...defaultAppearance.colors, light: withoutDefault }

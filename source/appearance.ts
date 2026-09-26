@@ -134,33 +134,34 @@ export const appearanceLimits = Object.freeze({
 export const defaultAppearance = createAppearanceSnapshot({
   colors: {
     light: {
-      background: "#fff9f5",
-      foreground: "#183447",
-      default: "#f7b37b",
-      primary: "#4c9cff",
-      secondary: "#8b5cf6",
-      success: "#16a34a",
-      warning: "#d97706",
-      danger: "#dc2626",
-      info: "#0891b2"
+      background: "#fbf8f4",
+      foreground: "#2b211a",
+      default: "#fffdfa",
+      primary: "#f5b37d",
+      secondary: "#3f7de0",
+      success: "#3f9a4e",
+      warning: "#d99a1e",
+      danger: "#d8483b",
+      info: "#1b9aa6"
     },
     dark: {
-      background: "#121a21",
-      foreground: "#edf8fc",
-      default: "#32251a",
-      primary: "#4c9cff",
-      secondary: "#a78bfa",
-      success: "#4ade80",
-      warning: "#fbbf24",
-      danger: "#f87171",
-      info: "#22d3ee"
+      // Indigo from the dark wallpaper (OKLCH hue 255) at the earlier neutral lightness.
+      background: "#0a131f",
+      foreground: "#e7edf5",
+      default: "#15202d",
+      primary: "#f5b37d",
+      secondary: "#6ea2ff",
+      success: "#6cc47a",
+      warning: "#f0bd4f",
+      danger: "#f07564",
+      info: "#4cc9d3"
     }
   },
   spacing: 12,
   radius: 10,
   shadow: {
-    light: { x: 0, y: 0, blur: 15, spread: 0, opacity: 0.06 },
-    dark: { x: 0, y: 0, blur: 15, spread: 0, opacity: 0.25 }
+    light: { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 },
+    dark: { x: 0, y: 0, blur: 12, spread: 0, opacity: 0.3 }
   },
   material: {
     light: { grain: 0.04, grainAmount: 0.95, backdrop: 5, opacity: 0.8, distortion: 0, saturation: 1.66 },
