@@ -159,6 +159,8 @@ export {
 } from "./storage.js"
 export {
   parseShellEvent,
+  parseSystemProgramListOptions,
+  parseSystemServiceListOptions,
   type ClientDefinition,
   type ProgramDefinition,
   type ServerDefinition,
@@ -169,11 +171,13 @@ export {
   type SystemProcessEvents,
   type SystemProcessExit,
   type SystemProgram,
+  type SystemProgramListOptions,
   type SystemWindowEvents,
   type SystemProgramEvents,
   type SystemProgramPermissions,
   type SystemProgramUninstall,
   type SystemService,
+  type SystemServiceListOptions,
   type SystemServiceEvents
 } from "./system.js"
 export {

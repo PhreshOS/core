@@ -257,7 +257,7 @@ const executeOperations = Object.freeze([
   }), z.array(logRow)),
 
   defineOperation("program", "list", "List Programs visible to the current System connection.", request("program", "list", {
-    installedOnly: z.boolean().optional().describe("Return only installed Programs")
+    installed: z.boolean().optional().describe("Filter by Program installation state")
   }), z.array(programResult)),
   defineOperation("program", "find", "Find one visible Program by identity.", request("program", "find", {
     identity: z.string().describe("Program identity")
@@ -390,9 +390,8 @@ const executeOperations = Object.freeze([
   }), z.boolean()),
   defineOperation("endpoint", "memoryEntries", "List all keys and values in a running Client's memory.", request("endpoint", "memoryEntries", windowIdentity), z.array(z.tuple([z.string(), jsonValue]))),
 
-  defineOperation("service", "list", "List ready Services visible to the current System connection.", request("service", "list", {}), z.array(serviceResult)),
-  defineOperation("service", "search", "Find ready visible Services by their Process and Service name.", request("service", "search", {
-    name: z.string().min(1).describe("Process and Service name")
+  defineOperation("service", "list", "List ready Services visible to the current System connection.", request("service", "list", {
+    name: z.string().min(1).optional().describe("Optional Process and Service name filter")
   }), z.array(serviceResult)),
   defineOperation("service", "inspect", "Read availability at one stable Service address.", request("service", "inspect", serviceAddress), serviceResult),
   defineOperation("service", "waitReady", "Wait until one Service address becomes available.", request("service", "waitReady", {

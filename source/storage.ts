@@ -1,4 +1,5 @@
 import type { JsonValue, WritableContent } from "./content.js"
+import type { Cleanup } from "./subscribable.js"
 
 /** One operation that may be granted over a native Storage path. */
 export type StoragePermissionOperation = "read" | "write" | "delete"
@@ -221,6 +222,12 @@ export interface ProgramStore {
   /** Stores a value and optionally expires it after `ttl` milliseconds. */
   set<Value>(key: string, value: Value, ttl?: number): Promise<boolean>
 
+  /** Returns an existing value, or stores `initial` atomically when the key is absent. */
+  getOrSet<Value>(key: string, initial: Value): Promise<Value>
+
+  /** Applies a pure updater atomically; it may be retried after a concurrent write. */
+  update<Value>(key: string, updater: (current: Value | undefined) => Value): Promise<Value>
+
   /** Deletes one key or several keys and reports whether anything changed. */
   delete(key: string | string[]): Promise<boolean>
 
@@ -229,4 +236,7 @@ export interface ProgramStore {
 
   /** Deletes every value in this Program's store. */
   clear(): Promise<void>
+
+  /** Observes the current value followed by changes to one key, including expiry. */
+  subscribe<Value = unknown>(key: string, subscriber: (value: Value | undefined) => unknown): Cleanup
 }

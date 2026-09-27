@@ -4,10 +4,31 @@ import {
   execute,
   listExecuteOperations,
   parseExecuteRequest,
+  parseSystemProgramListOptions,
+  parseSystemServiceListOptions,
   type ExecutionSystem
 } from "../source/main.js"
 
 describe("Execute", () => {
+  it("uses object filters for Program and Service discovery", async () => {
+    expect(parseSystemProgramListOptions({ installed: true, extra: "caller-owned" })).toEqual({ installed: true })
+    expect(parseSystemServiceListOptions({ name: "editor", extra: "caller-owned" })).toEqual({ name: "editor" })
+    expect(() => parseSystemProgramListOptions(true)).toThrow(/object/)
+    expect(() => parseSystemServiceListOptions("editor")).toThrow(/object/)
+    expect(() => parseSystemServiceListOptions({ name: " " })).toThrow(/non-empty/)
+
+    const calls: unknown[] = []
+    const system = {
+      program: { list: async (options: unknown) => { calls.push(["program", options]); return [] } },
+      service: { list: async (options: unknown) => { calls.push(["service", options]); return [] } }
+    } as unknown as ExecutionSystem
+
+    await expect(execute(system, { $domain: "program", $operation: "list", installed: true })).resolves.toEqual([])
+    await expect(execute(system, { $domain: "service", $operation: "list", name: "editor" })).resolves.toEqual([])
+    expect(calls).toEqual([["program", { installed: true }], ["service", { name: "editor" }]])
+    expect(() => parseExecuteRequest({ $domain: "service", $operation: "search", name: "editor" })).toThrow(/Unknown Execute operation/)
+  })
+
   it("validates requests without rejecting unrelated values", () => {
     expect(parseExecuteRequest({
       $domain: "endpoint",
@@ -130,7 +151,6 @@ describe("Execute", () => {
       "endpoint.memoryDelete",
       "endpoint.memoryEntries",
       "service.list",
-      "service.search",
       "service.inspect",
       "service.waitReady",
       "service.ask",
@@ -178,15 +198,14 @@ describe("Execute", () => {
     }
     const system = {
       service: {
-        list: () => Promise.resolve([service]),
-        search: (name: string) => Promise.resolve(name === "main" ? [service] : []),
+        list: (options: { name?: string }) => Promise.resolve(options.name === "main" ? [service] : []),
         prepare: () => service
       }
     } as unknown as ExecutionSystem
 
     await expect(execute(system, {
       $domain: "service",
-      $operation: "search",
+      $operation: "list",
       name: "main"
     })).resolves.toEqual([{ ...address, available: true }])
 

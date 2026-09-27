@@ -144,8 +144,29 @@ export type SystemProcessEvents = {
   exit: SystemProcessExit
 }
 
+/** Filters for visible Programs. */
+export type SystemProgramListOptions = Readonly<{ installed?: boolean }>
+
+/** Filters for ready Services visible to the caller. */
+export type SystemServiceListOptions = Readonly<{ name?: string }>
+
+export function parseSystemProgramListOptions(value: unknown = {}): SystemProgramListOptions {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Program list options must be an object")
+  const installed = (value as { installed?: unknown }).installed
+  if (installed !== undefined && typeof installed !== "boolean") throw new Error("The installed Program filter must be a boolean")
+  return installed === undefined ? {} : { installed }
+}
+
+export function parseSystemServiceListOptions(value: unknown = {}): SystemServiceListOptions {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Service list options must be an object")
+  const name = (value as { name?: unknown }).name
+  if (name !== undefined && (typeof name !== "string" || !name.trim())) throw new Error("A Service name must be a non-empty string")
+  return name === undefined ? {} : { name }
+}
+
 export interface SystemProgram extends Subscribable<SystemProgramEvents, never> {
-  list(onlyInstalled?: boolean): Promise<Program[]>
+  /** Lists visible Programs; an omitted installation state includes both states. */
+  list(options?: SystemProgramListOptions): Promise<Program[]>
   find(identity: string): Promise<Program | null>
   create(source: ProgramDefinition | string): Promise<Program>
 
@@ -179,11 +200,8 @@ type ServiceHandle<Endpoint extends ServiceEndpoint, Events extends object, Fall
 
 /** Discoverable Endpoint Services and stable Service address handles. */
 export interface SystemService extends Subscribable<SystemServiceEvents, never> {
-  /** Returns every ready Service visible to the caller. */
-  list(): Promise<(ServerService | ClientService)[]>
-
-  /** Returns every ready visible Service whose Process has this name. */
-  search(name: string): Promise<(ServerService | ClientService)[]>
+  /** Returns ready Services visible to the caller, optionally filtered by Process name. */
+  list(options?: SystemServiceListOptions): Promise<(ServerService | ClientService)[]>
 
   /** Prepares a canonical local handle from the address's Endpoint discriminant. */
   prepare<Endpoint extends ServiceEndpoint>(address: ServiceAddress<Endpoint>): ServiceHandle<Endpoint, {}, unknown>

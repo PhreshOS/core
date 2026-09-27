@@ -51,7 +51,6 @@ async function executeService(
   system: ExecutionSystem,
   request:
     | Request<"service", "list">
-    | Request<"service", "search">
     | Request<"service", "inspect">
     | Request<"service", "waitReady">
     | Request<"service", "ask">
@@ -60,8 +59,7 @@ async function executeService(
     | Request<"service", "waitLifecycle">
     | Request<"service", "waitDiscovery">
 ) {
-  if (request.$operation === "list") return Promise.all((await system.service.list()).map(serviceView))
-  if (request.$operation === "search") return Promise.all((await system.service.search(request.name)).map(serviceView))
+  if (request.$operation === "list") return Promise.all((await system.service.list({ name: request.name })).map(serviceView))
   if (request.$operation === "waitDiscovery") {
     const service = await system.service.wait(request.event, request.timeout)
     return {
@@ -144,7 +142,7 @@ async function executeProgram(
     | Request<"program", "wait">
 ) {
   if (request.$operation === "list") {
-    return Promise.all((await system.program.list(request.installedOnly)).map(programView))
+    return Promise.all((await system.program.list({ installed: request.installed })).map(programView))
   }
 
   if (request.$operation === "wait") return waitForProgram(system, request)

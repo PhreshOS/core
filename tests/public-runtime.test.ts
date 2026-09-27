@@ -114,7 +114,6 @@ describe("public runtime", function () {
 
   it("keeps Service discovery concrete and address preparation discriminated", function () {
     expectTypeOf<System["service"]["list"]>().returns.resolves.toEqualTypeOf<(ServerService | ClientService)[]>()
-    expectTypeOf<System["service"]["search"]>().returns.resolves.toEqualTypeOf<(ServerService | ClientService)[]>()
 
     void declareServicePreparation
   })
