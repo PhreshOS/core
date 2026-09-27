@@ -2,6 +2,7 @@ import { Endpoint, type EndpointTraffic } from "./endpoint.js"
 import type { ClientLaunch } from "./launch.js"
 import type { ServerEndpoint } from "./server-endpoint.js"
 import type { Window } from "./window.js"
+import type { ClientMemory } from "./client-memory.js"
 
 /** Directed communication originating from one Client Endpoint. */
 export interface ClientTraffic<
@@ -21,6 +22,9 @@ export abstract class ClientEndpoint<Events extends object = {}, Fallback = unkn
 
   /** Presentation capability permanently owned by this Client Endpoint handle. */
   public abstract readonly window: Window
+
+  /** Shared memory of the current Client run. */
+  public abstract readonly memory: ClientMemory
 
   /** Ensures a Client execution context is running, using these overrides only when one must be created. */
   public abstract override start(launch?: ClientLaunch): Promise<void>

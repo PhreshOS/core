@@ -88,6 +88,21 @@ describe("Execute", () => {
     ])
   })
 
+  it("uses the Client Endpoint memory handle for Execute operations", async () => {
+    const values = new Map<string, unknown>()
+    const system = { process: { find: async () => ({ client: { memory: {
+      get: async (key: string) => values.get(key),
+      set: async (key: string, value: unknown) => { values.set(key, value) },
+      delete: async (key: string) => values.delete(key),
+      entries: async () => [...values.entries()]
+    } } }) } } as unknown as ExecutionSystem
+    const base = { $domain: "endpoint" as const, process: "main" }
+    await expect(execute(system, { ...base, $operation: "memoryGet", key: "tab" })).resolves.toBeNull()
+    await expect(execute(system, { ...base, $operation: "memorySet", key: "tab", value: "colors" })).resolves.toBe("colors")
+    await expect(execute(system, { ...base, $operation: "memoryEntries" })).resolves.toEqual([["tab", "colors"]])
+    await expect(execute(system, { ...base, $operation: "memoryDelete", key: "tab" })).resolves.toBe(true)
+  })
+
   it("covers System launch and lifecycle capabilities", () => {
     const operations = new Set(listExecuteOperations().map(value => `${value.domain}.${value.operation}`))
 
@@ -110,6 +125,10 @@ describe("Execute", () => {
       "process.wait",
       "endpoint.wait",
       "endpoint.waitLifecycle",
+      "endpoint.memoryGet",
+      "endpoint.memorySet",
+      "endpoint.memoryDelete",
+      "endpoint.memoryEntries",
       "service.list",
       "service.search",
       "service.inspect",

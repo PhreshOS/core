@@ -20,6 +20,7 @@ export {
 } from "./subscribable.js"
 
 export { type Publishable } from "./publishable.js"
+export { type ClientMemory } from "./client-memory.js"
 export {
   describeExecuteOperation,
   execute,

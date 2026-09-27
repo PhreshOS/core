@@ -375,6 +375,21 @@ const executeOperations = Object.freeze([
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
 
+  defineOperation("endpoint", "memoryGet", "Read one key from a running Client's memory.", request("endpoint", "memoryGet", {
+    ...windowIdentity,
+    key: z.string().describe("Memory key")
+  }), jsonValue.nullable()),
+  defineOperation("endpoint", "memorySet", "Set one key in a running Client's memory.", request("endpoint", "memorySet", {
+    ...windowIdentity,
+    key: z.string().describe("Memory key"),
+    value: jsonValue.describe("JSON value")
+  }), jsonValue),
+  defineOperation("endpoint", "memoryDelete", "Delete one key from a running Client's memory.", request("endpoint", "memoryDelete", {
+    ...windowIdentity,
+    key: z.string().describe("Memory key")
+  }), z.boolean()),
+  defineOperation("endpoint", "memoryEntries", "List all keys and values in a running Client's memory.", request("endpoint", "memoryEntries", windowIdentity), z.array(z.tuple([z.string(), jsonValue]))),
+
   defineOperation("service", "list", "List ready Services visible to the current System connection.", request("service", "list", {}), z.array(serviceResult)),
   defineOperation("service", "search", "Find ready visible Services by their Process and Service name.", request("service", "search", {
     name: z.string().min(1).describe("Process and Service name")

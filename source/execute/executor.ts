@@ -236,8 +236,16 @@ async function executeEndpoint(
     | Request<"endpoint", "publish">
     | Request<"endpoint", "wait">
     | Request<"endpoint", "waitLifecycle">
+    | Request<"endpoint", "memoryGet">
+    | Request<"endpoint", "memorySet">
+    | Request<"endpoint", "memoryDelete">
+    | Request<"endpoint", "memoryEntries">
 ) {
   const process = await requireProcess(system, request.process, request.program)
+  if (request.$operation === "memoryGet") return (await process.client.memory.get(request.key)) ?? null
+  if (request.$operation === "memorySet") { await process.client.memory.set(request.key, request.value); return request.value }
+  if (request.$operation === "memoryDelete") return process.client.memory.delete(request.key)
+  if (request.$operation === "memoryEntries") return process.client.memory.entries()
   const target = endpoint(process, request.endpoint)
 
   switch (request.$operation) {

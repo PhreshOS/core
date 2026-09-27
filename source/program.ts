@@ -206,10 +206,10 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   public abstract processes(): Promise<Process[]>
 
   /** Returns the earliest-started live Process, or `null` when none exist. */
-  public abstract firstProcess(): Promise<Process | null>
+  public abstract oldestProcess(): Promise<Process | null>
 
   /** Returns the latest-started live Process, or `null` when none exist. */
-  public abstract lastProcess(): Promise<Process | null>
+  public abstract newestProcess(): Promise<Process | null>
 
   /** Finds a live Process by identity or Program-local name. */
   public abstract findProcess(identityOrName: string): Promise<Process | null>
