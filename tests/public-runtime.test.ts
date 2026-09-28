@@ -205,7 +205,7 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "logs" | "appearance" | "desktopPreferences" | "desktopConnection" | "authentication">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "logs" | "appearance" | "desktopPreferences" | "desktopViewport" | "desktopConnection" | "authentication">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over" | "wallpaper" | "shell">()
@@ -292,6 +292,7 @@ describe("public runtime", function () {
         uploads: true,
         appearance: [],
         desktopPreferences: true,
+        desktopViewport: true,
         desktopConnection: true,
         authentication: true
       },

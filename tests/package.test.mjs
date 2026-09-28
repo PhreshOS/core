@@ -75,7 +75,7 @@ test("package contract", async () => {
 
     writeFileSync(
       join(consumer, "consumer.ts"),
-      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowPresentationTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource } from "@phreshos/core"
+      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowPresentationTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource, type WritableDesktopViewportSource } from "@phreshos/core"
 
   const config: Config = defineConfig({
     identity: "package-consumer",
@@ -110,6 +110,7 @@ test("package contract", async () => {
   const hiddenDestination: TrafficMessage<string> = { to: null, payload: "boundary-local" }
   declare const uploads: SystemUploads
   declare const desktopViewport: DesktopViewportSource
+  declare const writableDesktopViewport: WritableDesktopViewportSource
   declare const desktopPreferences: DesktopPreferencesSource
   declare const writableDesktopPreferences: WritableDesktopPreferencesSource
   declare const writableAppearance: WritableAppearance
@@ -120,7 +121,9 @@ test("package contract", async () => {
   const uploadsPath: Promise<string> = uploads.path()
   const read: Promise<string> = uploads.text("00000000-0000-0000-0000-000000000000.txt")
   const uploadKey: boolean = isUploadFile("00000000-0000-0000-0000-000000000000.txt")
-  const viewportWidth: Promise<number> = desktopViewport.snapshot().then(snapshot => snapshot.size.width)
+  const viewportWidth: Promise<number> = desktopViewport.size().then(size => size.width)
+  const viewportCenter: Promise<number> = desktopViewport.offset().then(offset => offset.x)
+  const moveView: Promise<void> = writableDesktopViewport.move({ x: 1440, y: 0 })
   const processOptions: Promise<Readonly<{ mode: string }>> = process.options<{ mode: string }>()
   const processMode: Promise<"primary" | "secondary" | undefined> = process.options<"primary" | "secondary">("mode")
   const theme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
@@ -154,6 +157,8 @@ test("package contract", async () => {
   void read
   void uploadKey
   void viewportWidth
+  void viewportCenter
+  void moveView
   void processOptions
   void processMode
   void desktop.viewport

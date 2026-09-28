@@ -8,24 +8,46 @@ export type DesktopSize = Readonly<{
   height: number
 }>
 
-/** Complete current state of one Desktop viewport. */
-export type DesktopViewportSnapshot = Readonly<{
+/**
+ * The point of the standard-Window plane shown at the center of one Desktop's
+ * view, in CSS pixels. Positions on that plane count from its center, so a
+ * Desktop that has not moved shows zero at its center. It belongs to that
+ * Desktop alone and starts at zero.
+ */
+export type DesktopOffset = Readonly<{
+  x: number
+  y: number
+}>
+
+/** Both values of one Desktop viewport, read together. */
+export type DesktopViewportState = Readonly<{
   size: DesktopSize
+  offset: DesktopOffset
 }>
 
 /** Changes published by a Desktop viewport. */
 export type DesktopViewportEvents = {
-  resize: DesktopViewportSnapshot
+  /** The Desktop's size changed. */
+  resize: DesktopSize
+  /** The Desktop's view moved across the plane. */
+  move: DesktopOffset
 }
 
-/** Read-only access to one Desktop viewport and its future resizes. */
+/** Read-only access to one Desktop viewport and its future changes. */
 export interface DesktopViewportSource extends Subscribable<DesktopViewportEvents, never> {
-  snapshot(): Promise<DesktopViewportSnapshot>
+  size(): Promise<DesktopSize>
+  offset(): Promise<DesktopOffset>
+}
+
+/** Access to one Desktop viewport that can also move the view. */
+export interface WritableDesktopViewportSource extends DesktopViewportSource {
+  /** Moves the view so this point of the plane is shown at the center. */
+  move(offset: DesktopOffset): Promise<void>
 }
 
 /** The Desktop environment containing one Client endpoint. */
 export interface Desktop {
-  readonly viewport: DesktopViewportSource
+  readonly viewport: WritableDesktopViewportSource
   readonly preferences: WritableDesktopPreferencesSource
 
   /** Returns the browser Connection carrying this Desktop. */

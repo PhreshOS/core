@@ -19,6 +19,7 @@ export const programPermissionCatalog = Object.freeze({
   logs: "none",
   appearance: "none",
   desktopPreferences: "none",
+  desktopViewport: "none",
   desktopConnection: "none",
   authentication: "none"
 } as const)

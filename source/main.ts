@@ -114,9 +114,11 @@ export {
 export {
   type Desktop,
   type DesktopSize,
+  type DesktopOffset,
   type DesktopViewportEvents,
-  type DesktopViewportSnapshot,
-  type DesktopViewportSource
+  type DesktopViewportState,
+  type DesktopViewportSource,
+  type WritableDesktopViewportSource
 } from "./desktop.js"
 export {
   appearanceLimits,
