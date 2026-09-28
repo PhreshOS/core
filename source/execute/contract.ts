@@ -8,6 +8,10 @@ import type { SystemProcessEvents, SystemProgramEvents } from "../system.js"
 import type { ServiceLifecycleEvents } from "../service.js"
 import type { SystemServiceEvents } from "../system.js"
 import type { WindowEvents } from "../window.js"
+import type { ConnectionEvents } from "../connection.js"
+import type { SessionEvents } from "../session.js"
+import type { SystemAuthenticationEvents } from "../authentication.js"
+import type { ConnectionSnapshot, SessionSnapshot } from "../domain-snapshot.js"
 import { isProgramIdentity } from "../program-identity.js"
 import { programPermissionCatalog } from "../permissions.js"
 
@@ -147,6 +151,17 @@ const windowResult = z.looseObject({
   layer: z.enum(layers).describe("Window layer")
 }).describe("Window state")
 
+const connectionResult: z.ZodType<ConnectionSnapshot> = z.looseObject({
+  identity: z.string().describe("Stable Connection identity"),
+  connected: z.boolean().describe("Whether the browser connection is live"),
+  session: z.string().nullable().describe("Attached Session identity")
+}).describe("Connection state")
+
+const sessionResult: z.ZodType<SessionSnapshot> = z.looseObject({
+  identity: z.string().describe("Stable Session identity"),
+  valid: z.boolean().describe("Whether the Session can authorize Connections")
+}).describe("Session state")
+
 const programRegistryEvents = {
   create: "create", forget: "forget", install: "install", uninstall: "uninstall", pinned: "pinned", permissions: "permissions"
 } as const satisfies { [Event in keyof SystemProgramEvents]: Event }
@@ -172,6 +187,16 @@ const windowEvents = {
   move: "move", resize: "resize", minimize: "minimize",
   maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", front: "front"
 } as const satisfies { [Event in keyof WindowEvents]: Event }
+const authenticationEvents = {
+  connectionCreate: "connectionCreate", connectionDisconnect: "connectionDisconnect",
+  sessionCreate: "sessionCreate", sessionEnd: "sessionEnd"
+} as const satisfies { [Event in keyof SystemAuthenticationEvents]: Event }
+const connectionEvents = {
+  sessionChange: "sessionChange", disconnect: "disconnect"
+} as const satisfies { [Event in keyof ConnectionEvents]: Event }
+const sessionEvents = {
+  connectionAttach: "connectionAttach", connectionDetach: "connectionDetach", end: "end"
+} as const satisfies { [Event in keyof SessionEvents]: Event }
 
 const programWaitRequest = request("program", "wait", {
   program: z.string().optional().describe("Program identity; omission observes the System Program registry"),
@@ -201,11 +226,43 @@ const processWaitRequest = request("process", "wait", {
   }
 })
 
+const connectionWaitRequest = request("connection", "wait", {
+  identity: z.string().optional().describe("Connection identity; omission observes the Authentication registry"),
+  event: z.enum([
+    authenticationEvents.connectionCreate, authenticationEvents.connectionDisconnect,
+    ...Object.values(connectionEvents)
+  ]).describe("Connection lifecycle event"),
+  timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+}).superRefine((value, context) => {
+  const individual = value.event === "sessionChange" || value.event === "disconnect"
+  const registry = value.event === "connectionCreate" || value.event === "connectionDisconnect"
+  if (value.identity && !individual || !value.identity && !registry) {
+    context.addIssue({ code: "custom", message: `${value.event} does not belong to the selected Connection scope` })
+  }
+})
+
+const sessionWaitRequest = request("session", "wait", {
+  identity: z.string().optional().describe("Session identity; omission observes the Authentication registry"),
+  event: z.enum([
+    authenticationEvents.sessionCreate, authenticationEvents.sessionEnd,
+    ...Object.values(sessionEvents)
+  ]).describe("Session lifecycle event"),
+  timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+}).superRefine((value, context) => {
+  const individual = value.event === "connectionAttach" || value.event === "connectionDetach" || value.event === "end"
+  const registry = value.event === "sessionCreate" || value.event === "sessionEnd"
+  if (value.identity && !individual || !value.identity && !registry) {
+    context.addIssue({ code: "custom", message: `${value.event} does not belong to the selected Session scope` })
+  }
+})
+
 const lifecycleResult = z.looseObject({
-  scope: z.enum(["system", "program", "process", "endpoint", "service", "window"]),
+  scope: z.enum(["system", "program", "process", "endpoint", "service", "window", "connection", "session"]),
   program: z.string().optional(),
   process: z.string().optional(),
   endpoint: z.enum(["server", "client"]).optional(),
+  connection: z.string().optional(),
+  session: z.string().optional(),
   event: z.string(),
   payload: jsonValue
 }).describe("One observed lifecycle event")
@@ -255,6 +312,30 @@ const executeOperations = Object.freeze([
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, level, source, kind, content, data."),
     values: z.array(jsonValue).optional().describe("Bound statement values")
   }), z.array(logRow)),
+
+  defineOperation("connection", "list", "List visible live browser Connections.", request("connection", "list", {}), z.array(connectionResult)),
+  defineOperation("connection", "find", "Find one visible browser Connection by identity.", request("connection", "find", {
+    identity: z.string().describe("Connection identity")
+  }), connectionResult.nullable()),
+  defineOperation("connection", "session", "Read the Session attached to one Connection.", request("connection", "session", {
+    identity: z.string().describe("Connection identity")
+  }), sessionResult.nullable()),
+  defineOperation("connection", "signIn", "Create and attach a Session to one unsigned Connection.", request("connection", "signIn", {
+    identity: z.string().describe("Connection identity")
+  }), sessionResult),
+  defineOperation("connection", "wait", "Wait for one Connection or registry lifecycle event.", connectionWaitRequest, lifecycleResult),
+
+  defineOperation("session", "list", "List visible valid authentication Sessions.", request("session", "list", {}), z.array(sessionResult)),
+  defineOperation("session", "find", "Find one visible valid Session by identity.", request("session", "find", {
+    identity: z.string().describe("Session identity")
+  }), sessionResult.nullable()),
+  defineOperation("session", "connections", "List live Connections authorized by one Session.", request("session", "connections", {
+    identity: z.string().describe("Session identity")
+  }), z.array(connectionResult)),
+  defineOperation("session", "signOut", "End one Session and revoke it from every attached Connection.", request("session", "signOut", {
+    identity: z.string().describe("Session identity")
+  }), z.null()),
+  defineOperation("session", "wait", "Wait for one Session or registry lifecycle event.", sessionWaitRequest, lifecycleResult),
 
   defineOperation("program", "list", "List Programs visible to the current System connection.", request("program", "list", {
     installed: z.boolean().optional().describe("Filter by Program installation state")

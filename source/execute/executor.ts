@@ -3,6 +3,8 @@ import type { Process } from "../process.js"
 import type { Program } from "../program.js"
 import type { System } from "../system.js"
 import type { Window } from "../window.js"
+import type { Connection } from "../connection.js"
+import type { Session } from "../session.js"
 import {
   describeExecuteOperation,
   executeOperationDefinition,
@@ -35,6 +37,8 @@ async function dispatch(system: ExecutionSystem, request: ExecuteRequest): Promi
   switch (request.$domain) {
     case "operation": return executeOperation(request)
     case "system": return executeSystem(system, request)
+    case "connection": return executeConnection(system, request)
+    case "session": return executeSession(system, request)
     case "program": return executeProgram(system, request)
     case "process": return executeProcess(system, request)
     case "endpoint": return executeEndpoint(system, request)
@@ -45,6 +49,116 @@ async function dispatch(system: ExecutionSystem, request: ExecuteRequest): Promi
 
 function executeSystem(system: ExecutionSystem, request: Request<"system", "logs">) {
   return system.logs.query(request.statement, request.values)
+}
+
+async function executeConnection(
+  system: ExecutionSystem,
+  request:
+    | Request<"connection", "list">
+    | Request<"connection", "find">
+    | Request<"connection", "session">
+    | Request<"connection", "signIn">
+    | Request<"connection", "wait">
+) {
+  if (request.$operation === "list") return Promise.all((await system.authentication.connections()).map(connectionView))
+  if (request.$operation === "wait") return waitForConnection(system, request)
+
+  const connection = await system.authentication.connection(request.identity)
+  if (request.$operation === "find") return connection ? connectionView(connection) : null
+  if (!connection) throw new Error(`Unknown Connection "${request.identity}"`)
+  if (request.$operation === "session") {
+    const session = await connection.session()
+    return session ? sessionView(session) : null
+  }
+  return sessionView(await connection.signIn())
+}
+
+async function executeSession(
+  system: ExecutionSystem,
+  request:
+    | Request<"session", "list">
+    | Request<"session", "find">
+    | Request<"session", "connections">
+    | Request<"session", "signOut">
+    | Request<"session", "wait">
+) {
+  if (request.$operation === "list") return Promise.all((await system.authentication.sessions()).map(sessionView))
+  if (request.$operation === "wait") return waitForSession(system, request)
+
+  const session = await system.authentication.session(request.identity)
+  if (request.$operation === "find") return session ? sessionView(session) : null
+  if (!session) throw new Error(`Unknown Session "${request.identity}"`)
+  if (request.$operation === "connections") return Promise.all((await session.connections()).map(connectionView))
+  await session.signOut()
+  return null
+}
+
+async function waitForConnection(system: ExecutionSystem, request: Request<"connection", "wait">) {
+  if (!request.identity) {
+    if (request.event === "connectionCreate") return {
+      scope: "system", event: request.event,
+      payload: await connectionView(await system.authentication.wait("connectionCreate", request.timeout))
+    }
+    if (request.event === "connectionDisconnect") return {
+      scope: "system", event: request.event,
+      // Terminal events carry identity; reading an ended handle would violate its lifetime.
+      payload: { identity: (await system.authentication.wait("connectionDisconnect", request.timeout)).identity }
+    }
+    throw new Error(`${request.event} belongs to an individual Connection`)
+  }
+
+  const connection = await requireConnection(system, request.identity)
+  if (request.event === "sessionChange") {
+    const session = await connection.wait("sessionChange", request.timeout)
+    return { scope: "connection", connection: connection.identity, event: request.event, payload: session?.identity ?? null }
+  }
+  if (request.event !== "disconnect") throw new Error(`${request.event} belongs to the Connection registry`)
+  await connection.wait("disconnect", request.timeout)
+  return { scope: "connection", connection: connection.identity, event: request.event, payload: null }
+}
+
+async function waitForSession(system: ExecutionSystem, request: Request<"session", "wait">) {
+  if (!request.identity) {
+    if (request.event === "sessionCreate") return {
+      scope: "system", event: request.event,
+      payload: await sessionView(await system.authentication.wait("sessionCreate", request.timeout))
+    }
+    if (request.event === "sessionEnd") {
+      const ended = await system.authentication.wait("sessionEnd", request.timeout)
+      return { scope: "system", event: request.event, payload: { identity: ended.session.identity, reason: ended.reason } }
+    }
+    throw new Error(`${request.event} belongs to an individual Session`)
+  }
+
+  const session = await requireSession(system, request.identity)
+  if (request.event === "connectionAttach" || request.event === "connectionDetach") {
+    const connection = await session.wait(request.event, request.timeout)
+    return { scope: "session", session: session.identity, event: request.event, payload: { identity: connection.identity } }
+  }
+  if (request.event !== "end") throw new Error(`${request.event} belongs to the Session registry`)
+  const ended = await session.wait("end", request.timeout)
+  return { scope: "session", session: session.identity, event: request.event, payload: ended }
+}
+
+async function requireConnection(system: ExecutionSystem, identity: string) {
+  const connection = await system.authentication.connection(identity)
+  if (!connection) throw new Error(`Unknown Connection "${identity}"`)
+  return connection
+}
+
+async function requireSession(system: ExecutionSystem, identity: string) {
+  const session = await system.authentication.session(identity)
+  if (!session) throw new Error(`Unknown Session "${identity}"`)
+  return session
+}
+
+async function connectionView(connection: Connection) {
+  const [connected, session] = await Promise.all([connection.connected(), connection.session()])
+  return { identity: connection.identity, connected, session: session?.identity ?? null }
+}
+
+async function sessionView(session: Session) {
+  return { identity: session.identity, valid: await session.valid() }
 }
 
 async function executeService(

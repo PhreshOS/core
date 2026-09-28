@@ -64,6 +64,76 @@ describe("Execute", () => {
     expectTypeOf(result[0]!.operation).toEqualTypeOf<string>()
   })
 
+  it("uses public Authentication handles for Connection and Session operations", async () => {
+    const calls: string[] = []
+    const session = {
+      identity: "session-one",
+      valid: async () => true,
+      connections: async () => [connection],
+      signOut: async () => { calls.push("signOut") }
+    }
+    const connection = {
+      identity: "connection-one",
+      connected: async () => true,
+      session: async () => session,
+      signIn: async () => { calls.push("signIn"); return session }
+    }
+    const system = { authentication: {
+      connections: async () => [connection],
+      connection: async (identity: string) => identity === connection.identity ? connection : null,
+      sessions: async () => [session],
+      session: async (identity: string) => identity === session.identity ? session : null
+    } } as unknown as ExecutionSystem
+
+    const connectionState = { identity: "connection-one", connected: true, session: "session-one" }
+    const sessionState = { identity: "session-one", valid: true }
+    await expect(execute(system, { $domain: "connection", $operation: "list" })).resolves.toEqual([connectionState])
+    await expect(execute(system, { $domain: "connection", $operation: "find", identity: "connection-one" })).resolves.toEqual(connectionState)
+    await expect(execute(system, { $domain: "connection", $operation: "find", identity: "missing" })).resolves.toBeNull()
+    await expect(execute(system, { $domain: "connection", $operation: "session", identity: "connection-one" })).resolves.toEqual(sessionState)
+    await expect(execute(system, { $domain: "connection", $operation: "signIn", identity: "connection-one" })).resolves.toEqual(sessionState)
+    await expect(execute(system, { $domain: "session", $operation: "list" })).resolves.toEqual([sessionState])
+    await expect(execute(system, { $domain: "session", $operation: "find", identity: "session-one" })).resolves.toEqual(sessionState)
+    await expect(execute(system, { $domain: "session", $operation: "find", identity: "missing" })).resolves.toBeNull()
+    await expect(execute(system, { $domain: "session", $operation: "connections", identity: "session-one" })).resolves.toEqual([connectionState])
+    await expect(execute(system, { $domain: "session", $operation: "signOut", identity: "session-one" })).resolves.toBeNull()
+    await expect(execute(system, { $domain: "session", $operation: "signOut", identity: "missing" })).rejects.toThrow(/Unknown Session/)
+    await expect(execute(system, { $domain: "connection", $operation: "signIn", identity: "missing" })).rejects.toThrow(/Unknown Connection/)
+    expect(calls).toEqual(["signIn", "signOut"])
+  })
+
+  it("waits for Authentication lifecycle events without reading ended handles", async () => {
+    const connection = {
+      identity: "connection-one",
+      connected: async () => { throw new Error("ended handle") },
+      session: async () => { throw new Error("ended handle") },
+      wait: async (event: string) => event === "sessionChange" ? { identity: "session-one" } : undefined
+    }
+    const session = {
+      identity: "session-one",
+      valid: async () => { throw new Error("ended handle") },
+      wait: async (event: string) => event === "end" ? { reason: "signedOut" } : connection
+    }
+    const system = { authentication: {
+      connection: async () => connection,
+      session: async () => session,
+      wait: async (event: string) => event === "connectionDisconnect" ? connection : { session, reason: "expired" }
+    } } as unknown as ExecutionSystem
+
+    await expect(execute(system, { $domain: "connection", $operation: "wait", event: "connectionDisconnect" }))
+      .resolves.toEqual({ scope: "system", event: "connectionDisconnect", payload: { identity: "connection-one" } })
+    await expect(execute(system, { $domain: "connection", $operation: "wait", identity: "connection-one", event: "sessionChange" }))
+      .resolves.toEqual({ scope: "connection", connection: "connection-one", event: "sessionChange", payload: "session-one" })
+    await expect(execute(system, { $domain: "session", $operation: "wait", event: "sessionEnd" }))
+      .resolves.toEqual({ scope: "system", event: "sessionEnd", payload: { identity: "session-one", reason: "expired" } })
+    await expect(execute(system, { $domain: "session", $operation: "wait", identity: "session-one", event: "end" }))
+      .resolves.toEqual({ scope: "session", session: "session-one", event: "end", payload: { reason: "signedOut" } })
+
+    expect(() => parseExecuteRequest({ $domain: "connection", $operation: "wait", identity: "connection-one", event: "connectionCreate" })).toThrow(/scope/)
+    expect(() => parseExecuteRequest({ $domain: "session", $operation: "wait", event: "connectionAttach" })).toThrow(/scope/)
+    expect(() => parseExecuteRequest({ $domain: "connection", $operation: "disconnect", identity: "connection-one" })).toThrow(/Unknown Execute operation/)
+  })
+
   it("dispatches through public handles and preserves their errors", async () => {
     const calls: unknown[] = []
     const failure = new Error("endpoint failure")
@@ -129,6 +199,16 @@ describe("Execute", () => {
 
     for (const operation of [
       "system.logs",
+      "connection.list",
+      "connection.find",
+      "connection.session",
+      "connection.signIn",
+      "connection.wait",
+      "session.list",
+      "session.find",
+      "session.connections",
+      "session.signOut",
+      "session.wait",
       "program.definition",
       "program.getStartup",
       "program.enableStartup",
