@@ -48,7 +48,7 @@ describe("Appearance", function () {
 
   it("owns independent, immutable shadow values", function () {
     const light = { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 }
-    const dark = { x: 0, y: 0, blur: 12, spread: 0, opacity: 0.3 }
+    const dark = { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 }
     expect(defaultAppearance.shadow).toEqual({ light, dark })
     const input = { ...light, y: 12 }
     const snapshot = createAppearanceSnapshot({ ...defaultAppearance, shadow: { light: input, dark } })

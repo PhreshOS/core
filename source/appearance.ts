@@ -161,7 +161,7 @@ export const defaultAppearance = createAppearanceSnapshot({
   radius: 10,
   shadow: {
     light: { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 },
-    dark: { x: 0, y: 0, blur: 12, spread: 0, opacity: 0.3 }
+    dark: { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 }
   },
   material: {
     light: { grain: 0.04, grainAmount: 0.95, backdrop: 5, opacity: 0.8, distortion: 0, saturation: 1.66 },
