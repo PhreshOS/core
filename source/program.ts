@@ -217,7 +217,10 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Creates one Process belonging to this Program. */
   public abstract createProcess(launch?: Launch): Promise<Process>
 
-  /** Finds the named Process or atomically creates it with the same resolved launch. */
+  /**
+   * Finds the Process by its name, however it was launched; only when none holds the name does it
+   * create one with this launch, atomically.
+   */
   public abstract findOrCreateProcess(launch: Launch & Readonly<{ name: string }>): Promise<Process>
 
   /** Ends every live Process belonging to this Program and returns their identities. */
