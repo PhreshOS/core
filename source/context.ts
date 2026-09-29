@@ -1,6 +1,6 @@
 import type { Endpoint } from "./endpoint.js"
 import type { ClientEndpoint } from "./client-endpoint.js"
-import type { WindowPresentation } from "./window-presentation.js"
+import type { Presentation } from "./presentation.js"
 import type { Publishable } from "./publishable.js"
 import type { Process } from "./process.js"
 import type { Program } from "./program.js"
@@ -57,7 +57,7 @@ export interface ClientContext<Events extends object = {}> extends EndpointConte
   readonly memory: ClientMemory
   readonly server: ServerEndpoint
   readonly window: Window
-  readonly presentation: WindowPresentation
+  readonly presentation: Presentation
 }
 
 /** Handles one question addressed to the currently executing Server Endpoint. */

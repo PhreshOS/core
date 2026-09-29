@@ -1,13 +1,13 @@
 import type { AppearanceColor, AppearanceMaterial } from "./appearance.js"
-import type { WindowPresentationTransaction } from "./appearance-transaction.js"
+import type { PresentationTransaction } from "./appearance-transaction.js"
 import type { Subscribable } from "./subscribable.js"
 import type { WindowLayer } from "./window.js"
 
 /** No Material or explicit Appearance-owned overrides for one optional presentation surface. */
-export type WindowPresentationSurfaceMaterial = false | Partial<AppearanceMaterial>
+export type PresentationSurfaceMaterial = false | Partial<AppearanceMaterial>
 
 /** One optional Desktop-painted surface behind a presented Client document. */
-export type WindowPresentationSurface = false | true | Readonly<{
+export type PresentationSurface = false | true | Readonly<{
   /** Core Appearance radius in pixels, or a completely rounded boundary. */
   radius?: number | "full"
 
@@ -15,20 +15,20 @@ export type WindowPresentationSurface = false | true | Readonly<{
   color?: AppearanceColor | (string & {})
 
   /** Default Material, no Material, or explicit Core Material overrides. */
-  material?: WindowPresentationSurfaceMaterial
+  material?: PresentationSurfaceMaterial
 }>
 
 /** One pointer position in the executing Client document's viewport. */
-export type WindowMovePoint = Readonly<{ x: number, y: number }>
+export type PresentationMovePoint = Readonly<{ x: number, y: number }>
 
 /** The press origin and first intentional movement that initiate one move. */
-export type WindowMoveGestureStart = Readonly<{
-  origin: WindowMovePoint
-  point: WindowMovePoint
+export type PresentationMoveGestureStart = Readonly<{
+  origin: PresentationMovePoint
+  point: PresentationMovePoint
 }>
 
 /** One move whose continuous pointer interaction is owned by the presenting Desktop. */
-export interface WindowMoveGesture {
+export interface PresentationMoveGesture {
   /** Resolves after the presenting Desktop is ready to receive pointer events. */
   readonly ready: Promise<void>
 
@@ -40,71 +40,91 @@ export interface WindowMoveGesture {
 }
 
 /** Starts one host-owned move from a pointer interaction initiated by presented content. */
-export type BeginWindowMoveGesture = (start: WindowMoveGestureStart) => WindowMoveGesture
+export type BeginPresentationMoveGesture = (start: PresentationMoveGestureStart) => PresentationMoveGesture
 
 /**
  * A point of the drawing in CSS pixels, counted from the center of the Desktop: its top-left
  * corner, as it is written.
  */
-export type WindowPresentationPosition = Readonly<{ x: number, y: number }>
+export type PresentationPosition = Readonly<{ x: number, y: number }>
 
 /** The size of the drawing in CSS pixels: the Client document's own frame. */
-export type WindowPresentationSize = Readonly<{ width: number, height: number }>
+export type PresentationSize = Readonly<{ width: number, height: number }>
 
 /** Position and size of the drawing together. */
-export type WindowPresentationGeometry = WindowPresentationPosition & WindowPresentationSize
+export type PresentationGeometry = PresentationPosition & PresentationSize
+
+/** How the executing Client is drawn on its Desktop, read at once. */
+export type PresentationState = Readonly<{
+  /** The layer containing the drawing. */
+  layer: WindowLayer
+  /** Where the drawing is. */
+  position: PresentationPosition
+  /** How large the drawing is. */
+  size: PresentationSize
+  /** Whether the drawing is the front of its layer. */
+  front: boolean
+  /** Whether clicks reach the drawing instead of passing through it. */
+  interactive: boolean
+  /** The Desktop-painted surface behind the drawing. */
+  surface: PresentationSurface
+}>
 
 /** Changes in how the executing Client is drawn on its Desktop. */
-export type WindowPresentationEvents = {
+export type PresentationEvents = {
   /** The drawing moved. */
-  move: WindowPresentationPosition
+  move: PresentationPosition
   /** The drawing changed size. */
-  resize: WindowPresentationSize
+  resize: PresentationSize
   /** The drawing became, or stopped being, the front of its layer. */
   front: boolean
   /** Clicks began, or stopped, reaching the drawing instead of passing through it. */
   changeInteractive: boolean
   /** The Desktop-painted surface behind the drawing changed. */
-  changeSurface: WindowPresentationSurface
+  changeSurface: PresentationSurface
 }
 
 /** Writes to the drawing that have a visual change, and so can move on a transaction's timing. */
-export interface WindowPresentationTransactionOperations {
+export interface PresentationTransactionOperations {
   /** Moves the drawing. */
-  move(position: WindowPresentationPosition): Promise<void>
+  move(position: PresentationPosition): Promise<void>
 
   /** Resizes the drawing. */
-  resize(size: WindowPresentationSize): Promise<void>
+  resize(size: PresentationSize): Promise<void>
 
   /** Moves and resizes the drawing as one change. */
-  setGeometry(geometry: WindowPresentationGeometry): Promise<void>
+  setGeometry(geometry: PresentationGeometry): Promise<void>
 
   /** Replaces or removes the Desktop-painted surface behind the drawing. */
-  setSurface(surface: WindowPresentationSurface): Promise<void>
+  setSurface(surface: PresentationSurface): Promise<void>
 }
 
 /**
  * How the executing Client is actually drawn on its Desktop, in every layer. It is not the Window:
- * the Window is the value the System keeps and every Desktop follows; the presentation is the
- * drawing on this Desktop, in pixels.
+ * the Window carries the values of a standard Window, which the System keeps and every Desktop
+ * follows; the presentation is the Client's drawing on this Desktop, in pixels. What a standard
+ * Window does not need belongs here, never on the Window.
  *
- * Every layer reads its drawing and hears it change. Only the raw layers — under, over, and
- * shell — write it: the Desktop never draws them on its own. A standard Window is drawn by the
- * Desktop from its Window, and the wallpaper is managed by the Desktop, so both refuse writes. A
- * move gesture hands a pointer move to the Desktop in every layer except the wallpaper, which has
- * nowhere to move.
+ * Every layer reads its drawing and hears it change, as it is at the moment: while the Desktop
+ * carries it with the pointer, and along a motion, as well as at rest. An effect that only changes
+ * how the drawing looks, such as the scale it enters with, moves nothing and is not a change.
+ *
+ * Only the raw layers — under, over, and shell — write it: the Desktop never draws them on its
+ * own. A standard Window is drawn by the Desktop from its Window, and the wallpaper is managed by
+ * the Desktop, so both refuse writes. A move gesture hands a pointer move to the Desktop in every
+ * layer except the wallpaper, which has nowhere to move.
  *
  * Writes take effect at once; `transaction()` moves them on the Appearance timing or a given one.
  */
-export interface WindowPresentation extends WindowPresentationTransactionOperations, Subscribable<WindowPresentationEvents, never> {
+export interface Presentation extends PresentationTransactionOperations, Subscribable<PresentationEvents, never> {
   /** Returns the layer containing the drawing. */
   layer(): Promise<WindowLayer>
 
   /** Returns where the drawing is. */
-  position(): Promise<WindowPresentationPosition>
+  position(): Promise<PresentationPosition>
 
   /** Returns how large the drawing is. */
-  size(): Promise<WindowPresentationSize>
+  size(): Promise<PresentationSize>
 
   /** Returns whether the drawing is the front of its layer. */
   front(): Promise<boolean>
@@ -113,10 +133,10 @@ export interface WindowPresentation extends WindowPresentationTransactionOperati
   interactive(): Promise<boolean>
 
   /** Returns the Desktop-painted surface behind the drawing. */
-  surface(): Promise<WindowPresentationSurface>
+  surface(): Promise<PresentationSurface>
 
   /** Hands a pointer move that began in the Client document to the Desktop. */
-  beginMoveGesture: BeginWindowMoveGesture
+  beginMoveGesture: BeginPresentationMoveGesture
 
   /** Changes whether clicks reach the drawing or pass through it. */
   setInteractive(interactive: boolean): Promise<void>
@@ -125,8 +145,8 @@ export interface WindowPresentation extends WindowPresentationTransactionOperati
   raise(): Promise<void>
 
   /** Applies writes on the Appearance timing, or the one given. */
-  transaction(transaction?: WindowPresentationTransaction): WindowPresentationTransactionOperations
+  transaction(transaction?: PresentationTransaction): PresentationTransactionOperations
 
   /** Applies writes on a timing, and resolves once they have arrived. */
-  transactionAndWait(transaction?: WindowPresentationTransaction): WindowPresentationTransactionOperations
+  transactionAndWait(transaction?: PresentationTransaction): PresentationTransactionOperations
 }

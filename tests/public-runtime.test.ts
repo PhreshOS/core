@@ -8,9 +8,10 @@ import {
   type FileStat,
   type Context,
   type Launch,
-  type WindowPresentation,
-  type WindowPresentationTransactionOperations,
-  type WindowPresentationSurface,
+  type Presentation,
+  type PresentationState,
+  type PresentationTransactionOperations,
+  type PresentationSurface,
   type Permission,
   type PermissionName,
   type PermissionValue,
@@ -21,7 +22,7 @@ import {
   type ShellOptions,
   type System,
   type AppearanceTransaction,
-  type WindowPresentationTransaction,
+  type PresentationTransaction,
   type Upload,
   type WritableContent,
   Endpoint,
@@ -44,38 +45,39 @@ import {
   parseAuthenticationCredentials,
   parseAuthenticationRequirements,
   parseAuthenticationState,
-  parseWindowPresentationSurface
+  parsePresentationSurface
 } from "../source/main.js"
 
 describe("public runtime", function () {
   it("defines the current Desktop presentation beside authoritative Window state", function () {
-    expectTypeOf<WindowPresentation>().toHaveProperty("setGeometry")
-    expectTypeOf<WindowPresentation>().toHaveProperty("setSurface")
-    expectTypeOf<WindowPresentation>().toHaveProperty("beginMoveGesture")
-    expectTypeOf<WindowPresentation>().toHaveProperty("setInteractive")
-    expectTypeOf<WindowPresentation>().toHaveProperty("layer")
-    expectTypeOf<WindowPresentation>().toHaveProperty("raise")
-    expectTypeOf<WindowPresentation>().toHaveProperty("position")
-    expectTypeOf<WindowPresentation>().toHaveProperty("size")
-    expectTypeOf<WindowPresentation>().toHaveProperty("front")
-    expectTypeOf<WindowPresentation>().toHaveProperty("interactive")
-    expectTypeOf<WindowPresentation>().toHaveProperty("surface")
-    expectTypeOf<WindowPresentation>().toHaveProperty("subscribe")
-    expectTypeOf<Parameters<WindowPresentation["move"]>[0]>().toEqualTypeOf<Readonly<{ x: number, y: number }>>()
-    expectTypeOf<WindowPresentation>().toHaveProperty("transaction")
-    expectTypeOf<WindowPresentation>().toHaveProperty("transactionAndWait")
-    expectTypeOf<WindowPresentationTransactionOperations>().not.toHaveProperty("setInteractive")
+    expectTypeOf<Presentation>().toHaveProperty("setGeometry")
+    expectTypeOf<Presentation>().toHaveProperty("setSurface")
+    expectTypeOf<Presentation>().toHaveProperty("beginMoveGesture")
+    expectTypeOf<Presentation>().toHaveProperty("setInteractive")
+    expectTypeOf<Presentation>().toHaveProperty("layer")
+    expectTypeOf<Presentation>().toHaveProperty("raise")
+    expectTypeOf<Presentation>().toHaveProperty("position")
+    expectTypeOf<Presentation>().toHaveProperty("size")
+    expectTypeOf<Presentation>().toHaveProperty("front")
+    expectTypeOf<Presentation>().toHaveProperty("interactive")
+    expectTypeOf<Presentation>().toHaveProperty("surface")
+    expectTypeOf<Presentation>().toHaveProperty("subscribe")
+    expectTypeOf<Parameters<Presentation["move"]>[0]>().toEqualTypeOf<Readonly<{ x: number, y: number }>>()
+    expectTypeOf<PresentationState["surface"]>().toEqualTypeOf<PresentationSurface>()
+    expectTypeOf<Presentation>().toHaveProperty("transaction")
+    expectTypeOf<Presentation>().toHaveProperty("transactionAndWait")
+    expectTypeOf<PresentationTransactionOperations>().not.toHaveProperty("setInteractive")
 
     const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
-    const selected: WindowPresentationTransaction = transaction
-    const absentSurface: WindowPresentationSurface = false
+    const selected: PresentationTransaction = transaction
+    const absentSurface: PresentationSurface = false
     // @ts-expect-error Surface Material accepts explicit overrides or false, not a default sentinel.
-    const invalidSurfaceMaterial: WindowPresentationSurface = { material: true }
+    const invalidSurfaceMaterial: PresentationSurface = { material: true }
     // @ts-expect-error An absent Surface uses false, consistently with other Window values.
-    const invalidAbsentSurface: WindowPresentationSurface = null
-    expect(parseWindowPresentationSurface(false)).toBe(false)
-    expect(parseWindowPresentationSurface(true)).toBe(true)
-    expect(() => parseWindowPresentationSurface(null)).toThrow(/must be an object/)
+    const invalidAbsentSurface: PresentationSurface = null
+    expect(parsePresentationSurface(false)).toBe(false)
+    expect(parsePresentationSurface(true)).toBe(true)
+    expect(() => parsePresentationSurface(null)).toThrow(/must be an object/)
     void transaction
     void selected
     void absentSurface
@@ -83,7 +85,7 @@ describe("public runtime", function () {
     void invalidAbsentSurface
 
     type EmptyRejected = {} extends AppearanceTransaction ? false : true
-    type BooleanRejected = boolean extends WindowPresentationTransaction ? false : true
+    type BooleanRejected = boolean extends PresentationTransaction ? false : true
     expectTypeOf<EmptyRejected>().toEqualTypeOf<true>()
     expectTypeOf<BooleanRejected>().toEqualTypeOf<true>()
   })

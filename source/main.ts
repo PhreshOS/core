@@ -81,7 +81,7 @@ export {
 } from "./permissions.js"
 export { parseProgramDefinition } from "./program-definition.js"
 export { parseLaunch } from "./launch-validation.js"
-export { parseWindowPresentationSurface, parseWindowPresentationTransaction } from "./window-values.js"
+export { parsePresentationSurface, parsePresentationTransaction } from "./presentation-values.js"
 export { parseProgramInstallOptions, parseProgramUninstallOptions } from "./program-installation.js"
 export { type Askable, type TimedAskable } from "./askable.js"
 export {
@@ -271,20 +271,21 @@ export {
   type WindowState
 } from "./window.js"
 export {
-  type BeginWindowMoveGesture,
-  type WindowMoveGesture,
-  type WindowMovePoint,
-  type WindowMoveGestureStart,
-  type WindowPresentation,
-  type WindowPresentationEvents,
-  type WindowPresentationGeometry,
-  type WindowPresentationPosition,
-  type WindowPresentationSize,
-  type WindowPresentationSurface,
-  type WindowPresentationSurfaceMaterial,
-  type WindowPresentationTransactionOperations
-} from "./window-presentation.js"
-export { type AppearanceTransaction, type Easing, type WindowPresentationTransaction } from "./appearance-transaction.js"
+  type BeginPresentationMoveGesture,
+  type PresentationMoveGesture,
+  type PresentationMovePoint,
+  type PresentationMoveGestureStart,
+  type Presentation,
+  type PresentationEvents,
+  type PresentationGeometry,
+  type PresentationPosition,
+  type PresentationSize,
+  type PresentationState,
+  type PresentationSurface,
+  type PresentationSurfaceMaterial,
+  type PresentationTransactionOperations
+} from "./presentation.js"
+export { type AppearanceTransaction, type Easing, type PresentationTransaction } from "./appearance-transaction.js"
 export { isLayer, layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"
 export {
   defineConfig,
