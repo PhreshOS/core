@@ -276,6 +276,10 @@ export {
   type WindowMovePoint,
   type WindowMoveGestureStart,
   type WindowPresentation,
+  type WindowPresentationEvents,
+  type WindowPresentationGeometry,
+  type WindowPresentationPosition,
+  type WindowPresentationSize,
   type WindowPresentationSurface,
   type WindowPresentationSurfaceMaterial,
   type WindowPresentationTransactionOperations

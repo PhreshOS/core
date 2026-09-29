@@ -75,7 +75,7 @@ test("package contract", async () => {
 
     writeFileSync(
       join(consumer, "consumer.ts"),
-      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowPresentationTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource, type WritableDesktopViewportSource } from "@phreshos/core"
+      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type WindowPresentation, type WindowPresentationGeometry, type WindowPresentationTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource, type WritableDesktopViewportSource } from "@phreshos/core"
 
   const config: Config = defineConfig({
     identity: "package-consumer",
@@ -103,6 +103,9 @@ test("package contract", async () => {
     width: "1/2",
     height: "1/2"
   }
+  const drawing: WindowPresentationGeometry = { x: -360, y: -240, width: 720, height: 480 }
+  const drawnSize: Promise<number> = presentation.size().then(size => size.width)
+  const stopResize = presentation.subscribe("resize", size => void size.height)
   declare const window: Window
   const setGeometry: Promise<void> = window.setGeometry(geometry)
   const definition = program.definition()
@@ -148,7 +151,9 @@ test("package contract", async () => {
   void presentation.transactionAndWait(windowTransaction).setSurface(true)
   void presentation.setSurface(false)
   void presentation.setInteractive(false)
-  void presentation.transaction(transaction).setGeometry(geometry)
+  void presentation.transaction(transaction).setGeometry(drawing)
+  void drawnSize
+  void stopResize
   void setGeometry
   void updateAppearance
   void outside
