@@ -3,14 +3,11 @@ import type { Subscribable } from "./subscribable.js"
 /** Effective visual mode of one Desktop. */
 export type Theme = "light" | "dark"
 
-/** A direct mode or a request to follow the native environment. */
-export type ThemePreference = Theme | "default"
+/** A direct mode, or `"desktop"`: the Desktop decides, following its browser. */
+export type ThemePreference = Theme | "desktop"
 
-/** A direct animation decision or a request to follow the native environment. */
-export type AnimationsPreference = boolean | "default"
-
-/** A concrete Desktop presentation multiplier or a request for its default. */
-export type DesktopScalePreference = number | "default"
+/** A direct decision, or `"desktop"`: the Desktop decides, following its browser. */
+export type AnimationsPreference = boolean | "desktop"
 
 /** Bounds for a concrete effective Desktop scale. */
 export const desktopPreferencesLimits = Object.freeze({
@@ -29,9 +26,9 @@ export type DesktopPreferences = Readonly<{
 
 /** At least one raw preference to merge into the current Desktop preferences. */
 export type DesktopPreferencesUpdate =
-  | Readonly<{ theme: ThemePreference, animations?: AnimationsPreference, scale?: DesktopScalePreference }>
-  | Readonly<{ theme?: ThemePreference, animations: AnimationsPreference, scale?: DesktopScalePreference }>
-  | Readonly<{ theme?: ThemePreference, animations?: AnimationsPreference, scale: DesktopScalePreference }>
+  | Readonly<{ theme: ThemePreference, animations?: AnimationsPreference, scale?: number }>
+  | Readonly<{ theme?: ThemePreference, animations: AnimationsPreference, scale?: number }>
+  | Readonly<{ theme?: ThemePreference, animations?: AnimationsPreference, scale: number }>
 
 /** Validates one requested partial Desktop preference update at an unknown boundary. */
 export function parseDesktopPreferencesUpdate(value: unknown): DesktopPreferencesUpdate {
@@ -44,21 +41,21 @@ export function parseDesktopPreferencesUpdate(value: unknown): DesktopPreference
     throw new Error("Desktop preferences must update theme, animations, scale, or a combination of them")
   }
 
-  if ("theme" in preferences && preferences.theme !== "light" && preferences.theme !== "dark" && preferences.theme !== "default") {
-    throw new Error("The Desktop theme preference must be light, dark, or default")
+  if ("theme" in preferences && preferences.theme !== "light" && preferences.theme !== "dark" && preferences.theme !== "desktop") {
+    throw new Error("The Desktop theme preference must be light, dark, or desktop")
   }
 
-  if ("animations" in preferences && typeof preferences.animations !== "boolean" && preferences.animations !== "default") {
-    throw new Error("The Desktop animations preference must be true, false, or default")
+  if ("animations" in preferences && typeof preferences.animations !== "boolean" && preferences.animations !== "desktop") {
+    throw new Error("The Desktop animations preference must be true, false, or desktop")
   }
 
-  if ("scale" in preferences && preferences.scale !== "default" && (
+  if ("scale" in preferences && (
     typeof preferences.scale !== "number"
     || !Number.isFinite(preferences.scale)
     || preferences.scale < desktopPreferencesLimits.scale.minimum
     || preferences.scale > desktopPreferencesLimits.scale.maximum
   )) {
-    throw new Error(`The Desktop scale preference must be default or between ${desktopPreferencesLimits.scale.minimum} and ${desktopPreferencesLimits.scale.maximum}`)
+    throw new Error(`The Desktop scale preference must be a number between ${desktopPreferencesLimits.scale.minimum} and ${desktopPreferencesLimits.scale.maximum}`)
   }
 
   return Object.freeze({

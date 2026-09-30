@@ -118,7 +118,6 @@ export {
   defaultDesktopScale,
   desktopPreferencesLimits,
   parseDesktopPreferencesUpdate,
-  type DesktopScalePreference,
   type DesktopPreferencesSource,
   type DesktopPreferencesUpdate,
   type WritableDesktopPreferencesSource,

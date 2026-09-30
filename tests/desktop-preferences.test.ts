@@ -8,9 +8,15 @@ describe("Desktop preferences", () => {
     expect(defaultDesktopScale).toBeLessThanOrEqual(desktopPreferencesLimits.scale.maximum)
   })
 
-  it("accepts direct and default scale updates", () => {
+  it("accepts a scale only as a number", () => {
     expect(parseDesktopPreferencesUpdate({ scale: 1.25 })).toEqual({ scale: 1.25 })
-    expect(parseDesktopPreferencesUpdate({ scale: "default" })).toEqual({ scale: "default" })
+    expect(() => parseDesktopPreferencesUpdate({ scale: "desktop" })).toThrow(/scale preference/)
+  })
+
+  it("lets the Desktop decide the theme and animations", () => {
+    expect(parseDesktopPreferencesUpdate({ theme: "desktop", animations: "desktop" })).toEqual({ theme: "desktop", animations: "desktop" })
+    expect(() => parseDesktopPreferencesUpdate({ theme: "default" })).toThrow(/theme preference/)
+    expect(() => parseDesktopPreferencesUpdate({ animations: "default" })).toThrow(/animations preference/)
   })
 
   it("preserves sibling updates and ignores unrelated additional data", () => {

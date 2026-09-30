@@ -131,9 +131,9 @@ test("package contract", async () => {
   const processMode: Promise<"primary" | "secondary" | undefined> = process.options<"primary" | "secondary">("mode")
   const theme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
   const scale = desktopPreferences.snapshot().then(snapshot => snapshot.scale)
-  const updateTheme = writableDesktopPreferences.update({ theme: "default" })
+  const updateTheme = writableDesktopPreferences.update({ theme: "desktop" })
   const updateScale = writableDesktopPreferences.update({ scale: desktopPreferencesLimits.scale.minimum })
-  const resetScale = writableDesktopPreferences.update({ scale: "default" })
+  const resetScale = writableDesktopPreferences.update({ scale: defaultDesktopScale })
   const parsedScale = parseDesktopPreferencesUpdate({ scale: 1.25 })
   const updateAppearance = writableAppearance.update({ colors: { dark: { danger: "#ff0000" } } })
   // @ts-expect-error An Appearance update must request at least one field.
