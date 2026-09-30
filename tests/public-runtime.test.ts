@@ -23,7 +23,7 @@ import {
   type ShellEvent,
   type ShellOptions,
   type System,
-  type AppearanceTransaction,
+  type Transaction,
   type PresentationTransaction,
   type Upload,
   type WritableContent,
@@ -47,7 +47,8 @@ import {
   parseAuthenticationCredentials,
   parseAuthenticationRequirements,
   parseAuthenticationState,
-  parsePresentationSurface
+  parsePresentationSurface,
+  parsePresentationTransaction
 } from "../source/main.js"
 
 describe("public runtime", function () {
@@ -78,13 +79,21 @@ describe("public runtime", function () {
     expectTypeOf<Desktop>().toHaveProperty("plane")
     expectTypeOf<ReturnType<Desktop["plane"]["size"]>>().toEqualTypeOf<Promise<DesktopSize>>()
 
-    const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
+    const transaction: Transaction = { duration: 180, easing: "ease-out" }
     const selected: PresentationTransaction = transaction
     const absentSurface: PresentationSurface = false
     // @ts-expect-error Surface Material accepts explicit overrides or false, not a default sentinel.
     const invalidSurfaceMaterial: PresentationSurface = { material: true }
     // @ts-expect-error An absent Surface uses false, consistently with other Window values.
     const invalidAbsentSurface: PresentationSurface = null
+    // A number makes the derived motion that many times as long, within the tempo's bounds.
+    expect(parsePresentationTransaction(2)).toBe(2)
+    expect(() => parsePresentationTransaction(300)).toThrow(/multiplier/)
+    expect(() => parsePresentationTransaction(0.1)).toThrow(/multiplier/)
+    expect(parsePresentationTransaction({ duration: 180, easing: "ease-out" })).toEqual(transaction)
+    // An exact transaction is checked the same way wherever it crosses a boundary, springs included.
+    expect(parsePresentationTransaction({ duration: 400, easing: { spring: { bounce: 0 } } })).toEqual({ duration: 400, easing: { spring: { bounce: 0 } } })
+    expect(() => parsePresentationTransaction({ duration: 120_000, easing: "linear" })).toThrow(/duration/)
     expect(parsePresentationSurface(false)).toBe(false)
     expect(parsePresentationSurface(true)).toBe(true)
     expect(() => parsePresentationSurface(null)).toThrow(/must be an object/)
@@ -94,7 +103,7 @@ describe("public runtime", function () {
     void invalidSurfaceMaterial
     void invalidAbsentSurface
 
-    type EmptyRejected = {} extends AppearanceTransaction ? false : true
+    type EmptyRejected = {} extends Transaction ? false : true
     type BooleanRejected = boolean extends PresentationTransaction ? false : true
     expectTypeOf<EmptyRejected>().toEqualTypeOf<true>()
     expectTypeOf<BooleanRejected>().toEqualTypeOf<true>()

@@ -1,4 +1,4 @@
-import type { AppearanceTransaction } from "./appearance-transaction.js"
+import type { Transaction } from "./transaction.js"
 import type { Subscribable } from "./subscribable.js"
 import type { WritableDesktopPreferencesSource } from "./theme.js"
 import type { Connection } from "./connection.js"
@@ -34,7 +34,7 @@ export type DesktopViewportState = Readonly<{
  */
 export type DesktopViewportMove = Readonly<{
   offset: DesktopOffset
-  transaction: AppearanceTransaction | null
+  transaction: Transaction | null
 }>
 
 /** Changes published by a Desktop viewport. */

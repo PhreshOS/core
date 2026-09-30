@@ -8,7 +8,7 @@ export type SpringEasing = Readonly<{
   spring: Readonly<{ bounce: number, velocity?: number }>
 }>
 
-/** Stable timing curves accepted by Appearance transactions. */
+/** Stable timing curves a transaction moves on. */
 export type Easing =
   | "linear"
   | "ease"
@@ -18,14 +18,21 @@ export type Easing =
   | readonly [number, number, number, number]
   | SpringEasing
 
-/** Complete timing for one change in visual Appearance. */
-export type AppearanceTransaction = Readonly<{
+/**
+ * Complete timing for one visual change: how long it takes, and how it moves. The Appearance does
+ * not hold one: it holds a tempo, and each motion is derived from the tempo and what moves.
+ */
+export type Transaction = Readonly<{
   duration: number
   easing: Easing
 }>
 
-/** Explicit timing selected for a presentation operation. */
-export type PresentationTransaction = number | AppearanceTransaction
+/**
+ * Timing chosen for a presentation operation: a number takes the motion the Desktop derives for
+ * the change and makes it that many times as long, within the Appearance tempo's bounds, so it
+ * still follows the person's tempo; a complete transaction is that exact motion.
+ */
+export type PresentationTransaction = number | Transaction
 
 // The named easings as the curves CSS gives them.
 const named: Record<Extract<Easing, string>, readonly [number, number, number, number]> = {
@@ -41,7 +48,7 @@ const named: Record<Extract<Easing, string>, readonly [number, number, number, n
  * arrives, and past 1 while a bouncing spring overshoots. Whoever follows a motion another part of
  * the System chose calls this each frame, and draws exactly the same motion.
  */
-export function progressAt(transaction: AppearanceTransaction, time: number): number {
+export function progressAt(transaction: Transaction, time: number): number {
   if (transaction.duration <= 0 || time >= transaction.duration) return 1
   if (time <= 0) return 0
   const easing = transaction.easing
@@ -81,4 +88,43 @@ function springAt({ spring }: SpringEasing, duration: number, time: number) {
   }
   const end = left(total)
   return (1 - left(time / 1000)) / (1 - end)
+}
+
+/** A transaction's easing as a CSS timing function; a spring is sampled into a `linear()` curve. */
+export function cssEasing(easing: Easing): string {
+  if (typeof easing === "string") return easing
+  if (Array.isArray(easing)) return `cubic-bezier(${easing.join(", ")})`
+  const samples = Array.from({ length: 41 }, (_, index) => progressAt({ duration: 1000, easing }, index * 25).toFixed(4))
+  return `linear(${samples.join(", ")})`
+}
+
+/**
+ * Validates one complete transaction wherever it crosses a boundary: a duration in milliseconds,
+ * up to a minute, and a named easing, four cubic Bézier numbers with x from 0 to 1, or a spring.
+ */
+export function parseTransaction(value: unknown, name = "Transaction"): Transaction {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${name} must be an object`)
+  const { duration, easing } = value as { duration?: unknown, easing?: unknown }
+  if (typeof duration !== "number" || !Number.isFinite(duration) || duration < 0 || duration > 60_000) {
+    throw new Error(`${name} duration must be from 0 to 60000 milliseconds`)
+  }
+  return Object.freeze({ duration, easing: parseEasing(easing, name) })
+}
+
+function parseEasing(value: unknown, name: string): Easing {
+  if (value === "linear" || value === "ease" || value === "ease-in" || value === "ease-out" || value === "ease-in-out") return value
+  if (Array.isArray(value)
+    && value.length === 4
+    && value.every((entry, index) => typeof entry === "number" && Number.isFinite(entry) && ((index !== 0 && index !== 2) || entry >= 0 && entry <= 1))) {
+    return Object.freeze([...value]) as readonly [number, number, number, number]
+  }
+  const spring = typeof value === "object" && value !== null && !Array.isArray(value) ? (value as { spring?: unknown }).spring : undefined
+  if (typeof spring === "object" && spring !== null) {
+    const { bounce, velocity } = spring as { bounce?: unknown, velocity?: unknown }
+    if (typeof bounce === "number" && Number.isFinite(bounce) && bounce >= 0 && bounce < 1
+      && (velocity === undefined || typeof velocity === "number" && Number.isFinite(velocity))) {
+      return Object.freeze({ spring: Object.freeze(velocity === undefined ? { bounce } : { bounce, velocity }) })
+    }
+  }
+  throw new Error(`${name} easing must be a standard easing name, four cubic Bézier numbers with x values from 0 to 1, or a spring with a bounce from 0 to below 1`)
 }

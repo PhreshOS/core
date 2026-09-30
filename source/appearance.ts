@@ -1,6 +1,5 @@
 import type { Subscribable } from "./subscribable.js"
 
-import type { AppearanceTransaction, SpringEasing } from "./appearance-transaction.js"
 
 /** One value with complete branches for both supported Themes. */
 export type ThemedValue<Value> = Readonly<{ light: Value, dark: Value }>
@@ -62,7 +61,12 @@ export type Appearance = Readonly<{
   radius: number
   shadow: ThemedValue<AppearanceShadow>
   material: ThemedValue<AppearanceMaterial>
-  transaction: AppearanceTransaction
+  /**
+   * How fast everything moves, as a share of the pace the System was designed with: 1 is that
+   * pace, a half is twice as fast, 2 is twice as slow. Only time changes: every motion keeps its
+   * shape, and its length beside every other motion.
+   */
+  tempo: number
   taskbar: AppearanceTaskbar
   signInWallpaper: ThemedValue<string | null>
   desktopWallpaper: ThemedValue<string | null>
@@ -83,7 +87,7 @@ type AppearanceUpdateFields = Readonly<{
     light?: Readonly<Partial<AppearanceMaterial>>
     dark?: Readonly<Partial<AppearanceMaterial>>
   }>
-  transaction?: Readonly<Partial<AppearanceTransaction>>
+  tempo?: number
   taskbar?: Readonly<Partial<AppearanceTaskbar>>
   signInWallpaper?: Readonly<Partial<ThemedValue<string | null>>>
   desktopWallpaper?: Readonly<Partial<ThemedValue<string | null>>>
@@ -100,9 +104,7 @@ export type AppearanceUpdate = {
 export const appearanceLimits = Object.freeze({
   spacing: Object.freeze({ minimum: 6, maximum: 18 }),
   radius: Object.freeze({ minimum: 6, maximum: 18 }),
-  transaction: Object.freeze({
-    duration: Object.freeze({ minimum: 0, maximum: 60_000 })
-  }),
+  tempo: Object.freeze({ minimum: 1 / 3, maximum: 4 }),
   taskbar: Object.freeze({
     size: Object.freeze({ minimum: 0, maximum: 100 })
   }),
@@ -124,7 +126,7 @@ export const appearanceLimits = Object.freeze({
 }) satisfies Readonly<{
   spacing: AppearanceRange
   radius: AppearanceRange
-  transaction: Readonly<{ duration: AppearanceRange }>
+  tempo: AppearanceRange
   taskbar: Readonly<{ size: AppearanceRange }>
   shadow: Readonly<Record<keyof AppearanceShadow, AppearanceRange>>
   material: Readonly<Record<keyof AppearanceMaterial, AppearanceRange>>
@@ -167,7 +169,7 @@ export const defaultAppearance = createAppearanceSnapshot({
     light: { grain: 0.04, grainAmount: 0.95, backdrop: 5, opacity: 0.8, distortion: 0, saturation: 1.66 },
     dark: { grain: 0.03, grainAmount: 0.95, backdrop: 12, opacity: 0.8, distortion: 0, saturation: 1.77 }
   },
-  transaction: { duration: 120, easing: "ease-out" },
+  tempo: 1,
   taskbar: { position: "bottom", size: 44, overlay: false },
   signInWallpaper: { light: null, dark: null },
   desktopWallpaper: { light: null, dark: null }
@@ -181,7 +183,7 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
     radius: appearance.radius,
     shadow: themed(appearance.shadow, value => Object.freeze({ ...value })),
     material: themed(appearance.material, value => Object.freeze({ ...value })),
-    transaction: Object.freeze({ ...appearance.transaction }),
+    tempo: appearance.tempo,
     taskbar: Object.freeze({ ...appearance.taskbar }),
     signInWallpaper: themed(appearance.signInWallpaper),
     desktopWallpaper: themed(appearance.desktopWallpaper)
@@ -198,7 +200,7 @@ export function parseAppearance(value: unknown): Appearance {
     radius: bounded(source.radius, appearanceLimits.radius, "Appearance radius"),
     shadow: parseThemed(source.shadow, parseShadow, "Appearance shadow"),
     material: parseThemed(source.material, parseMaterial, "Appearance material"),
-    transaction: parseAppearanceTransaction(source.transaction),
+    tempo: bounded(source.tempo, appearanceLimits.tempo, "Appearance tempo"),
     taskbar: parseTaskbar(source.taskbar),
     signInWallpaper: parseThemed(source.signInWallpaper, parseWallpaper, "sign-in wallpaper"),
     desktopWallpaper: parseThemed(source.desktopWallpaper, parseWallpaper, "desktop wallpaper")
@@ -208,7 +210,7 @@ export function parseAppearance(value: unknown): Appearance {
 /** Validates and recursively merges one partial update into a complete Appearance. */
 export function applyAppearanceUpdate(appearance: Appearance, value: unknown): Appearance {
   const update = record(value, "Appearance update")
-  const keys = ["colors", "spacing", "radius", "shadow", "material", "transaction", "taskbar", "signInWallpaper", "desktopWallpaper"] as const
+  const keys = ["colors", "spacing", "radius", "shadow", "material", "tempo", "taskbar", "signInWallpaper", "desktopWallpaper"] as const
 
   if (!keys.some(key => Object.hasOwn(update, key))) throw new Error("An Appearance update must contain at least one Appearance field")
 
@@ -220,7 +222,7 @@ export function applyAppearanceUpdate(appearance: Appearance, value: unknown): A
     radius: Object.hasOwn(update, "radius") ? update.radius : appearance.radius,
     shadow: Object.hasOwn(update, "shadow") ? mergeThemedRecord(appearance.shadow, update.shadow, "Appearance shadow update") : appearance.shadow,
     material: Object.hasOwn(update, "material") ? mergeThemedRecord(appearance.material, update.material, "Appearance material update") : appearance.material,
-    transaction: Object.hasOwn(update, "transaction") ? { ...appearance.transaction, ...record(update.transaction, "Appearance transaction update") } : appearance.transaction,
+    tempo: Object.hasOwn(update, "tempo") ? update.tempo : appearance.tempo,
     taskbar: Object.hasOwn(update, "taskbar") ? { ...appearance.taskbar, ...record(update.taskbar, "Appearance taskbar update") } : appearance.taskbar,
     signInWallpaper: Object.hasOwn(update, "signInWallpaper") ? mergeThemedValue(appearance.signInWallpaper, update.signInWallpaper, "Appearance sign-in wallpaper update") : appearance.signInWallpaper,
     desktopWallpaper: Object.hasOwn(update, "desktopWallpaper") ? mergeThemedValue(appearance.desktopWallpaper, update.desktopWallpaper, "Appearance desktop wallpaper update") : appearance.desktopWallpaper
@@ -263,35 +265,6 @@ function parseShadow(value: unknown): AppearanceShadow {
 function parseMaterial(value: unknown): AppearanceMaterial {
   const source = record(value, "Appearance material")
   return Object.freeze(Object.fromEntries(materialKeys.map(key => [key, bounded(source[key], appearanceLimits.material[key], `Appearance material ${key}`)]))) as AppearanceMaterial
-}
-
-/** Validates one complete timing: a duration in milliseconds and an easing. */
-export function parseAppearanceTransaction(value: unknown): AppearanceTransaction {
-  const source = record(value, "Appearance transaction")
-  const easing = source.easing
-  const named = easing === "linear" || easing === "ease" || easing === "ease-in" || easing === "ease-out" || easing === "ease-in-out"
-  const curve = Array.isArray(easing)
-    && easing.length === 4
-    && easing.every((entry, index) => typeof entry === "number" && Number.isFinite(entry) && ((index !== 0 && index !== 2) || entry >= 0 && entry <= 1))
-  const spring = parseSpring(easing)
-
-  if (!named && !curve && !spring) throw new Error("Appearance transaction easing is invalid")
-
-  return Object.freeze({
-    duration: bounded(source.duration, appearanceLimits.transaction.duration, "Appearance transaction duration"),
-    easing: spring ?? (Array.isArray(easing) ? Object.freeze([...easing]) as AppearanceTransaction["easing"] : easing as AppearanceTransaction["easing"])
-  })
-}
-
-/** A spring easing: a bounce from 0 to below 1, and an optional finite starting velocity. */
-function parseSpring(value: unknown): SpringEasing | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null
-  const spring = (value as { spring?: unknown }).spring
-  if (typeof spring !== "object" || spring === null) return null
-  const { bounce, velocity } = spring as { bounce?: unknown, velocity?: unknown }
-  if (typeof bounce !== "number" || !Number.isFinite(bounce) || bounce < 0 || bounce >= 1) return null
-  if (velocity !== undefined && (typeof velocity !== "number" || !Number.isFinite(velocity))) return null
-  return Object.freeze({ spring: Object.freeze(velocity === undefined ? { bounce } : { bounce, velocity }) })
 }
 
 function parseTaskbar(value: unknown): AppearanceTaskbar {

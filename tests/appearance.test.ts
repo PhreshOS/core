@@ -21,7 +21,7 @@ describe("Appearance", function () {
       warning: "#f0bd4f", danger: "#f07564", info: "#4cc9d3"
     })
     expect(defaultAppearance.spacing).toBe(12)
-    expect(defaultAppearance.transaction).toEqual({ duration: 120, easing: "ease-out" })
+    expect(defaultAppearance.tempo).toBe(1)
     expect(defaultAppearance.taskbar).toEqual({ position: "bottom", size: 44, overlay: false })
     expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
     expect(defaultAppearance.material.light.grain).toBe(0.04)
@@ -114,7 +114,6 @@ describe("Appearance", function () {
     expect(Object.isFrozen(appearance)).toBe(true)
     expect(Object.isFrozen(appearance.colors)).toBe(true)
     expect(Object.isFrozen(appearance.colors.light)).toBe(true)
-    expect(Object.isFrozen(appearance.transaction)).toBe(true)
     expect(Object.isFrozen(appearance.taskbar)).toBe(true)
     expect(Object.isFrozen(appearance.material.light)).toBe(true)
   })
@@ -149,7 +148,7 @@ describe("Appearance", function () {
     const appearance = applyAppearanceUpdate(defaultAppearance, {
       colors: { dark: { danger: "#aa0000" } },
       material: { light: { opacity: 0.5 } },
-      transaction: { duration: 240 },
+      tempo: 2,
       taskbar: { position: "left" }
     })
 
@@ -158,7 +157,8 @@ describe("Appearance", function () {
     expect(appearance.colors.light).toEqual(defaultAppearance.colors.light)
     expect(appearance.material.light.opacity).toBe(0.5)
     expect(appearance.material.light.grain).toBe(defaultAppearance.material.light.grain)
-    expect(appearance.transaction).toEqual({ duration: 240, easing: "ease-out" })
+    expect(appearance.tempo).toBe(2)
+    expect(() => applyAppearanceUpdate(defaultAppearance, { tempo: 0.2 })).toThrow("Appearance tempo")
     expect(appearance.taskbar).toEqual({ position: "left", size: 44, overlay: false })
 
     const overlay = applyAppearanceUpdate(appearance, { taskbar: { overlay: true } })
@@ -168,7 +168,7 @@ describe("Appearance", function () {
   })
 
   it("publishes the complete bounded material ranges", function () {
-    expect(appearanceLimits.transaction.duration).toEqual({ minimum: 0, maximum: 60_000 })
+    expect(appearanceLimits.tempo).toEqual({ minimum: 1 / 3, maximum: 4 })
     expect(appearanceLimits.taskbar.size).toEqual({ minimum: 0, maximum: 100 })
     expect(appearanceLimits.material).toEqual({
       grain: { minimum: 0, maximum: 1 },

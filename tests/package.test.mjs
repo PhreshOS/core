@@ -75,7 +75,7 @@ test("package contract", async () => {
 
     writeFileSync(
       join(consumer, "consumer.ts"),
-      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type AppearanceTransaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type Presentation, type PresentationGeometry, type PresentationTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource, type WritableDesktopViewportSource } from "@phreshos/core"
+      `import { defaultDesktopScale, defineConfig, desktopPreferencesLimits, isUploadFile, parseDesktopPreferencesUpdate, type Transaction, type ContextMessage, type Config, type Desktop, type DesktopPreferencesSource, type DesktopViewportSource, type FileStat, type Process, type Program, type System, type SystemUploads, type TrafficMessage, type Upload, type Window, type WindowGeometry, type Presentation, type PresentationGeometry, type PresentationTransaction, type WritableAppearance, type WritableContent, type WritableDesktopPreferencesSource, type WritableDesktopViewportSource } from "@phreshos/core"
 
   const config: Config = defineConfig({
     identity: "package-consumer",
@@ -92,7 +92,7 @@ test("package contract", async () => {
   system.forceCreateProgram("./phresh.config.ts")
   type WindowHasSurface = "surface" extends keyof Window ? true : false
   const windowHasSurface: WindowHasSurface = false
-  const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
+  const transaction: Transaction = { duration: 180, easing: "ease-out" }
   const windowTransaction: PresentationTransaction = transaction
   declare const presentation: Presentation
   const presentationLayer = presentation.layer()

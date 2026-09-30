@@ -1,5 +1,5 @@
 import type { AppearanceColor, AppearanceMaterial } from "./appearance.js"
-import type { PresentationTransaction } from "./appearance-transaction.js"
+import type { PresentationTransaction } from "./transaction.js"
 import type { Subscribable } from "./subscribable.js"
 import type { WindowLayer } from "./window.js"
 
@@ -125,7 +125,8 @@ export interface PresentationTransactionOperations {
  * the Desktop, so both refuse writes. A move gesture hands a pointer move to the Desktop in every
  * layer except the wallpaper, which has nowhere to move.
  *
- * Writes take effect at once; `transaction()` moves them on the Appearance timing or a given one.
+ * Writes take effect at once; `transaction()` moves them on the motion the Desktop derives for the
+ * change, that motion made longer or shorter, or an exact one.
  *
  * A standard Window is always fixed to the plane, and the wallpaper and the Shell to the viewport.
  * A drawing in `under` or `over` is fixed to the viewport until its Program fixes it to the plane.
@@ -167,7 +168,7 @@ export interface Presentation extends PresentationTransactionOperations, Subscri
   /** Brings the drawing to the front of its layer. */
   raise(): Promise<void>
 
-  /** Applies writes on the Appearance timing, or the one given. */
+  /** Applies writes on the derived motion, that motion times a multiplier, or an exact transaction. */
   transaction(transaction?: PresentationTransaction): PresentationTransactionOperations
 
   /** Applies writes on a timing, and resolves once they have arrived. */

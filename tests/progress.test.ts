@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseAppearanceTransaction, progressAt } from "../source/main.js"
+import { cssEasing, parseTransaction, progressAt } from "../source/main.js"
 
 describe("progressAt", () => {
   it("starts at 0 and arrives at 1 for every easing", () => {
@@ -38,8 +38,14 @@ describe("progressAt", () => {
     expect(Math.max(...bouncing)).toBeGreaterThan(1)
   })
 
+  it("writes an easing as CSS, a spring sampled into linear()", () => {
+    expect(cssEasing("ease-out")).toBe("ease-out")
+    expect(cssEasing([0.22, 1, 0.36, 1])).toBe("cubic-bezier(0.22, 1, 0.36, 1)")
+    expect(cssEasing({ spring: { bounce: 0 } })).toMatch(/^linear\(0\.0000, .*1\.0000\)$/)
+  })
+
   it("reads a spring as a valid transaction easing", () => {
-    expect(parseAppearanceTransaction({ duration: 400, easing: { spring: { bounce: 0.2, velocity: 1.5 } } })).toEqual({ duration: 400, easing: { spring: { bounce: 0.2, velocity: 1.5 } } })
-    expect(() => parseAppearanceTransaction({ duration: 400, easing: { spring: { bounce: 1 } } })).toThrow(/easing/)
+    expect(parseTransaction({ duration: 400, easing: { spring: { bounce: 0.2, velocity: 1.5 } } })).toEqual({ duration: 400, easing: { spring: { bounce: 0.2, velocity: 1.5 } } })
+    expect(() => parseTransaction({ duration: 400, easing: { spring: { bounce: 1 } } })).toThrow(/easing/)
   })
 })

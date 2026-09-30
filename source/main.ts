@@ -141,7 +141,6 @@ export {
   applyAppearanceUpdate,
   createAppearanceSnapshot,
   parseAppearance,
-  parseAppearanceTransaction,
   defaultAppearance,
   type Appearance,
   type AppearanceUpdate,
@@ -305,7 +304,7 @@ export {
   type PresentationSurfaceMaterial,
   type PresentationTransactionOperations
 } from "./presentation.js"
-export { progressAt, type AppearanceTransaction, type Easing, type PresentationTransaction, type SpringEasing } from "./appearance-transaction.js"
+export { cssEasing, parseTransaction, progressAt, type Easing, type PresentationTransaction, type SpringEasing, type Transaction } from "./transaction.js"
 export { isLayer, layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"
 export {
   defineConfig,

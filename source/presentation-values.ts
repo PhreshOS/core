@@ -1,5 +1,5 @@
 import { appearanceLimits, type AppearanceMaterial } from "./appearance.js"
-import type { AppearanceTransaction, Easing, PresentationTransaction } from "./appearance-transaction.js"
+import { parseTransaction, type PresentationTransaction } from "./transaction.js"
 import type { PresentationSurface } from "./presentation.js"
 
 /** Validates and canonicalizes one Desktop-painted surface behind a presentation. */
@@ -32,14 +32,14 @@ export function parsePresentationSurface(value: unknown): PresentationSurface {
 /** Validates explicit timing selected for a presentation operation. */
 export function parsePresentationTransaction(value: unknown): PresentationTransaction {
   if (typeof value === "number") {
-    if (!finite(value) || value < 0) throw new Error("A Window transaction duration must be finite non-negative milliseconds")
+    const limits = appearanceLimits.tempo
+    if (!finite(value) || value < limits.minimum || value > limits.maximum) {
+      throw new Error(`A Window transaction multiplier must be a finite number from ${limits.minimum.toFixed(3)} to ${limits.maximum}`)
+    }
     return value
   }
 
-  const source = record(value, "Window transaction")
-  if (!finite(source.duration) || source.duration < 0) throw new Error("A Window transaction duration must be finite non-negative milliseconds")
-
-  return Object.freeze({ duration: source.duration, easing: parseEasing(source.easing) })
+  return parseTransaction(value, "A Window transaction")
 }
 
 function parseSurfaceMaterial(value: unknown): false | Partial<AppearanceMaterial> {
@@ -59,16 +59,6 @@ function parseSurfaceMaterial(value: unknown): false | Partial<AppearanceMateria
   }
 
   return Object.freeze(result)
-}
-
-function parseEasing(value: unknown): Easing {
-  if (value === "linear" || value === "ease" || value === "ease-in" || value === "ease-out" || value === "ease-in-out") return value
-  if (!Array.isArray(value)
-    || value.length !== 4
-    || !value.every((entry, index) => finite(entry) && ((index !== 0 && index !== 2) || entry >= 0 && entry <= 1))) {
-    throw new Error("A Window transaction easing must be a standard easing name or four cubic Bézier numbers with x values from 0 to 1")
-  }
-  return Object.freeze([...value]) as AppearanceTransaction["easing"]
 }
 
 function record(value: unknown, name: string): Record<string, unknown> {
