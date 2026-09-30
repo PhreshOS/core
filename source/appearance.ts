@@ -1,6 +1,6 @@
 import type { Subscribable } from "./subscribable.js"
 
-import type { AppearanceTransaction } from "./appearance-transaction.js"
+import type { AppearanceTransaction, SpringEasing } from "./appearance-transaction.js"
 
 /** One value with complete branches for both supported Themes. */
 export type ThemedValue<Value> = Readonly<{ light: Value, dark: Value }>
@@ -198,7 +198,7 @@ export function parseAppearance(value: unknown): Appearance {
     radius: bounded(source.radius, appearanceLimits.radius, "Appearance radius"),
     shadow: parseThemed(source.shadow, parseShadow, "Appearance shadow"),
     material: parseThemed(source.material, parseMaterial, "Appearance material"),
-    transaction: parseTransaction(source.transaction),
+    transaction: parseAppearanceTransaction(source.transaction),
     taskbar: parseTaskbar(source.taskbar),
     signInWallpaper: parseThemed(source.signInWallpaper, parseWallpaper, "sign-in wallpaper"),
     desktopWallpaper: parseThemed(source.desktopWallpaper, parseWallpaper, "desktop wallpaper")
@@ -265,20 +265,33 @@ function parseMaterial(value: unknown): AppearanceMaterial {
   return Object.freeze(Object.fromEntries(materialKeys.map(key => [key, bounded(source[key], appearanceLimits.material[key], `Appearance material ${key}`)]))) as AppearanceMaterial
 }
 
-function parseTransaction(value: unknown): AppearanceTransaction {
+/** Validates one complete timing: a duration in milliseconds and an easing. */
+export function parseAppearanceTransaction(value: unknown): AppearanceTransaction {
   const source = record(value, "Appearance transaction")
   const easing = source.easing
   const named = easing === "linear" || easing === "ease" || easing === "ease-in" || easing === "ease-out" || easing === "ease-in-out"
   const curve = Array.isArray(easing)
     && easing.length === 4
     && easing.every((entry, index) => typeof entry === "number" && Number.isFinite(entry) && ((index !== 0 && index !== 2) || entry >= 0 && entry <= 1))
+  const spring = parseSpring(easing)
 
-  if (!named && !curve) throw new Error("Appearance transaction easing is invalid")
+  if (!named && !curve && !spring) throw new Error("Appearance transaction easing is invalid")
 
   return Object.freeze({
     duration: bounded(source.duration, appearanceLimits.transaction.duration, "Appearance transaction duration"),
-    easing: Array.isArray(easing) ? Object.freeze([...easing]) as AppearanceTransaction["easing"] : easing
+    easing: spring ?? (Array.isArray(easing) ? Object.freeze([...easing]) as AppearanceTransaction["easing"] : easing as AppearanceTransaction["easing"])
   })
+}
+
+/** A spring easing: a bounce from 0 to below 1, and an optional finite starting velocity. */
+function parseSpring(value: unknown): SpringEasing | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null
+  const spring = (value as { spring?: unknown }).spring
+  if (typeof spring !== "object" || spring === null) return null
+  const { bounce, velocity } = spring as { bounce?: unknown, velocity?: unknown }
+  if (typeof bounce !== "number" || !Number.isFinite(bounce) || bounce < 0 || bounce >= 1) return null
+  if (velocity !== undefined && (typeof velocity !== "number" || !Number.isFinite(velocity))) return null
+  return Object.freeze({ spring: Object.freeze(velocity === undefined ? { bounce } : { bounce, velocity }) })
 }
 
 function parseTaskbar(value: unknown): AppearanceTaskbar {

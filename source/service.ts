@@ -1,6 +1,6 @@
 import type { Askable } from "./askable.js"
 import type { Publishable } from "./publishable.js"
-import type { ProgramIconSize } from "./program.js"
+import type { IconSize } from "./program.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 import { isProgramIdentity } from "./program-identity.js"
 
@@ -62,7 +62,7 @@ export abstract class Service<Events extends object = {}, Fallback = unknown>
   public abstract programMetadata(): Promise<ServiceProgramMetadata>
 
   /** Reads one PNG Program icon from the currently available Service provider. */
-  public abstract programIcon(size?: ProgramIconSize): Promise<Blob>
+  public abstract programIcon(size?: IconSize): Promise<Blob>
 
   /**
    * Waits until a ready Endpoint is available in Service mode at this address.

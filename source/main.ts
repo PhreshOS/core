@@ -128,6 +128,7 @@ export {
   type Desktop,
   type DesktopSize,
   type DesktopOffset,
+  type DesktopViewportMove,
   type DesktopPlaneEvents,
   type DesktopPlaneSource,
   type DesktopViewportEvents,
@@ -140,6 +141,7 @@ export {
   applyAppearanceUpdate,
   createAppearanceSnapshot,
   parseAppearance,
+  parseAppearanceTransaction,
   defaultAppearance,
   type Appearance,
   type AppearanceUpdate,
@@ -270,7 +272,7 @@ export {
   type ClientDeclaration,
   type EndpointDeclaration,
   type ProgramEvents,
-  type ProgramIconSize,
+  type IconSize,
   type ProgramCommandChunk,
   type ProgramInstallOptions,
   type ProgramUninstallOptions,
@@ -303,7 +305,7 @@ export {
   type PresentationSurfaceMaterial,
   type PresentationTransactionOperations
 } from "./presentation.js"
-export { type AppearanceTransaction, type Easing, type PresentationTransaction } from "./appearance-transaction.js"
+export { progressAt, type AppearanceTransaction, type Easing, type PresentationTransaction, type SpringEasing } from "./appearance-transaction.js"
 export { isLayer, layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"
 export {
   defineConfig,

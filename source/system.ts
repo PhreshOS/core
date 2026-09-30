@@ -1,6 +1,6 @@
 import type { OpenTarget, SystemOpening } from "./opening.js"
 import type { WritableAppearance } from "./appearance.js"
-import type { Program } from "./program.js"
+import type { IconSize, Program } from "./program.js"
 import type { Launch, Layer, Position, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
 import type { ClientService, ServerService, Service, ServiceAddress, ServiceEndpoint } from "./service.js"
@@ -273,6 +273,13 @@ export interface System {
 
   /** What this System is: its name, its version, and its release. It never changes while the System runs. */
   about(): Promise<SystemAbout>
+
+  /**
+   * Returns one standard PNG representation of the System's own icon. Anyone may read it.
+   *
+   * @param size Rendered size. Omission selects `medium`.
+   */
+  icon(size?: IconSize): Promise<Blob>
 
   /**
    * Opens something with the Program its type opens with: the default one, or the one the owner

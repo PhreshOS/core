@@ -1,3 +1,4 @@
+import type { AppearanceTransaction } from "./appearance-transaction.js"
 import type { Subscribable } from "./subscribable.js"
 import type { WritableDesktopPreferencesSource } from "./theme.js"
 import type { Connection } from "./connection.js"
@@ -25,12 +26,23 @@ export type DesktopViewportState = Readonly<{
   offset: DesktopOffset
 }>
 
+/**
+ * Where the view went, announced as it sets off, and the motion it takes to get there: the
+ * Desktop chooses it for each move, from how far it goes. `null` when the view is there at once,
+ * as when a hand drags it or animations are off. Whatever draws the plane can follow the view by
+ * taking the same motion from where the view was.
+ */
+export type DesktopViewportMove = Readonly<{
+  offset: DesktopOffset
+  transaction: AppearanceTransaction | null
+}>
+
 /** Changes published by a Desktop viewport. */
 export type DesktopViewportEvents = {
   /** The Desktop's size changed. */
   resize: DesktopSize
   /** The Desktop's view moved across the plane. */
-  move: DesktopOffset
+  move: DesktopViewportMove
 }
 
 /** Read-only access to one Desktop viewport and its future changes. */

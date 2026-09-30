@@ -9,8 +9,8 @@ import type { ProgramDefinition } from "./system.js"
 /** Version assigned when a Program definition omits one. */
 export const defaultProgramVersion = "0.0.0"
 
-/** Standard rendered sizes available for every Program icon. */
-export type ProgramIconSize = "small" | "medium" | "large"
+/** Standard rendered sizes of an icon, a Program's or the System's own. */
+export type IconSize = "small" | "medium" | "large"
 
 /** One ordered text chunk produced by a Program lifecycle command. */
 export type ProgramCommandChunk = Readonly<{
@@ -195,7 +195,7 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
    *
    * @param size Rendered size. Omission selects `medium`.
    */
-  public abstract icon(size?: ProgramIconSize): Promise<Blob>
+  public abstract icon(size?: IconSize): Promise<Blob>
 
   /** Returns the complete canonical definition accepted by System Program creation. */
   public abstract definition(): Promise<ProgramDefinition>

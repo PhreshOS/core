@@ -7,6 +7,7 @@ import {
   type Desktop,
   type DesktopSize,
   type FileStat,
+  type IconSize,
   type Context,
   type Launch,
   type Presentation,
@@ -97,6 +98,12 @@ describe("public runtime", function () {
     type BooleanRejected = boolean extends PresentationTransaction ? false : true
     expectTypeOf<EmptyRejected>().toEqualTypeOf<true>()
     expectTypeOf<BooleanRejected>().toEqualTypeOf<true>()
+  })
+
+  it("gives the System and every Program an icon at the same standard sizes", function () {
+    expectTypeOf<System["icon"]>().parameters.toEqualTypeOf<[size?: IconSize]>()
+    expectTypeOf<Program["icon"]>().parameters.toEqualTypeOf<[size?: IconSize]>()
+    expectTypeOf<IconSize>().toEqualTypeOf<"small" | "medium" | "large">()
   })
 
   it("preserves the domain class hierarchy", function () {
