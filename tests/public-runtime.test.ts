@@ -5,6 +5,7 @@ import {
   ClientService,
   type ClientContext,
   type Desktop,
+  type DesktopSize,
   type FileStat,
   type Context,
   type Launch,
@@ -67,6 +68,14 @@ describe("public runtime", function () {
     expectTypeOf<Presentation>().toHaveProperty("transaction")
     expectTypeOf<Presentation>().toHaveProperty("transactionAndWait")
     expectTypeOf<PresentationTransactionOperations>().not.toHaveProperty("setInteractive")
+    // Changing the anchor keeps the drawing where it is in the viewport, so there is nothing to move on a timing.
+    expectTypeOf<Presentation>().toHaveProperty("anchor")
+    expectTypeOf<Presentation>().toHaveProperty("setAnchor")
+    expectTypeOf<PresentationTransactionOperations>().not.toHaveProperty("setAnchor")
+    expectTypeOf<PresentationState["anchor"]>().toEqualTypeOf<"viewport" | "plane">()
+    // The plane beside the view: its size, and when it changes with the Desktop.
+    expectTypeOf<Desktop>().toHaveProperty("plane")
+    expectTypeOf<ReturnType<Desktop["plane"]["size"]>>().toEqualTypeOf<Promise<DesktopSize>>()
 
     const transaction: AppearanceTransaction = { duration: 180, easing: "ease-out" }
     const selected: PresentationTransaction = transaction

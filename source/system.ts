@@ -1,3 +1,4 @@
+import type { OpenTarget, SystemOpening } from "./opening.js"
 import type { WritableAppearance } from "./appearance.js"
 import type { Program } from "./program.js"
 import type { Launch, Layer, Position, Size } from "./launch.js"
@@ -51,6 +52,8 @@ type ProgramDefinitionBase = Readonly<{
   description?: string
   categories?: readonly string[]
   keywords?: readonly string[]
+  /** Media types this Program opens, such as `image/png`; `image/*` stands for every image. */
+  opens?: readonly string[]
   website?: string
   icon?: string
   agent?: string
@@ -145,16 +148,55 @@ export type SystemProcessEvents = {
 }
 
 /** Filters for visible Programs. */
-export type SystemProgramListOptions = Readonly<{ installed?: boolean }>
+export type SystemProgramListOptions = Readonly<{
+  installed?: boolean
+  /** Only the Programs that open this exact media type. */
+  opens?: string
+}>
 
 /** Filters for ready Services visible to the caller. */
 export type SystemServiceListOptions = Readonly<{ name?: string }>
 
 export function parseSystemProgramListOptions(value: unknown = {}): SystemProgramListOptions {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Program list options must be an object")
-  const installed = (value as { installed?: unknown }).installed
+  const { installed, opens } = value as { installed?: unknown, opens?: unknown }
   if (installed !== undefined && typeof installed !== "boolean") throw new Error("The installed Program filter must be a boolean")
-  return installed === undefined ? {} : { installed }
+  if (opens !== undefined && (typeof opens !== "string" || !opens.includes("/"))) throw new Error("The opens Program filter must be a media type")
+  return { ...(installed === undefined ? {} : { installed }), ...(opens === undefined ? {} : { opens: (opens as string).toLowerCase() }) }
+}
+
+/** What a System is: its name, its version, and the release that version belongs to. */
+export type SystemAbout = Readonly<{
+  /** The name the System shows people, such as "PhreshOS". */
+  name: string
+
+  /** The installed version, such as "0.1.108". */
+  version: string
+
+  /** The major version's name, and the Program that looks after it. */
+  release: Readonly<{ name: string, program: string }>
+
+  /** When the System started; how long it has run is counted from here. */
+  startedAt: Date
+}>
+
+export function parseSystemAbout(value: unknown): SystemAbout {
+  const record = value as { name?: unknown, version?: unknown, release?: { name?: unknown, program?: unknown }, startedAt?: unknown } | null
+  const text = (candidate: unknown) => typeof candidate === "string" && candidate.length > 0
+  const startedAt = record && typeof record === "object" && (record.startedAt instanceof Date || text(record.startedAt))
+    ? new Date(record.startedAt as Date | string)
+    : null
+  if (!record || typeof record !== "object" || !text(record.name) || !text(record.version)
+    || !record.release || typeof record.release !== "object" || !text(record.release.name) || !text(record.release.program)
+    || !startedAt || Number.isNaN(startedAt.getTime())) {
+    throw new Error("The System's description is malformed")
+  }
+  return Object.freeze({
+    name: record.name as string,
+    version: record.version as string,
+    release: Object.freeze({ name: record.release.name as string, program: record.release.program as string }),
+    startedAt
+  })
 }
 
 export function parseSystemServiceListOptions(value: unknown = {}): SystemServiceListOptions {
@@ -228,6 +270,19 @@ export interface System {
   readonly service: SystemService
   readonly uploads: SystemUploads
   readonly network: Network
+
+  /** What this System is: its name, its version, and its release. It never changes while the System runs. */
+  about(): Promise<SystemAbout>
+
+  /**
+   * Opens something with the Program its type opens with: the default one, or the one the owner
+   * chooses when there is no default. It resolves once a Process is started for it, and rejects when
+   * no Program opens it or the owner opens it with none.
+   */
+  open(target: OpenTarget): Promise<void>
+
+  /** Open requests waiting for a choice, and the default Program for each type. Requires `all`. */
+  readonly opening: SystemOpening
 
   /** Executes one JSON operation through the ordinary public System handles. */
   execute<Request extends ExecuteRequest>(request: Request): Promise<ExecuteResult<Request>>

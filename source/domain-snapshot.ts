@@ -18,6 +18,7 @@ export type ProgramSnapshot = HandleAddress & Readonly<{
   description: string | null
   categories?: readonly string[]
   keywords?: readonly string[]
+  opens?: readonly string[]
   hasAgent: boolean
   server: EndpointDeclaration | null
   client: ClientDeclaration | null
@@ -85,6 +86,7 @@ export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
     description: source.description,
     ...(source.categories === undefined ? {} : { categories: strings(source.categories, "Program categories") }),
     ...(source.keywords === undefined ? {} : { keywords: strings(source.keywords, "Program keywords") }),
+    ...(source.opens === undefined ? {} : { opens: strings(source.opens, "Program opens") }),
     hasAgent: source.hasAgent,
     server: source.server === null ? null : parseEndpointDeclaration(source.server),
     client: source.client === null ? null : parseClientDeclaration(source.client)

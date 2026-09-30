@@ -1,7 +1,7 @@
 import type { Endpoint } from "../endpoint.js"
 import type { Process } from "../process.js"
 import type { Program } from "../program.js"
-import type { System } from "../system.js"
+import { parseSystemProgramListOptions, type System } from "../system.js"
 import type { Window } from "../window.js"
 import type { Connection } from "../connection.js"
 import type { Session } from "../session.js"
@@ -47,7 +47,12 @@ async function dispatch(system: ExecutionSystem, request: ExecuteRequest): Promi
   }
 }
 
-function executeSystem(system: ExecutionSystem, request: Request<"system", "logs">) {
+async function executeSystem(system: ExecutionSystem, request: Request<"system", "about"> | Request<"system", "open"> | Request<"system", "logs">) {
+  if (request.$operation === "about") return system.about()
+  if (request.$operation === "open") {
+    await system.open({ type: request.type, uri: request.uri })
+    return null
+  }
   return system.logs.query(request.statement, request.values)
 }
 
@@ -242,8 +247,8 @@ async function executeProgram(
     | Request<"program", "agent">
     | Request<"program", "definition">
     | Request<"program", "getStartup">
-    | Request<"program", "enableStartup">
-    | Request<"program", "disableStartup">
+    | Request<"program", "setStartup">
+    | Request<"program", "removeStartup">
     | Request<"program", "pinned">
     | Request<"program", "pin">
     | Request<"program", "unpin">
@@ -256,7 +261,7 @@ async function executeProgram(
     | Request<"program", "wait">
 ) {
   if (request.$operation === "list") {
-    return Promise.all((await system.program.list({ installed: request.installed })).map(programView))
+    return Promise.all((await system.program.list(parseSystemProgramListOptions({ installed: request.installed, opens: request.opens }))).map(programView))
   }
 
   if (request.$operation === "wait") return waitForProgram(system, request)
@@ -268,12 +273,12 @@ async function executeProgram(
   if (request.$operation === "definition") return program.definition()
   if (request.$operation === "logs") return program.logs.query(request.statement, request.values)
   if (request.$operation === "getStartup") return program.startup.get()
-  if (request.$operation === "enableStartup") {
-    await program.startup.enable(request.launch)
+  if (request.$operation === "setStartup") {
+    await program.startup.set(request.launch)
     return program.startup.get()
   }
-  if (request.$operation === "disableStartup") {
-    await program.startup.disable()
+  if (request.$operation === "removeStartup") {
+    await program.startup.remove()
     return null
   }
   if (request.$operation === "pinned") return program.pinned()

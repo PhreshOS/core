@@ -20,6 +20,20 @@ export {
 } from "./subscribable.js"
 
 export { type Publishable } from "./publishable.js"
+export {
+  OpenRequest,
+  opensType,
+  parseOpenRequestSnapshot,
+  parseOpenTarget,
+  parseOpeningDefaults,
+  parseOpens,
+  type OpenRequestEvents,
+  type OpenRequestSnapshot,
+  type OpenTarget,
+  type SystemOpenResolve,
+  type SystemOpening,
+  type SystemOpeningEvents
+} from "./opening.js"
 export { type ClientMemory } from "./client-memory.js"
 export {
   describeExecuteOperation,
@@ -115,6 +129,8 @@ export {
   type Desktop,
   type DesktopSize,
   type DesktopOffset,
+  type DesktopPlaneEvents,
+  type DesktopPlaneSource,
   type DesktopViewportEvents,
   type DesktopViewportState,
   type DesktopViewportSource,
@@ -162,6 +178,7 @@ export {
 export {
   parseShellEvent,
   parseSystemProgramListOptions,
+  parseSystemAbout,
   parseSystemServiceListOptions,
   type ClientDefinition,
   type ProgramDefinition,
@@ -169,6 +186,7 @@ export {
   type ShellEvent,
   type ShellOptions,
   type System,
+  type SystemAbout,
   type SystemProcess,
   type SystemProcessEvents,
   type SystemProcessExit,
@@ -280,6 +298,7 @@ export {
   type PresentationGeometry,
   type PresentationPosition,
   type PresentationSize,
+  type PresentationAnchor,
   type PresentationState,
   type PresentationSurface,
   type PresentationSurfaceMaterial,

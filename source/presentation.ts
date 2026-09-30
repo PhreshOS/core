@@ -43,8 +43,15 @@ export interface PresentationMoveGesture {
 export type BeginPresentationMoveGesture = (start: PresentationMoveGestureStart) => PresentationMoveGesture
 
 /**
- * A point of the drawing in CSS pixels, counted from the center of the Desktop: its top-left
- * corner, as it is written.
+ * What a drawing is fixed to. On `"viewport"` it stays where it is in the viewport while the
+ * viewport moves across the plane; on `"plane"` it is fixed to a place on the plane and moves with
+ * it, as standard Windows do.
+ */
+export type PresentationAnchor = "viewport" | "plane"
+
+/**
+ * A point of the drawing in CSS pixels: its top-left corner, counted from the center of what it is
+ * anchored to — the viewport, or the plane, whose center is the center of its middle view.
  */
 export type PresentationPosition = Readonly<{ x: number, y: number }>
 
@@ -58,6 +65,8 @@ export type PresentationGeometry = PresentationPosition & PresentationSize
 export type PresentationState = Readonly<{
   /** The layer containing the drawing. */
   layer: WindowLayer
+  /** What the drawing is fixed to. */
+  anchor: PresentationAnchor
   /** Where the drawing is. */
   position: PresentationPosition
   /** How large the drawing is. */
@@ -82,6 +91,8 @@ export type PresentationEvents = {
   changeInteractive: boolean
   /** The Desktop-painted surface behind the drawing changed. */
   changeSurface: PresentationSurface
+  /** The drawing became fixed to the viewport, or to the plane. */
+  changeAnchor: PresentationAnchor
 }
 
 /** Writes to the drawing that have a visual change, and so can move on a transaction's timing. */
@@ -115,10 +126,16 @@ export interface PresentationTransactionOperations {
  * layer except the wallpaper, which has nowhere to move.
  *
  * Writes take effect at once; `transaction()` moves them on the Appearance timing or a given one.
+ *
+ * A standard Window is always fixed to the plane, and the wallpaper and the Shell to the viewport.
+ * A drawing in `under` or `over` is fixed to the viewport until its Program fixes it to the plane.
  */
 export interface Presentation extends PresentationTransactionOperations, Subscribable<PresentationEvents, never> {
   /** Returns the layer containing the drawing. */
   layer(): Promise<WindowLayer>
+
+  /** Returns what the drawing is fixed to. */
+  anchor(): Promise<PresentationAnchor>
 
   /** Returns where the drawing is. */
   position(): Promise<PresentationPosition>
@@ -140,6 +157,12 @@ export interface Presentation extends PresentationTransactionOperations, Subscri
 
   /** Changes whether clicks reach the drawing or pass through it. */
   setInteractive(interactive: boolean): Promise<void>
+
+  /**
+   * Fixes the drawing to the viewport or to the plane, in `under` and `over`. It stays where it is
+   * in the viewport when it changes: only how it follows the viewport does, so there is nothing to move.
+   */
+  setAnchor(anchor: PresentationAnchor): Promise<void>
 
   /** Brings the drawing to the front of its layer. */
   raise(): Promise<void>

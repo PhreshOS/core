@@ -308,6 +308,18 @@ const executeOperations = Object.freeze([
     operation: z.string().describe("Operation name")
   }), operationDescription.nullable()),
 
+  defineOperation("system", "about", "Read the System's name, version, and release.", request("system", "about", {}), z.looseObject({
+    name: z.string().describe("The System's name"),
+    version: z.string().describe("The installed version"),
+    release: z.looseObject({
+      name: z.string().describe("The major version's name"),
+      program: z.string().describe("The Program that looks after this release")
+    }).describe("The release this version belongs to")
+  })),
+  defineOperation("system", "open", "Open something with its type's default Program, or the one the owner chooses.", request("system", "open", {
+    type: z.string().describe("Exact media type, such as image/png or x-scheme-handler/https"),
+    uri: z.string().describe("Where it is, as a URI")
+  }), z.null()),
   defineOperation("system", "logs", "Query records produced by the PhreshOS System.", request("system", "logs", {
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, level, source, kind, content, data."),
     values: z.array(jsonValue).optional().describe("Bound statement values")
@@ -338,7 +350,8 @@ const executeOperations = Object.freeze([
   defineOperation("session", "wait", "Wait for one Session or registry lifecycle event.", sessionWaitRequest, lifecycleResult),
 
   defineOperation("program", "list", "List Programs visible to the current System connection.", request("program", "list", {
-    installed: z.boolean().optional().describe("Filter by Program installation state")
+    installed: z.boolean().optional().describe("Filter by Program installation state"),
+    opens: z.string().optional().describe("Only Programs that open this exact media type")
   }), z.array(programResult)),
   defineOperation("program", "find", "Find one visible Program by identity.", request("program", "find", {
     identity: z.string().describe("Program identity")
@@ -349,14 +362,14 @@ const executeOperations = Object.freeze([
   defineOperation("program", "definition", "Read one Program's complete canonical definition.", request("program", "definition", {
     identity: z.string().describe("Program identity")
   }), jsonValue),
-  defineOperation("program", "getStartup", "Read one Program's stored System-start launch.", request("program", "getStartup", {
+  defineOperation("program", "getStartup", "Read the launch one Program starts when the System starts.", request("program", "getStartup", {
     identity: z.string().describe("Program identity")
   }), launch.nullable()),
-  defineOperation("program", "enableStartup", "Enable one Program at System start.", request("program", "enableStartup", {
+  defineOperation("program", "setStartup", "Set the launch one Program starts when the System starts.", request("program", "setStartup", {
     identity: z.string().describe("Program identity"),
-    launch: launch.optional().describe("Startup Process launch; omission uses Endpoint defaults")
+    launch: launch.optional().describe("Startup Process launch; omission uses the Program's default launch")
   }), launch),
-  defineOperation("program", "disableStartup", "Disable one Program at System start.", request("program", "disableStartup", {
+  defineOperation("program", "removeStartup", "Remove the launch one Program starts when the System starts.", request("program", "removeStartup", {
     identity: z.string().describe("Program identity")
   }), z.null()),
   defineOperation("program", "pinned", "Read whether one Program is pinned.", request("program", "pinned", {

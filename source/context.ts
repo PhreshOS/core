@@ -9,6 +9,7 @@ import type { Captures, Subscribable } from "./subscribable.js"
 import type { ContextPermissions } from "./permissions.js"
 import type { Window } from "./window.js"
 import type { ClientMemory } from "./client-memory.js"
+import type { OpenTarget } from "./opening.js"
 
 /** One application value arriving through the executing Endpoint's Context. */
 export type ContextMessage<Payload = unknown, From = Endpoint | null> = Readonly<{
@@ -49,6 +50,8 @@ export interface EndpointContext<Events extends object = {}>
   options<Options extends object = Readonly<Record<string, string>>>(): Promise<Readonly<Options>>
   /** Returns one immutable option supplied when this Process was created. */
   options<Option extends string = string>(name: string): Promise<Option | undefined>
+  /** What this Process was started to open through `system.open()`, or `null` when it was not. */
+  opened(): Promise<OpenTarget | null>
   stop(): Promise<void>
 }
 

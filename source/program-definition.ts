@@ -1,3 +1,4 @@
+import { parseOpens } from "./opening.js"
 import { isLayer, layers, type Layer, type Position, type Size } from "./launch.js"
 import { parseProgramPermissionDeclarations } from "./permissions.js"
 import type { ClientDefinition, ProgramDefinition, ServerDefinition } from "./system.js"
@@ -45,6 +46,7 @@ export function parseProgramDefinition(value: unknown): ProgramDefinition {
     ...present("description", description),
     ...present("categories", list(source.categories, "categories", 20)),
     ...present("keywords", list(source.keywords, "keywords", 50)),
+    ...present("opens", source.opens === undefined ? undefined : parseOpens(source.opens)),
     ...present("website", website),
     ...present("icon", icon),
     ...present("agent", agent),

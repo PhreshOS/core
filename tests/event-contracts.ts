@@ -89,6 +89,7 @@ function clientContextContract(context: ClientContext) {
   presentation.layer()
   presentation.beginMoveGesture({ origin: { x: 0, y: 0 }, point: { x: 8, y: 8 } }).ready
   presentation.setInteractive(false)
+  presentation.setAnchor("plane")
   presentation.raise()
   presentation.transaction({ duration: 120, easing: "ease-out" }).setGeometry({ x: 0, y: 0, width: 800, height: 600 })
   presentation.transactionAndWait().setSurface(false)

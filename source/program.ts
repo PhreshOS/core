@@ -89,16 +89,20 @@ export type ProgramProcessRunEvent =
   | (Readonly<{ event: "output" }> & ProgramCommandChunk)
   | Readonly<{ event: "exited", process: Process, exit: Exit }>
 
-/** Persistent Process launch used when the System starts. */
+/**
+ * The one Process launch the System starts when it starts: how a Program hears that the System has
+ * started. It is a record, not a switch: it exists until it is removed, and nothing is kept once it
+ * is. Anything else to start at that moment, the Program starts from there.
+ */
 export interface ProgramStartup {
-  /** Returns the configured launch, or `null` when startup is disabled. */
+  /** Returns the launch, or `null` when there is none. */
   get(): Promise<Launch | null>
 
-  /** Enables startup with one validated Process launch. */
-  enable(launch?: Launch): Promise<void>
+  /** Sets the launch, replacing any other; omitted, the Program's default launch. */
+  set(launch?: Launch): Promise<void>
 
-  /** Disables startup without changing the Program or its Processes. */
-  disable(): Promise<void>
+  /** Removes the launch without changing the Program or its Processes. */
+  remove(): Promise<void>
 }
 
 /** Lifecycle events belonging to one Program entity. */

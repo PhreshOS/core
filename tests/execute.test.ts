@@ -4,12 +4,27 @@ import {
   execute,
   listExecuteOperations,
   parseExecuteRequest,
+  parseSystemAbout,
   parseSystemProgramListOptions,
   parseSystemServiceListOptions,
   type ExecutionSystem
 } from "../source/main.js"
 
 describe("Execute", () => {
+  it("reads what the System is through about", async () => {
+    const about = { name: "PhreshOS", version: "0.1.108", release: { name: "Sprout", program: "sprout" }, startedAt: new Date("2026-09-30T08:00:00.000Z") }
+    const system = { about: async () => about } as unknown as ExecutionSystem
+
+    await expect(execute(system, { $domain: "system", $operation: "about" })).resolves.toEqual(about)
+    expect(parseSystemAbout(about)).toEqual(about)
+    expect(Object.isFrozen(parseSystemAbout(about).release)).toBe(true)
+    expect(() => parseSystemAbout({ ...about, release: { name: "Sprout" } })).toThrow(/malformed/)
+    expect(() => parseSystemAbout({ ...about, version: "" })).toThrow(/malformed/)
+    // A start time crosses JSON as text and arrives as a Date again.
+    expect(parseSystemAbout(JSON.parse(JSON.stringify(about)))).toEqual(about)
+    expect(() => parseSystemAbout({ ...about, startedAt: "yesterday" })).toThrow(/malformed/)
+  })
+
   it("uses object filters for Program and Service discovery", async () => {
     expect(parseSystemProgramListOptions({ installed: true, extra: "caller-owned" })).toEqual({ installed: true })
     expect(parseSystemServiceListOptions({ name: "editor", extra: "caller-owned" })).toEqual({ name: "editor" })
@@ -211,8 +226,8 @@ describe("Execute", () => {
       "session.wait",
       "program.definition",
       "program.getStartup",
-      "program.enableStartup",
-      "program.disableStartup",
+      "program.setStartup",
+      "program.removeStartup",
       "program.pinned",
       "program.pin",
       "program.unpin",
@@ -318,8 +333,8 @@ describe("Execute", () => {
       definition: () => Promise.resolve(programDefinition),
       startup: {
         get: () => Promise.resolve(startup),
-        async enable(value: unknown = {}) { startup = value },
-        async disable() { startup = null }
+        async set(value: unknown = {}) { startup = value },
+        async remove() { startup = null }
       },
       pinned: () => Promise.resolve(pinned),
       async pin() { pinned = true },
@@ -347,7 +362,7 @@ describe("Execute", () => {
 
     await expect(execute(system, {
       $domain: "program",
-      $operation: "enableStartup",
+      $operation: "setStartup",
       identity: "example",
       launch: { client: { maximize: true } }
     })).resolves.toEqual({ client: { maximize: true } })

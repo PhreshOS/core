@@ -151,6 +151,7 @@ test("package contract", async () => {
   void presentation.transactionAndWait(windowTransaction).setSurface(true)
   void presentation.setSurface(false)
   void presentation.setInteractive(false)
+  void presentation.setAnchor("plane")
   void presentation.transaction(transaction).setGeometry(drawing)
   void drawnSize
   void stopResize

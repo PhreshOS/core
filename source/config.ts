@@ -110,6 +110,9 @@ type Description = Pick<ProgramDefinition, "installLaunch"> & Readonly<{
   /** Optional catalog search terms used when publishing this Program. */
   keywords?: readonly string[]
 
+  /** Media types this Program opens, such as `image/png`; `image/*` stands for every image. */
+  opens?: readonly string[]
+
   /** Optional public website for this Program. */
   website?: string
 
