@@ -94,7 +94,7 @@ export {
   type TimedContextPermissions
 } from "./permissions.js"
 export { parseProgramDefinition } from "./program-definition.js"
-export { parseLaunch } from "./launch-validation.js"
+export { parseLaunch, parseProcessDefaults, withProcessDefaults } from "./launch-validation.js"
 export { parsePresentationSurface, parsePresentationTransaction } from "./presentation-values.js"
 export { parseProgramInstallOptions, parseProgramUninstallOptions } from "./program-installation.js"
 export { type Askable, type TimedAskable } from "./askable.js"
@@ -305,7 +305,7 @@ export {
   type PresentationTransactionOperations
 } from "./presentation.js"
 export { cssEasing, parseTransaction, progressAt, type Easing, type PresentationTransaction, type SpringEasing, type Transaction } from "./transaction.js"
-export { isLayer, layers, type ClientLaunch, type Launch, type Layer, type Position, type ServerLaunch, type Size } from "./launch.js"
+export { isLayer, layers, type ClientLaunch, type Launch, type Layer, type Position, type ProcessDefaults, type ServerLaunch, type Size } from "./launch.js"
 export {
   defineConfig,
   type ClientConfig,

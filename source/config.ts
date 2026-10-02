@@ -85,7 +85,7 @@ export type ClientConfig = Readonly<{
   devCommand?: string
 }>
 
-type Description = Pick<ProgramDefinition, "installLaunch"> & Readonly<{
+type Description = Pick<ProgramDefinition, "installLaunch" | "process"> & Readonly<{
   /** Stable public identity written in kebab-case. */
   identity: string
 

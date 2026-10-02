@@ -1,4 +1,4 @@
-import { isLayer, layers, type ClientLaunch, type Launch, type ServerLaunch } from "./launch.js"
+import { isLayer, layers, type ClientLaunch, type Launch, type ProcessDefaults, type ServerLaunch } from "./launch.js"
 import { isRelativeValue } from "./value.js"
 
 /** Validate one Process launch without resolving Program or Desktop defaults. */
@@ -24,6 +24,30 @@ export function parseLaunch(value: unknown): Launch {
   if (source.server !== undefined) result.server = typeof source.server === "boolean" ? source.server : server(source.server)
   if (source.client !== undefined) result.client = typeof source.client === "boolean" ? source.client : client(source.client)
   return Object.freeze(result)
+}
+
+/** Validate a Program's Process defaults: a name, replacement only with that name, and text options. */
+export function parseProcessDefaults(value: unknown): ProcessDefaults {
+  const source = object(value, "Process defaults")
+  for (const key of Object.keys(source)) {
+    if (!["name", "replace", "options"].includes(key)) throw new Error(`Process defaults have no \`${key}\``)
+  }
+  const { name, replace, options } = parseLaunch(source)
+  return Object.freeze({ ...(name === undefined ? {} : { name }), ...(replace === undefined ? {} : { replace }), ...(options === undefined ? {} : { options }) })
+}
+
+/** A launch with a Program's Process defaults filled in: its own name and replacement win, options merge. */
+export function withProcessDefaults(launch: Launch, defaults: ProcessDefaults | undefined): Launch {
+  if (!defaults) return launch
+  const name = launch.name ?? defaults.name
+  const replace = launch.replace ?? defaults.replace
+  const options = defaults.options || launch.options ? Object.freeze({ ...defaults.options, ...launch.options }) : undefined
+  return Object.freeze({
+    ...launch,
+    ...(name === undefined ? {} : { name }),
+    ...(replace === undefined || name === undefined ? {} : { replace }),
+    ...(options === undefined ? {} : { options })
+  })
 }
 
 function server(value: unknown): ServerLaunch {

@@ -61,6 +61,20 @@ export type ClientLaunch = Readonly<{
   maximize?: boolean
 }>
 
+/**
+ * What every launch of a Program takes unless it says otherwise: the name of its Process, whether
+ * a new launch replaces the running Process of that name, and options. A launch's own name and
+ * replacement win; its options are laid over these, key by key.
+ */
+export type ProcessDefaults = Readonly<{
+  /** The name a launch that names no Process gives it. */
+  name?: string
+  /** Whether a launch replaces the running Process of its name instead of failing. Requires `name`. */
+  replace?: boolean
+  /** Immutable options every launch starts from. */
+  options?: Readonly<Record<string, string>>
+}>
+
 /** Initial endpoint selection and immutable options for one Process. */
 export type Launch = Readonly<{
   /** Optional meaningful name unique among this Program's live Processes. */

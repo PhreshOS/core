@@ -3,7 +3,7 @@ import { isLayer, layers, type Layer, type Position, type Size } from "./launch.
 import { parseProgramPermissionDeclarations } from "./permissions.js"
 import type { ClientDefinition, ProgramDefinition, ServerDefinition } from "./system.js"
 import { isRelativeValue } from "./value.js"
-import { parseLaunch } from "./launch-validation.js"
+import { parseLaunch, parseProcessDefaults } from "./launch-validation.js"
 import { isProgramIdentity } from "./program-identity.js"
 import { defaultProgramVersion } from "./program.js"
 
@@ -50,6 +50,7 @@ export function parseProgramDefinition(value: unknown): ProgramDefinition {
     ...present("website", website),
     ...present("icon", icon),
     ...present("agent", agent),
+    ...present("process", source.process === undefined ? undefined : parseProcessDefaults(source.process)),
     ...present<"installLaunch", ProgramDefinition["installLaunch"]>("installLaunch", source.installLaunch === undefined || source.installLaunch === true ? source.installLaunch : parseLaunch(source.installLaunch)),
     ...(source.permissions === undefined ? {} : { permissions: parseProgramPermissionDeclarations(source.permissions) }),
     storage: source.storage

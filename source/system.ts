@@ -1,7 +1,7 @@
 import type { OpenTarget, SystemOpening } from "./opening.js"
 import type { WritableAppearance } from "./appearance.js"
 import type { IconSize, Program } from "./program.js"
-import type { Launch, Layer, Position, Size } from "./launch.js"
+import type { Launch, Layer, Position, ProcessDefaults, Size } from "./launch.js"
 import type { Exit, Process } from "./process.js"
 import type { ClientService, ServerService, Service, ServiceAddress, ServiceEndpoint } from "./service.js"
 import type { Storage } from "./storage.js"
@@ -60,6 +60,8 @@ type ProgramDefinitionBase = Readonly<{
   storage: string
   /** Process launched once after installation. `true` uses Endpoint defaults. */
   installLaunch?: true | Launch
+  /** What every launch of this Program takes unless it says otherwise. */
+  process?: ProcessDefaults
   /** Permission requests used when stored state has no assignment for a permission. */
   permissions?: ProgramPermissionDeclarations
 }>
