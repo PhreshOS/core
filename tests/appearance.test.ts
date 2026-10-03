@@ -24,12 +24,12 @@ describe("Appearance", function () {
     expect(defaultAppearance.tempo).toBe(1)
     expect(defaultAppearance.taskbar).toEqual({ position: "bottom", size: 44, overlay: false })
     expect(defaultAppearance.desktopWallpaper).toEqual({ light: null, dark: null })
-    expect(defaultAppearance.material.light.grain).toBe(0.04)
+    expect(defaultAppearance.material.light.grain).toBe(0.03)
   })
 
   it("uses independent light and dark material defaults that read nothing behind a Surface", function () {
     expect(defaultAppearance.material.light).toEqual({
-      grain: 0.04,
+      grain: 0.03,
       grainAmount: 0.95,
       backdrop: 0,
       opacity: 0.96,
@@ -37,7 +37,7 @@ describe("Appearance", function () {
       saturation: 1
     })
     expect(defaultAppearance.material.dark).toEqual({
-      grain: 0.03,
+      grain: 0.02,
       grainAmount: 0.95,
       backdrop: 0,
       opacity: 0.96,
