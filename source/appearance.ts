@@ -166,8 +166,10 @@ export const defaultAppearance = createAppearanceSnapshot({
     dark: { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 }
   },
   material: {
-    light: { grain: 0.04, grainAmount: 0.95, backdrop: 5, opacity: 0.8, distortion: 0, saturation: 1.66 },
-    dark: { grain: 0.03, grainAmount: 0.95, backdrop: 12, opacity: 0.8, distortion: 0, saturation: 1.77 }
+    // Nothing reads what lies behind a Surface by default: a backdrop filter redraws everything
+    // beneath it on every change, the heaviest cost on a modest graphics processor.
+    light: { grain: 0.04, grainAmount: 0.95, backdrop: 0, opacity: 0.96, distortion: 0, saturation: 1 },
+    dark: { grain: 0.03, grainAmount: 0.95, backdrop: 0, opacity: 0.96, distortion: 0, saturation: 1 }
   },
   tempo: 1,
   taskbar: { position: "bottom", size: 44, overlay: false },

@@ -27,22 +27,22 @@ describe("Appearance", function () {
     expect(defaultAppearance.material.light.grain).toBe(0.04)
   })
 
-  it("uses independent light and dark material defaults", function () {
+  it("uses independent light and dark material defaults that read nothing behind a Surface", function () {
     expect(defaultAppearance.material.light).toEqual({
       grain: 0.04,
       grainAmount: 0.95,
-      backdrop: 5,
-      opacity: 0.8,
+      backdrop: 0,
+      opacity: 0.96,
       distortion: 0,
-      saturation: 1.66
+      saturation: 1
     })
     expect(defaultAppearance.material.dark).toEqual({
       grain: 0.03,
       grainAmount: 0.95,
-      backdrop: 12,
-      opacity: 0.8,
+      backdrop: 0,
+      opacity: 0.96,
       distortion: 0,
-      saturation: 1.77
+      saturation: 1
     })
   })
 
