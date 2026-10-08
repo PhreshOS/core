@@ -230,7 +230,6 @@ describe("Execute", () => {
       "program.removeStartup",
       "program.pinned",
       "program.pin",
-      "program.unpin",
       "program.getPermission",
       "program.listPermissions",
       "program.allowsPermission",

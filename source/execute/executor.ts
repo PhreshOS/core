@@ -251,7 +251,6 @@ async function executeProgram(
     | Request<"program", "removeStartup">
     | Request<"program", "pinned">
     | Request<"program", "pin">
-    | Request<"program", "unpin">
     | Request<"program", "getPermission">
     | Request<"program", "listPermissions">
     | Request<"program", "allowsPermission">
@@ -261,7 +260,7 @@ async function executeProgram(
     | Request<"program", "wait">
 ) {
   if (request.$operation === "list") {
-    return Promise.all((await system.program.list(parseSystemProgramListOptions({ installed: request.installed, opens: request.opens }))).map(programView))
+    return Promise.all((await system.program.list(parseSystemProgramListOptions({ installed: request.installed, opens: request.opens, startup: request.startup }))).map(programView))
   }
 
   if (request.$operation === "wait") return waitForProgram(system, request)
@@ -283,12 +282,8 @@ async function executeProgram(
   }
   if (request.$operation === "pinned") return program.pinned()
   if (request.$operation === "pin") {
-    await program.pin()
-    return true
-  }
-  if (request.$operation === "unpin") {
-    await program.unpin()
-    return false
+    await program.pin(request.pinned)
+    return program.pinned()
   }
   if (request.$operation === "getPermission") return program.permissions.get(request.permission)
   if (request.$operation === "listPermissions") return program.permissions.all()
@@ -464,12 +459,28 @@ async function waitForProgram(system: ExecutionSystem, request: Request<"program
           payload: { program: await programView(value.program), purge: value.purge }
         }
       }
-      case "pinned": {
-        const value = await system.program.wait("pinned", request.timeout)
+      case "pin": {
+        const value = await system.program.wait("pin", request.timeout)
         return {
           scope: "system",
           event: request.event,
           payload: { program: await programView(value.program), pinned: value.pinned }
+        }
+      }
+      case "changePermissions": {
+        const value = await system.program.wait("changePermissions", request.timeout)
+        return {
+          scope: "system",
+          event: request.event,
+          payload: { program: await programView(value.program), permissions: value.permissions }
+        }
+      }
+      case "changeStartup": {
+        const value = await system.program.wait("changeStartup", request.timeout)
+        return {
+          scope: "system",
+          event: request.event,
+          payload: { program: await programView(value.program), launch: value.launch }
         }
       }
       default: throw new Error(`${request.event} belongs to an individual Program`)
@@ -502,11 +513,11 @@ async function waitForProgram(system: ExecutionSystem, request: Request<"program
       event: request.event,
       payload: await program.wait("uninstall", request.timeout)
     }
-    case "pinned": return {
+    case "pin": return {
       scope: "program",
       program: program.identity,
       event: request.event,
-      payload: await program.wait("pinned", request.timeout)
+      payload: await program.wait("pin", request.timeout)
     }
     default: throw new Error(`${request.event} belongs to the Program registry`)
   }

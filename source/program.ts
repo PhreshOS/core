@@ -3,7 +3,7 @@ import type { Exit, Process } from "./process.js"
 import type { ProgramLogs, ProgramSql } from "./sql.js"
 import type { ProgramStore, Storage } from "./storage.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
-import type { ProgramPermissions, Permissions } from "./permissions.js"
+import type { ProgramPermissions } from "./permissions.js"
 import type { ProgramDefinition } from "./system.js"
 
 /** Version assigned when a Program definition omits one. */
@@ -94,7 +94,10 @@ export type ProgramProcessRunEvent =
  * started. It is a record, not a switch: it exists until it is removed, and nothing is kept once it
  * is. Anything else to start at that moment, the Program starts from there.
  */
-export interface ProgramStartup {
+/** The launch after it was set or removed, by anyone. */
+export type ProgramStartupEvents = { change: Launch | null }
+
+export interface ProgramStartup extends Subscribable<ProgramStartupEvents, never> {
   /** Returns the launch, or `null` when there is none. */
   get(): Promise<Launch | null>
 
@@ -119,10 +122,8 @@ export type ProgramEvents = {
   /** Whether every installed resource, including storage, was removed. */
   uninstall: Readonly<{ purge: boolean }>
 
-  /** Whether this Program is retained as a pinned Program. */
-  pinned: boolean
-  /** Complete effective permissions after an authoritative change. */
-  permissions: Permissions
+  /** Whether this Program became pinned or unpinned. */
+  pin: boolean
 }
 
 /** The stable domain root from which Processes are created. */
@@ -183,11 +184,8 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Returns whether this Program is pinned. */
   public abstract pinned(): Promise<boolean>
 
-  /** Pins this Program. */
-  public abstract pin(): Promise<void>
-
-  /** Unpins this Program. */
-  public abstract unpin(): Promise<void>
+  /** Pins this Program, or unpins it with `false`. */
+  public abstract pin(pinned?: boolean): Promise<void>
 
   /**
    * Returns one standard PNG representation of this Program's icon.

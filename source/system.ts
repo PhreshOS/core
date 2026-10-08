@@ -76,13 +76,17 @@ export type SystemProgramUninstall = Readonly<{
   purge: boolean
 }>
 
-export type SystemProgramPinned = Readonly<{
+export type SystemProgramPin = Readonly<{
   program: Program
   pinned: boolean
 }>
 export type SystemProgramPermissions = Readonly<{
   program: Program
   permissions: Permissions
+}>
+export type SystemProgramStartup = Readonly<{
+  program: Program
+  launch: Launch | null
 }>
 
 export type SystemProcessExit = Exit & Readonly<{ process: Process }>
@@ -140,8 +144,9 @@ export type SystemProgramEvents = {
   forget: Program
   install: Program
   uninstall: SystemProgramUninstall
-  pinned: SystemProgramPinned
-  permissions: SystemProgramPermissions
+  pin: SystemProgramPin
+  changePermissions: SystemProgramPermissions
+  changeStartup: SystemProgramStartup
 }
 
 export type SystemProcessEvents = {
@@ -154,6 +159,8 @@ export type SystemProgramListOptions = Readonly<{
   installed?: boolean
   /** Only the Programs that open this exact media type. */
   opens?: string
+  /** Only the Programs that start with the System, or only those that do not. */
+  startup?: boolean
 }>
 
 /** Filters for ready Services visible to the caller. */
@@ -161,10 +168,15 @@ export type SystemServiceListOptions = Readonly<{ name?: string }>
 
 export function parseSystemProgramListOptions(value: unknown = {}): SystemProgramListOptions {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Program list options must be an object")
-  const { installed, opens } = value as { installed?: unknown, opens?: unknown }
+  const { installed, opens, startup } = value as { installed?: unknown, opens?: unknown, startup?: unknown }
   if (installed !== undefined && typeof installed !== "boolean") throw new Error("The installed Program filter must be a boolean")
   if (opens !== undefined && (typeof opens !== "string" || !opens.includes("/"))) throw new Error("The opens Program filter must be a media type")
-  return { ...(installed === undefined ? {} : { installed }), ...(opens === undefined ? {} : { opens: (opens as string).toLowerCase() }) }
+  if (startup !== undefined && typeof startup !== "boolean") throw new Error("The startup Program filter must be a boolean")
+  return {
+    ...(installed === undefined ? {} : { installed }),
+    ...(opens === undefined ? {} : { opens: (opens as string).toLowerCase() }),
+    ...(startup === undefined ? {} : { startup })
+  }
 }
 
 /** What a System is: its name, its version, and the release that version belongs to. */

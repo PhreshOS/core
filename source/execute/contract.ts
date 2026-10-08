@@ -163,10 +163,10 @@ const sessionResult: z.ZodType<SessionSnapshot> = z.looseObject({
 }).describe("Session state")
 
 const programRegistryEvents = {
-  create: "create", forget: "forget", install: "install", uninstall: "uninstall", pinned: "pinned", permissions: "permissions"
+  create: "create", forget: "forget", install: "install", uninstall: "uninstall", pin: "pin", changePermissions: "changePermissions", changeStartup: "changeStartup"
 } as const satisfies { [Event in keyof SystemProgramEvents]: Event }
 const individualProgramEvents = {
-  processCreate: "processCreate", processExit: "processExit", forget: "forget", uninstall: "uninstall", pinned: "pinned", permissions: "permissions"
+  processCreate: "processCreate", processExit: "processExit", forget: "forget", uninstall: "uninstall", pin: "pin"
 } as const satisfies { [Event in keyof ProgramEvents]: Event }
 const systemProcessEvents = {
   create: "create", exit: "exit"
@@ -351,7 +351,8 @@ const executeOperations = Object.freeze([
 
   defineOperation("program", "list", "List Programs visible to the current System connection.", request("program", "list", {
     installed: z.boolean().optional().describe("Filter by Program installation state"),
-    opens: z.string().optional().describe("Only Programs that open this exact media type")
+    opens: z.string().optional().describe("Only Programs that open this exact media type"),
+    startup: z.boolean().optional().describe("Only Programs that start with the System, or only those that do not")
   }), z.array(programResult)),
   defineOperation("program", "find", "Find one visible Program by identity.", request("program", "find", {
     identity: z.string().describe("Program identity")
@@ -375,12 +376,10 @@ const executeOperations = Object.freeze([
   defineOperation("program", "pinned", "Read whether one Program is pinned.", request("program", "pinned", {
     identity: z.string().describe("Program identity")
   }), z.boolean()),
-  defineOperation("program", "pin", "Pin one Program.", request("program", "pin", {
-    identity: z.string().describe("Program identity")
-  }), z.literal(true)),
-  defineOperation("program", "unpin", "Unpin one Program.", request("program", "unpin", {
-    identity: z.string().describe("Program identity")
-  }), z.literal(false)),
+  defineOperation("program", "pin", "Pin one Program, or unpin it.", request("program", "pin", {
+    identity: z.string().describe("Program identity"),
+    pinned: z.boolean().optional().describe("False unpins; omission pins")
+  }), z.boolean()),
   defineOperation("program", "getPermission", "Read one effective Program permission.", request("program", "getPermission", {
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")

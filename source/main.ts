@@ -87,6 +87,7 @@ export {
   type PermissionValueDomain,
   type Permissions,
   type ProgramPermissions,
+  type ProgramPermissionsEvents,
   type ContextPermissions,
   type SystemPermissionEvents,
   type SystemPermissionResolve,
@@ -195,6 +196,8 @@ export {
   type SystemWindowEvents,
   type SystemProgramEvents,
   type SystemProgramPermissions,
+  type SystemProgramPin,
+  type SystemProgramStartup,
   type SystemProgramUninstall,
   type SystemService,
   type SystemServiceListOptions,
@@ -278,7 +281,8 @@ export {
   type ProgramProcessExit,
   type ProgramProcessRunEvent,
   type ProgramProcessRunOptions,
-  type ProgramStartup
+  type ProgramStartup,
+  type ProgramStartupEvents
 } from "./program.js"
 export {
   type Window,

@@ -99,7 +99,10 @@ export interface TimedContextPermissions {
 }
 
 /** Effective permission state and owner decisions belonging to one Program. */
-export interface ProgramPermissions {
+/** The complete effective permissions after an authoritative change. */
+export type ProgramPermissionsEvents = { change: Permissions }
+
+export interface ProgramPermissions extends Subscribable<ProgramPermissionsEvents, never> {
   get<Name extends PermissionName>(name: Name): Promise<Permission<Name>>
   all(): Promise<Permissions>
   allows<Name extends PermissionName>(name: Name, permission?: PermissionRequestInput<Name>): Promise<boolean>
