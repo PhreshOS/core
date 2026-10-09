@@ -129,9 +129,10 @@ test("package contract", async () => {
   const moveView: Promise<void> = writableDesktopViewport.move({ x: 1440, y: 0 })
   const processOptions: Promise<Readonly<{ mode: string }>> = process.options<{ mode: string }>()
   const processMode: Promise<"primary" | "secondary" | undefined> = process.options<"primary" | "secondary">("mode")
-  const theme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
+  const theme = desktopPreferences.resolve().then(resolved => resolved.theme)
+  const chosenTheme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
   const scale = desktopPreferences.snapshot().then(snapshot => snapshot.scale)
-  const updateTheme = writableDesktopPreferences.update({ theme: "desktop" })
+  const updateTheme = writableDesktopPreferences.update({ theme: "browser" })
   const updateScale = writableDesktopPreferences.update({ scale: desktopPreferencesLimits.scale.minimum })
   const resetScale = writableDesktopPreferences.update({ scale: defaultDesktopScale })
   const parsedScale = parseDesktopPreferencesUpdate({ scale: 1.25 })
@@ -170,6 +171,7 @@ test("package contract", async () => {
   void desktop.viewport
   void desktop.preferences
   void theme
+  void chosenTheme
   void scale
   void updateTheme
   void updateScale

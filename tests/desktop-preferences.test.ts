@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { defaultDesktopScale, desktopPreferencesLimits, parseDesktopPreferencesUpdate } from "../source/main.js"
+import { defaultDesktopScale, desktopPreferencesLimits, parseDesktopPreferences, parseDesktopPreferencesUpdate, parseResolvedDesktopPreferences } from "../source/main.js"
 
 describe("Desktop preferences", () => {
   it("defines one bounded default scale", () => {
@@ -10,13 +10,20 @@ describe("Desktop preferences", () => {
 
   it("accepts a scale only as a number", () => {
     expect(parseDesktopPreferencesUpdate({ scale: 1.25 })).toEqual({ scale: 1.25 })
-    expect(() => parseDesktopPreferencesUpdate({ scale: "desktop" })).toThrow(/scale preference/)
+    expect(() => parseDesktopPreferencesUpdate({ scale: "browser" })).toThrow(/scale preference/)
   })
 
-  it("lets the Desktop decide the theme and animations", () => {
-    expect(parseDesktopPreferencesUpdate({ theme: "desktop", animations: "desktop" })).toEqual({ theme: "desktop", animations: "desktop" })
-    expect(() => parseDesktopPreferencesUpdate({ theme: "default" })).toThrow(/theme preference/)
-    expect(() => parseDesktopPreferencesUpdate({ animations: "default" })).toThrow(/animations preference/)
+  it("lets the theme and animations follow the browser", () => {
+    expect(parseDesktopPreferencesUpdate({ theme: "browser", animations: "browser" })).toEqual({ theme: "browser", animations: "browser" })
+    expect(() => parseDesktopPreferencesUpdate({ theme: "desktop" })).toThrow(/theme preference/)
+    expect(() => parseDesktopPreferencesUpdate({ animations: "desktop" })).toThrow(/animations preference/)
+  })
+
+  it("keeps what was chosen apart from what it resolves to", () => {
+    expect(parseDesktopPreferences({ theme: "browser", animations: false, scale: 1 })).toEqual({ theme: "browser", animations: false, scale: 1 })
+    expect(parseResolvedDesktopPreferences({ theme: "dark", animations: true, scale: 1 })).toEqual({ theme: "dark", animations: true, scale: 1 })
+    expect(() => parseResolvedDesktopPreferences({ theme: "browser", animations: true, scale: 1 })).toThrow(/resolved/)
+    expect(() => parseDesktopPreferences({ theme: "dark", animations: "browser" })).toThrow(/invalid preferences/)
   })
 
   it("preserves sibling updates and ignores unrelated additional data", () => {

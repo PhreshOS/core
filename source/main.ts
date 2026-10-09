@@ -124,9 +124,12 @@ export {
   type DesktopPreferencesEvents,
   defaultDesktopScale,
   desktopPreferencesLimits,
+  parseDesktopPreferences,
   parseDesktopPreferencesUpdate,
+  parseResolvedDesktopPreferences,
   type DesktopPreferencesSource,
   type DesktopPreferencesUpdate,
+  type ResolvedDesktopPreferences,
   type WritableDesktopPreferencesSource,
   type Theme,
   type ThemePreference
