@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it } from "vitest"
+import { describe, expect, expectTypeOf, it, vi } from "vitest"
 import {
   describeExecuteOperation,
   execute,
@@ -209,6 +209,67 @@ describe("Execute", () => {
     await expect(execute(system, { ...base, $operation: "memoryDelete", key: "tab" })).resolves.toBe(true)
   })
 
+  it("decides open and permission requests through their handles", async () => {
+    const preview = { identity: "preview" }
+    const process = { identity: "asker", program: () => ({ identity: "notes" }) }
+    const from = { process: async () => process }
+    const openRequest = {
+      identity: "open-1", from, createdAt: new Date(0), target: { type: "image/png", uri: "file:///a.png" }, programs: [preview],
+      choose: vi.fn(async () => undefined), cancel: vi.fn(async () => undefined)
+    }
+    const permissionRequest = {
+      identity: "permission-1", from, createdAt: new Date(0), expiresAt: new Date(1000), name: "network", scope: ["https://example.com"],
+      allow: vi.fn(async () => undefined), deny: vi.fn(async () => undefined), cancel: vi.fn(async () => undefined)
+    }
+    const system = {
+      program: { find: async (identity: string) => identity === "preview" ? preview : null },
+      opening: {
+        defaults: async () => ({ "image/*": preview }),
+        setDefault: vi.fn(async () => undefined),
+        requests: async () => [openRequest]
+      },
+      permissions: { requests: async () => [permissionRequest] }
+    } as unknown as ExecutionSystem
+
+    await expect(execute(system, { $domain: "opening", $operation: "defaults" })).resolves.toEqual({ "image/*": "preview" })
+    await expect(execute(system, { $domain: "opening", $operation: "requests" })).resolves.toEqual([{
+      identity: "open-1", from: { program: "notes", process: "asker", endpoint: "client" }, createdAt: new Date(0).toISOString(),
+      type: "image/png", uri: "file:///a.png", programs: ["preview"]
+    }])
+    await execute(system, { $domain: "opening", $operation: "setDefault", type: "image/*", program: "preview" })
+    expect((system.opening as unknown as { setDefault: ReturnType<typeof vi.fn> }).setDefault).toHaveBeenCalledWith("image/*", preview)
+    await expect(execute(system, { $domain: "opening", $operation: "choose", request: "open-1", program: "paint" })).rejects.toThrow(/does not open/)
+    await execute(system, { $domain: "opening", $operation: "choose", request: "open-1", program: "preview", always: true })
+    expect(openRequest.choose).toHaveBeenCalledWith(preview, { always: true })
+    await expect(execute(system, { $domain: "opening", $operation: "cancel", request: "missing" })).rejects.toThrow(/Unknown open request/)
+
+    await expect(execute(system, { $domain: "permission", $operation: "requests" })).resolves.toMatchObject([{ identity: "permission-1", name: "network", scope: ["https://example.com"] }])
+    await execute(system, { $domain: "permission", $operation: "deny", request: "permission-1" })
+    expect(permissionRequest.deny).toHaveBeenCalledOnce()
+    expect(permissionRequest.allow).not.toHaveBeenCalled()
+  })
+
+  it("reads and writes a Program's store and database", async () => {
+    const store = new Map<string, unknown>()
+    const program = {
+      identity: "notes",
+      store: {
+        get: async (key: string) => store.get(key),
+        set: async (key: string, value: unknown) => { store.set(key, value); return true },
+        delete: async (key: string) => store.delete(key)
+      },
+      database: { query: async (statement: string, values?: unknown[]) => [{ statement, values: values ?? [] }] }
+    }
+    const system = { program: { find: async () => program } } as unknown as ExecutionSystem
+    const base = { $domain: "program" as const, identity: "notes" }
+
+    await expect(execute(system, { ...base, $operation: "storeGet", key: "tab" })).resolves.toBeNull()
+    await expect(execute(system, { ...base, $operation: "storeSet", key: "tab", value: { open: true } })).resolves.toBe(true)
+    await expect(execute(system, { ...base, $operation: "storeGet", key: "tab" })).resolves.toEqual({ open: true })
+    await expect(execute(system, { ...base, $operation: "storeDelete", key: "tab" })).resolves.toBe(true)
+    await expect(execute(system, { ...base, $operation: "query", statement: "select ?", values: [1] })).resolves.toEqual([{ statement: "select ?", values: [1] }])
+  })
+
   it("covers System launch and lifecycle capabilities", () => {
     const operations = new Set(listExecuteOperations().map(value => `${value.domain}.${value.operation}`))
 
@@ -236,6 +297,31 @@ describe("Execute", () => {
       "program.allowPermission",
       "program.denyPermission",
       "program.resetPermission",
+      "program.storeGet",
+      "program.storeSet",
+      "program.storeDelete",
+      "program.query",
+      "program.exitProcesses",
+      "program.forget",
+      "appearance.get",
+      "appearance.update",
+      "appearance.wait",
+      "opening.defaults",
+      "opening.setDefault",
+      "opening.clearDefault",
+      "opening.requests",
+      "opening.choose",
+      "opening.cancel",
+      "opening.wait",
+      "permission.requests",
+      "permission.allow",
+      "permission.deny",
+      "permission.cancel",
+      "permission.wait",
+      "authentication.state",
+      "authentication.requirements",
+      "authentication.setCredentials",
+      "authentication.signOutAll",
       "program.logs",
       "program.wait",
       "process.wait",

@@ -13,7 +13,9 @@ import type { SessionEvents } from "../session.js"
 import type { SystemAuthenticationEvents } from "../authentication.js"
 import type { ConnectionSnapshot, SessionSnapshot } from "../domain-snapshot.js"
 import { isProgramIdentity } from "../program-identity.js"
-import { programPermissionCatalog } from "../permissions.js"
+import { programPermissionCatalog, type SystemPermissionEvents } from "../permissions.js"
+import type { AppearanceEvents } from "../appearance.js"
+import type { SystemOpeningEvents } from "../opening.js"
 
 const jsonValue: z.ZodType<JsonValue> = z.lazy(() => z.union([
   z.null(),
@@ -119,6 +121,8 @@ const programResult = z.looseObject({
 }).describe("Program state")
 
 const logRow = z.record(z.string(), jsonValue).describe("One row returned by the logs query")
+
+const sqlRow = z.record(z.string(), jsonValue).describe("One row returned by the statement")
 
 const processResult = z.looseObject({
   identity: z.string().describe("Unique Process identity"),
@@ -261,7 +265,7 @@ const sessionWaitRequest = request("session", "wait", {
 })
 
 const lifecycleResult = z.looseObject({
-  scope: z.enum(["system", "program", "process", "endpoint", "service", "window", "connection", "session"]),
+  scope: z.enum(["system", "program", "process", "endpoint", "service", "window", "connection", "session", "appearance", "opening", "permission"]),
   program: z.string().optional(),
   process: z.string().optional(),
   endpoint: z.enum(["server", "client"]).optional(),
@@ -270,6 +274,40 @@ const lifecycleResult = z.looseObject({
   event: z.string(),
   payload: jsonValue
 }).describe("One observed lifecycle event")
+
+const permissionName = z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
+
+const endpointReference = z.looseObject({
+  program: z.string().describe("Program identity"),
+  process: z.string().describe("Process identity"),
+  endpoint: z.enum(["server", "client"]).describe("Endpoint kind")
+}).describe("Endpoint")
+
+const openRequestResult = z.looseObject({
+  identity: z.string().describe("Open request identity"),
+  from: endpointReference.nullable().describe("The Endpoint that asked, or null when the owner asked from outside"),
+  createdAt: z.string().describe("ISO creation time"),
+  type: z.string().describe("Exact media type"),
+  uri: z.string().describe("Where it is"),
+  programs: z.array(z.string()).describe("Identities of the Programs that open it")
+}).describe("Open request")
+
+const permissionRequestResult = z.looseObject({
+  identity: z.string().describe("Permission request identity"),
+  from: endpointReference.describe("The Endpoint that asked"),
+  createdAt: z.string().describe("ISO creation time"),
+  expiresAt: z.string().describe("ISO expiry time"),
+  name: permissionName,
+  scope: z.array(z.string()).describe("Requested values; an empty list is the whole permission")
+}).describe("Permission request")
+
+const appearanceEvents = { change: "change" } as const satisfies { [Event in keyof AppearanceEvents]: Event }
+const openingEvents = {
+  openRequest: "openRequest", openResolve: "openResolve", changeDefault: "changeDefault"
+} as const satisfies { [Event in keyof SystemOpeningEvents]: Event }
+const permissionEvents = {
+  permissionRequest: "permissionRequest", permissionResolve: "permissionResolve"
+} as const satisfies { [Event in keyof SystemPermissionEvents]: Event }
 
 const operationSummary = z.looseObject({
   domain: z.string().describe("Operation domain"),
@@ -328,6 +366,65 @@ const executeOperations = Object.freeze([
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, level, source, kind, content, data."),
     values: z.array(jsonValue).optional().describe("Bound statement values")
   }), z.array(logRow)),
+
+  defineOperation("appearance", "get", "Read the complete System Appearance.", request("appearance", "get", {}), jsonValue),
+  defineOperation("appearance", "update", "Merge a partial Appearance into the System Appearance.", request("appearance", "update", {
+    value: z.record(z.string(), jsonValue).describe("Partial Appearance; omitted parts stay as they are")
+  }), jsonValue),
+  defineOperation("appearance", "wait", "Wait for the System Appearance to change.", request("appearance", "wait", {
+    event: z.enum(Object.values(appearanceEvents)).describe("Appearance event"),
+    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+  }), lifecycleResult),
+
+  defineOperation("opening", "defaults", "Read the default Program of each media type and family.", request("opening", "defaults", {}), z.record(z.string(), z.string())),
+  defineOperation("opening", "setDefault", "Make one Program the default for a media type, or for a family such as image/*.", request("opening", "setDefault", {
+    type: z.string().describe("Exact media type, or a family such as image/*"),
+    program: z.string().describe("Program identity")
+  }), z.null()),
+  defineOperation("opening", "clearDefault", "Remove the default of a media type or family.", request("opening", "clearDefault", {
+    type: z.string().describe("Exact media type, or a family such as image/*")
+  }), z.null()),
+  defineOperation("opening", "requests", "List open requests waiting for the owner's choice.", request("opening", "requests", {}), z.array(openRequestResult)),
+  defineOperation("opening", "choose", "Open a waiting request with one of its Programs.", request("opening", "choose", {
+    request: z.string().describe("Open request identity"),
+    program: z.string().describe("Program identity"),
+    always: z.boolean().optional().describe("Also make it the default for this type")
+  }), z.null()),
+  defineOperation("opening", "cancel", "End a waiting open request without opening anything.", request("opening", "cancel", {
+    request: z.string().describe("Open request identity")
+  }), z.null()),
+  defineOperation("opening", "wait", "Wait for an open request, its resolution, or a default change.", request("opening", "wait", {
+    event: z.enum(Object.values(openingEvents)).describe("Opening event"),
+    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+  }), lifecycleResult),
+
+  defineOperation("permission", "requests", "List permission requests waiting for the owner's decision.", request("permission", "requests", {}), z.array(permissionRequestResult)),
+  defineOperation("permission", "allow", "Grant a waiting permission request.", request("permission", "allow", {
+    request: z.string().describe("Permission request identity")
+  }), z.null()),
+  defineOperation("permission", "deny", "Deny a waiting permission request.", request("permission", "deny", {
+    request: z.string().describe("Permission request identity")
+  }), z.null()),
+  defineOperation("permission", "cancel", "End a waiting permission request without deciding it.", request("permission", "cancel", {
+    request: z.string().describe("Permission request identity")
+  }), z.null()),
+  defineOperation("permission", "wait", "Wait for a permission request or its resolution.", request("permission", "wait", {
+    event: z.enum(Object.values(permissionEvents)).describe("Permission event"),
+    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
+  }), lifecycleResult),
+
+  defineOperation("authentication", "state", "Read the owner's public sign-in identity.", request("authentication", "state", {}), z.looseObject({
+    username: z.string().nullable().describe("The owner's username, or null before one is set")
+  })),
+  defineOperation("authentication", "requirements", "Read the credential lengths this System accepts.", request("authentication", "requirements", {}), z.looseObject({
+    username: z.looseObject({ minimumLength: z.number(), maximumLength: z.number() }),
+    password: z.looseObject({ minimumLength: z.number(), maximumLength: z.number() })
+  })),
+  defineOperation("authentication", "setCredentials", "Replace the owner's sign-in credentials; existing Sessions stay.", request("authentication", "setCredentials", {
+    username: z.string().describe("New username"),
+    password: z.string().describe("New password")
+  }), z.null()),
+  defineOperation("authentication", "signOutAll", "End every Session.", request("authentication", "signOutAll", {}), z.null()),
 
   defineOperation("connection", "list", "List visible live browser Connections.", request("connection", "list", {}), z.array(connectionResult)),
   defineOperation("connection", "find", "Find one visible browser Connection by identity.", request("connection", "find", {
@@ -414,6 +511,31 @@ const executeOperations = Object.freeze([
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, process, source, kind, content."),
     values: z.array(jsonValue).optional().describe("Bound statement values")
   }), z.array(logRow)),
+  defineOperation("program", "storeGet", "Read one key from a Program's store.", request("program", "storeGet", {
+    identity: z.string().describe("Program identity"),
+    key: z.string().describe("Store key")
+  }), jsonValue.nullable()),
+  defineOperation("program", "storeSet", "Set one key in a Program's store.", request("program", "storeSet", {
+    identity: z.string().describe("Program identity"),
+    key: z.string().describe("Store key"),
+    value: jsonValue.describe("JSON value"),
+    ttl: z.number().positive().optional().describe("Milliseconds until the key expires")
+  }), z.boolean()),
+  defineOperation("program", "storeDelete", "Delete one key from a Program's store.", request("program", "storeDelete", {
+    identity: z.string().describe("Program identity"),
+    key: z.string().describe("Store key")
+  }), z.boolean()),
+  defineOperation("program", "query", "Run one SQL statement on a Program's own database.", request("program", "query", {
+    identity: z.string().describe("Program identity"),
+    statement: z.string().min(1).describe("SQL statement"),
+    values: z.array(jsonValue).optional().describe("Bound statement values")
+  }), z.array(sqlRow)),
+  defineOperation("program", "exitProcesses", "End every live Process of one Program.", request("program", "exitProcesses", {
+    identity: z.string().describe("Program identity")
+  }), z.array(z.string())),
+  defineOperation("program", "forget", "End a Program's Processes and remove it from the runtime registry.", request("program", "forget", {
+    identity: z.string().describe("Program identity")
+  }), z.null()),
   defineOperation("program", "wait", "Wait for one Program lifecycle event.", programWaitRequest, lifecycleResult),
 
   defineOperation("process", "list", "List live Processes visible to the current System connection.", request("process", "list", {

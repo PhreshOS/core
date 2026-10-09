@@ -5,6 +5,10 @@ import { parseSystemProgramListOptions, type System } from "../system.js"
 import type { Window } from "../window.js"
 import type { Connection } from "../connection.js"
 import type { Session } from "../session.js"
+import type { OpenRequest } from "../opening.js"
+import type { PermissionRequest } from "../permissions.js"
+import { ServerEndpoint } from "../server-endpoint.js"
+import type { AppearanceUpdate } from "../appearance.js"
 import {
   describeExecuteOperation,
   executeOperationDefinition,
@@ -37,6 +41,10 @@ async function dispatch(system: ExecutionSystem, request: ExecuteRequest): Promi
   switch (request.$domain) {
     case "operation": return executeOperation(request)
     case "system": return executeSystem(system, request)
+    case "appearance": return executeAppearance(system, request)
+    case "opening": return executeOpening(system, request)
+    case "permission": return executePermission(system, request)
+    case "authentication": return executeAuthentication(system, request)
     case "connection": return executeConnection(system, request)
     case "session": return executeSession(system, request)
     case "program": return executeProgram(system, request)
@@ -54,6 +62,134 @@ async function executeSystem(system: ExecutionSystem, request: Request<"system",
     return null
   }
   return system.logs.query(request.statement, request.values)
+}
+
+async function executeAppearance(
+  system: ExecutionSystem,
+  request: Request<"appearance", "get"> | Request<"appearance", "update"> | Request<"appearance", "wait">
+) {
+  if (request.$operation === "get") return system.appearance.snapshot()
+  if (request.$operation === "update") {
+    // The System validates and merges it, as for every other caller.
+    await system.appearance.update(request.value as AppearanceUpdate)
+    return system.appearance.snapshot()
+  }
+  return { scope: "appearance", event: request.event, payload: await system.appearance.wait("change", request.timeout) }
+}
+
+async function executeOpening(
+  system: ExecutionSystem,
+  request:
+    | Request<"opening", "defaults">
+    | Request<"opening", "setDefault">
+    | Request<"opening", "clearDefault">
+    | Request<"opening", "requests">
+    | Request<"opening", "choose">
+    | Request<"opening", "cancel">
+    | Request<"opening", "wait">
+) {
+  if (request.$operation === "defaults") {
+    return Object.fromEntries(Object.entries(await system.opening.defaults()).map(([type, program]) => [type, program.identity]))
+  }
+  if (request.$operation === "setDefault") {
+    await system.opening.setDefault(request.type, await requireProgram(system, request.program))
+    return null
+  }
+  if (request.$operation === "clearDefault") {
+    await system.opening.clearDefault(request.type)
+    return null
+  }
+  if (request.$operation === "requests") return Promise.all((await system.opening.requests()).map(openRequestView))
+  if (request.$operation === "wait") {
+    if (request.event === "openRequest") {
+      return { scope: "opening", event: request.event, payload: await openRequestView(await system.opening.wait("openRequest", request.timeout)) }
+    }
+    if (request.event === "openResolve") {
+      const { request: resolved, program } = await system.opening.wait("openResolve", request.timeout)
+      return { scope: "opening", event: request.event, payload: { request: resolved.identity, program: program?.identity ?? null } }
+    }
+    const { type, program } = await system.opening.wait("changeDefault", request.timeout)
+    return { scope: "opening", event: request.event, payload: { type, program: program?.identity ?? null } }
+  }
+
+  const pending = (await system.opening.requests()).find(candidate => candidate.identity === request.request)
+  if (!pending) throw new Error(`Unknown open request "${request.request}"`)
+  if (request.$operation === "cancel") {
+    await pending.cancel()
+    return null
+  }
+  const program = pending.programs.find(candidate => candidate.identity === request.program)
+  if (!program) throw new Error(`"${request.program}" does not open this request`)
+  await pending.choose(program, request.always === undefined ? undefined : { always: request.always })
+  return null
+}
+
+async function executePermission(
+  system: ExecutionSystem,
+  request:
+    | Request<"permission", "requests">
+    | Request<"permission", "allow">
+    | Request<"permission", "deny">
+    | Request<"permission", "cancel">
+    | Request<"permission", "wait">
+) {
+  if (request.$operation === "requests") return Promise.all((await system.permissions.requests()).map(permissionRequestView))
+  if (request.$operation === "wait") {
+    if (request.event === "permissionRequest") {
+      return { scope: "permission", event: request.event, payload: await permissionRequestView(await system.permissions.wait("permissionRequest", request.timeout)) }
+    }
+    const { request: resolved, permission } = await system.permissions.wait("permissionResolve", request.timeout)
+    return { scope: "permission", event: request.event, payload: { request: resolved.identity, permission } }
+  }
+
+  const pending = (await system.permissions.requests()).find(candidate => candidate.identity === request.request)
+  if (!pending) throw new Error(`Unknown permission request "${request.request}"`)
+  if (request.$operation === "allow") await pending.allow()
+  else if (request.$operation === "deny") await pending.deny()
+  else await pending.cancel()
+  return null
+}
+
+async function executeAuthentication(
+  system: ExecutionSystem,
+  request:
+    | Request<"authentication", "state">
+    | Request<"authentication", "requirements">
+    | Request<"authentication", "setCredentials">
+    | Request<"authentication", "signOutAll">
+) {
+  if (request.$operation === "state") return system.authentication.state()
+  if (request.$operation === "requirements") return system.authentication.requirements()
+  if (request.$operation === "setCredentials") await system.authentication.setCredentials({ username: request.username, password: request.password })
+  else await system.authentication.signOutAllSessions()
+  return null
+}
+
+async function endpointReferenceView(target: Endpoint) {
+  const process = await target.process()
+  return { program: process.program().identity, process: process.identity, endpoint: target instanceof ServerEndpoint ? "server" : "client" }
+}
+
+async function openRequestView(request: OpenRequest) {
+  return {
+    identity: request.identity,
+    from: request.from ? await endpointReferenceView(request.from) : null,
+    createdAt: request.createdAt.toISOString(),
+    type: request.target.type,
+    uri: request.target.uri,
+    programs: request.programs.map(program => program.identity)
+  }
+}
+
+async function permissionRequestView(request: PermissionRequest) {
+  return {
+    identity: request.identity,
+    from: await endpointReferenceView(request.from),
+    createdAt: request.createdAt.toISOString(),
+    expiresAt: request.expiresAt.toISOString(),
+    name: request.name,
+    scope: [...request.scope]
+  }
 }
 
 async function executeConnection(
@@ -257,6 +393,12 @@ async function executeProgram(
     | Request<"program", "allowPermission">
     | Request<"program", "denyPermission">
     | Request<"program", "resetPermission">
+    | Request<"program", "storeGet">
+    | Request<"program", "storeSet">
+    | Request<"program", "storeDelete">
+    | Request<"program", "query">
+    | Request<"program", "exitProcesses">
+    | Request<"program", "forget">
     | Request<"program", "logs">
     | Request<"program", "wait">
 ) {
@@ -292,6 +434,15 @@ async function executeProgram(
   if (request.$operation === "denyPermission") {
     await program.permissions.deny(request.permission)
     return false
+  }
+  if (request.$operation === "storeGet") return (await program.store.get(request.key)) ?? null
+  if (request.$operation === "storeSet") return program.store.set(request.key, request.value, request.ttl)
+  if (request.$operation === "storeDelete") return program.store.delete(request.key)
+  if (request.$operation === "query") return program.database.query(request.statement, request.values)
+  if (request.$operation === "exitProcesses") return program.exitProcesses()
+  if (request.$operation === "forget") {
+    await program.forget()
+    return null
   }
   if (request.$operation === "resetPermission") {
     await program.permissions.reset(request.permission)
