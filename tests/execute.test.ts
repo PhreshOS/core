@@ -275,6 +275,24 @@ describe("Execute", () => {
     await expect(execute(system, { ...base, $operation: "query", statement: "select ?", values: [1] })).resolves.toEqual([{ statement: "select ?", values: [1] }])
   })
 
+  it("describes an ended Process by its identity, without reading its Endpoints", async () => {
+    const ended = () => { throw new Error("Process no longer exists") }
+    const program = { identity: "notes", server: { start: true, service: false }, client: null }
+    const process = {
+      identity: "p1", name: "main", startedAt: new Date(0), program: () => program,
+      server: { running: ended, isService: ended }, client: { running: ended, isService: ended }
+    }
+    const exit = { process, status: "exited", code: 0, signal: null }
+    const system = {
+      program: { find: async () => ({ ...program, wait: async () => exit }) },
+      process: { wait: async () => exit }
+    } as unknown as ExecutionSystem
+    const described = { process: { identity: "p1", name: "main", program: "notes", startedAt: new Date(0).toISOString() }, status: "exited", code: 0, signal: null }
+
+    await expect(execute(system, { $domain: "process", $operation: "wait", program: "notes", event: "exit" })).resolves.toMatchObject({ scope: "program", payload: described })
+    await expect(execute(system, { $domain: "process", $operation: "wait", event: "exit" })).resolves.toMatchObject({ scope: "system", payload: described })
+  })
+
   it("covers System launch and lifecycle capabilities", () => {
     const operations = new Set(listExecuteOperations().map(value => `${value.domain}.${value.operation}`))
 

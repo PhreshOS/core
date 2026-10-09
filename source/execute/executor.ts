@@ -707,7 +707,7 @@ async function waitForProcess(system: ExecutionSystem, request: Request<"process
       scope: "program",
       program: program.identity,
       event: request.event,
-      payload: { process: await processView(value.process), ...exitView(value) }
+      payload: { process: endedProcessView(value.process), ...exitView(value) }
     }
   }
 
@@ -721,7 +721,7 @@ async function waitForProcess(system: ExecutionSystem, request: Request<"process
   return {
     scope: "system",
     event: request.event,
-    payload: { process: await processView(value.process), ...exitView(value) }
+    payload: { process: endedProcessView(value.process), ...exitView(value) }
   }
 }
 
@@ -762,6 +762,16 @@ async function programView(program: Program) {
     hasAgent: program.hasAgent,
     server: program.server,
     client: program.client
+  }
+}
+
+/** What identifies a Process that ended; its Endpoints are gone, so reading them would fail. */
+function endedProcessView(process: Process) {
+  return {
+    identity: process.identity,
+    name: process.name,
+    program: process.program().identity,
+    startedAt: process.startedAt.toISOString()
   }
 }
 
