@@ -9,6 +9,7 @@ const program = {
   name: "Example",
   version: "0.0.0",
   description: null,
+  website: "https://example.com",
   categories: ["Graphics"],
   keywords: [],
   opens: ["image/*"],

@@ -297,8 +297,9 @@ function systemHandlesRemainCanonical(
   program.database.query("select 1")
   program.icon()
   process.parent()
-  process.options<{ mode?: "primary" | "secondary" }>()
-  process.options<"primary" | "secondary">("mode")
+  // Held values, read without asking.
+  process.options["mode"] satisfies string | undefined
+  process.opened?.uri satisfies string | undefined
   server.traffic.subscribeAsks(() => undefined)
   server.traffic.subscribeAnswers(() => undefined)
   client.traffic.subscribeAsks(() => undefined)

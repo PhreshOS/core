@@ -16,15 +16,26 @@ export function parseLaunch(value: unknown): Launch {
   }
   if (source.options !== undefined) {
     const options = object(source.options, "Launch options")
-    result.options = Object.freeze(Object.fromEntries(Object.entries(options).map(([key, value]) => {
+    const entries = Object.entries(options)
+    if (entries.length > launchOptionLimits.count) throw new Error(`A Process takes at most ${launchOptionLimits.count} options`)
+    let text = 0
+    result.options = Object.freeze(Object.fromEntries(entries.map(([key, value]) => {
       if (typeof value !== "string") throw new Error("Launch options must be text values")
+      text += key.length + value.length
       return [key, value]
     })))
+    if (text > launchOptionLimits.text) throw new Error(`A Process's options hold at most ${launchOptionLimits.text} characters in all`)
   }
   if (source.server !== undefined) result.server = typeof source.server === "boolean" ? source.server : server(source.server)
   if (source.client !== undefined) result.client = typeof source.client === "boolean" ? source.client : client(source.client)
   return Object.freeze(result)
 }
+
+/**
+ * Options are a few short values a Process starts with, held by every handle to it and carried with
+ * it across every boundary, so they stay small: at most this many, and this much text in all.
+ */
+export const launchOptionLimits = Object.freeze({ count: 64, text: 16 * 1024 })
 
 /** Validate a Program's Process defaults: a name, replacement only with that name, and text options. */
 export function parseProcessDefaults(value: unknown): ProcessDefaults {

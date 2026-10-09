@@ -58,13 +58,11 @@ export abstract class Process implements Subscribable<ProcessEvents, never> {
    */
   public abstract parent(): Promise<Process | null>
 
-  /** Returns every immutable option supplied when this Process was created. */
-  public abstract options<Options extends object = Readonly<Record<string, string>>>(): Promise<Readonly<Options>>
+  /** The values this Process was started with. They never change, so they are held, not asked for. */
+  public abstract readonly options: Readonly<Record<string, string>>
 
-  /** Returns one immutable option supplied when this Process was created. */
-  public abstract options<Option extends string = string>(name: string): Promise<Option | undefined>
-  /** What this Process was started to open through `system.open()`, or `null` when it was not. */
-  public abstract opened(): Promise<OpenTarget | null>
+  /** What this Process was started to open through `system.open()`, or `null` when it was not. It never changes. */
+  public abstract readonly opened: OpenTarget | null
 
   /** Ends the complete Process and all live Endpoints. */
   public abstract exit(): Promise<void>

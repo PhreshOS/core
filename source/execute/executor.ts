@@ -754,6 +754,7 @@ async function programView(program: Program) {
     name: program.name,
     version: program.version,
     description: program.description,
+    website: program.website,
     installed: await program.installed(),
     categories: program.categories,
     keywords: program.keywords,
@@ -777,14 +778,13 @@ function endedProcessView(process: Process) {
 
 async function processView(process: Process) {
   const program = process.program()
-  const [server, client, opened] = await Promise.all([
+  const [server, client] = await Promise.all([
     program.server === null
       ? Promise.resolve({ running: false, service: false })
       : Promise.all([process.server.running(), process.server.isService()]).then(([running, service]) => ({ running, service })),
     program.client === null
       ? Promise.resolve({ running: false, service: false })
-      : Promise.all([process.client.running(), process.client.isService()]).then(([running, service]) => ({ running, service })),
-    process.opened()
+      : Promise.all([process.client.running(), process.client.isService()]).then(([running, service]) => ({ running, service }))
   ])
 
   return {
@@ -792,7 +792,7 @@ async function processView(process: Process) {
     name: process.name,
     program: program.identity,
     startedAt: process.startedAt.toISOString(),
-    opened,
+    opened: process.opened,
     server: { declared: program.server !== null, ...server },
     client: { declared: program.client !== null, ...client }
   }

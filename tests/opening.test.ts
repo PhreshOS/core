@@ -23,7 +23,7 @@ describe("Opening", () => {
     expect(opensType(["image/*"], "image/*")).toBe(true)
     expect(opensType(["image/png"], "image/*")).toBe(false)
 
-    const program = { reference: "r", identity: "paint", assetId: "a", installed: true, name: "Paint", version: "0.0.0", description: null, categories: [], keywords: [], opens: ["image/*"], declaredPermissions: {}, hasAgent: false, server: null, client: null }
+    const program = { reference: "r", identity: "paint", assetId: "a", installed: true, name: "Paint", version: "0.0.0", description: null, website: null, categories: [], keywords: [], opens: ["image/*"], declaredPermissions: {}, hasAgent: false, server: null, client: null }
     expect(Object.keys(parseOpeningDefaults({ "image/*": program, "image/png": program }))).toEqual(["image/*", "image/png"])
   })
 

@@ -101,7 +101,7 @@ export {
   type TimedContextPermissions
 } from "./permissions.js"
 export { parseProgramDefinition } from "./program-definition.js"
-export { parseLaunch, parseProcessDefaults, withProcessDefaults } from "./launch-validation.js"
+export { launchOptionLimits, parseLaunch, parseProcessDefaults, withProcessDefaults } from "./launch-validation.js"
 export { parsePresentationSurface, parsePresentationTransaction } from "./presentation-values.js"
 export { parseProgramInstallOptions, parseProgramUninstallOptions } from "./program-installation.js"
 export { type Askable, type TimedAskable } from "./askable.js"

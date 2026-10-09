@@ -18,6 +18,8 @@ export type ProgramSnapshot = HandleAddress & Readonly<{
   name: string
   version: string
   description: string | null
+  /** The Program's public website, as its author declared it, or `null`. */
+  website: string | null
   categories: readonly string[]
   keywords: readonly string[]
   opens: readonly string[]
@@ -97,6 +99,7 @@ export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
     || typeof source.name !== "string"
     || typeof source.version !== "string"
     || source.description !== null && typeof source.description !== "string"
+    || source.website !== null && typeof source.website !== "string"
     || typeof source.hasAgent !== "boolean"
     || source.installed !== undefined && typeof source.installed !== "boolean") {
     throw invalid("Program")
@@ -110,6 +113,7 @@ export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
     name: source.name,
     version: source.version,
     description: source.description,
+    website: source.website,
     categories: strings(source.categories, "Program categories"),
     keywords: strings(source.keywords, "Program keywords"),
     opens: strings(source.opens, "Program opens"),

@@ -151,6 +151,9 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Declared description, or `null`. */
   public abstract readonly description: string | null
 
+  /** The Program's public website, as its author declared it, or `null`. */
+  public abstract readonly website: string | null
+
   /** Declared catalog categories, such as `Graphics`. */
   public abstract readonly categories: readonly string[]
 

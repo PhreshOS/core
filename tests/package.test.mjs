@@ -127,8 +127,9 @@ test("package contract", async () => {
   const viewportWidth: Promise<number> = desktopViewport.size().then(size => size.width)
   const viewportCenter: Promise<number> = desktopViewport.offset().then(offset => offset.x)
   const moveView: Promise<void> = writableDesktopViewport.move({ x: 1440, y: 0 })
-  const processOptions: Promise<Readonly<{ mode: string }>> = process.options<{ mode: string }>()
-  const processMode: Promise<"primary" | "secondary" | undefined> = process.options<"primary" | "secondary">("mode")
+  const processOptions: Readonly<Record<string, string>> = process.options
+  const processMode: string | undefined = process.options["mode"]
+  const processOpened: string | undefined = process.opened?.uri
   const theme = desktopPreferences.resolve().then(resolved => resolved.theme)
   const chosenTheme = desktopPreferences.snapshot().then(snapshot => snapshot.theme)
   const scale = desktopPreferences.snapshot().then(snapshot => snapshot.scale)
@@ -168,6 +169,7 @@ test("package contract", async () => {
   void moveView
   void processOptions
   void processMode
+  void processOpened
   void desktop.viewport
   void desktop.preferences
   void theme
