@@ -9,6 +9,10 @@ const program = {
   name: "Example",
   version: "0.0.0",
   description: null,
+  categories: ["Graphics"],
+  keywords: [],
+  opens: ["image/*"],
+  declaredPermissions: { network: ["https://api.example.com"] },
   hasAgent: false,
   server: { start: true, service: false },
   client: {

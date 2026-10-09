@@ -96,6 +96,10 @@ const programResult = z.looseObject({
   version: z.string().describe("Resolved Program version"),
   description: z.string().nullable().describe("Declared Program description"),
   installed: z.boolean().describe("Whether production files are installed"),
+  categories: z.array(z.string()).describe("Declared catalog categories"),
+  keywords: z.array(z.string()).describe("Declared search keywords"),
+  opens: z.array(z.string()).describe("Declared media types it opens"),
+  declaredPermissions: z.record(z.string(), z.union([z.literal(true), z.array(z.string())])).describe("Declared permissions"),
   hasAgent: z.boolean().describe("Whether the Program provides agent documentation"),
   server: z.looseObject({
     start: z.boolean(),

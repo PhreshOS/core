@@ -3,7 +3,7 @@ import type { Exit, Process } from "./process.js"
 import type { ProgramLogs, ProgramSql } from "./sql.js"
 import type { ProgramStore, Storage } from "./storage.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
-import type { ProgramPermissions } from "./permissions.js"
+import type { ProgramPermissionDeclarations, ProgramPermissions } from "./permissions.js"
 import type { ProgramDefinition } from "./system.js"
 
 /** Version assigned when a Program definition omits one. */
@@ -150,6 +150,18 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
 
   /** Declared description, or `null`. */
   public abstract readonly description: string | null
+
+  /** Declared catalog categories, such as `Graphics`. */
+  public abstract readonly categories: readonly string[]
+
+  /** Declared search keywords. */
+  public abstract readonly keywords: readonly string[]
+
+  /** Declared media types it opens; `image/*` stands for every image. */
+  public abstract readonly opens: readonly string[]
+
+  /** The permissions it declares: what applies while the owner has decided nothing. */
+  public abstract readonly declaredPermissions: ProgramPermissionDeclarations
 
   /** Whether this Program provides Program-specific documentation for agents. */
   public abstract readonly hasAgent: boolean

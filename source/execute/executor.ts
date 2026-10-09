@@ -603,6 +603,10 @@ async function programView(program: Program) {
     version: program.version,
     description: program.description,
     installed: await program.installed(),
+    categories: program.categories,
+    keywords: program.keywords,
+    opens: program.opens,
+    declaredPermissions: program.declaredPermissions,
     hasAgent: program.hasAgent,
     server: program.server,
     client: program.client

@@ -1,5 +1,6 @@
 import { isRelativeValue } from "./value.js"
 import { isLayer, type Position, type Size } from "./launch.js"
+import { parseProgramPermissionDeclarations, type ProgramPermissionDeclarations } from "./permissions.js"
 import type { ClientDeclaration, EndpointDeclaration } from "./program.js"
 import type { SessionEndReason } from "./session.js"
 
@@ -16,9 +17,10 @@ export type ProgramSnapshot = HandleAddress & Readonly<{
   name: string
   version: string
   description: string | null
-  categories?: readonly string[]
-  keywords?: readonly string[]
-  opens?: readonly string[]
+  categories: readonly string[]
+  keywords: readonly string[]
+  opens: readonly string[]
+  declaredPermissions: ProgramPermissionDeclarations
   hasAgent: boolean
   server: EndpointDeclaration | null
   client: ClientDeclaration | null
@@ -84,9 +86,10 @@ export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
     name: source.name,
     version: source.version,
     description: source.description,
-    ...(source.categories === undefined ? {} : { categories: strings(source.categories, "Program categories") }),
-    ...(source.keywords === undefined ? {} : { keywords: strings(source.keywords, "Program keywords") }),
-    ...(source.opens === undefined ? {} : { opens: strings(source.opens, "Program opens") }),
+    categories: strings(source.categories, "Program categories"),
+    keywords: strings(source.keywords, "Program keywords"),
+    opens: strings(source.opens, "Program opens"),
+    declaredPermissions: parseProgramPermissionDeclarations(source.declaredPermissions),
     hasAgent: source.hasAgent,
     server: source.server === null ? null : parseEndpointDeclaration(source.server),
     client: source.client === null ? null : parseClientDeclaration(source.client)
