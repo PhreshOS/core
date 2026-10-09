@@ -372,7 +372,7 @@ const executeOperations = Object.freeze([
   }), z.array(logRow)),
 
   defineOperation("appearance", "get", "Read the complete System Appearance.", request("appearance", "get", {}), jsonValue),
-  defineOperation("appearance", "update", "Merge a partial Appearance into the System Appearance.", request("appearance", "update", {
+  defineOperation("appearance", "update", "Change part of the System Appearance; everything left out stays as it is.", request("appearance", "update", {
     value: z.record(z.string(), jsonValue).describe("Partial Appearance; omitted parts stay as they are")
   }), jsonValue),
   defineOperation("appearance", "wait", "Wait for the System Appearance to change.", request("appearance", "wait", {
@@ -417,7 +417,7 @@ const executeOperations = Object.freeze([
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
 
-  defineOperation("authentication", "state", "Read the owner's public sign-in identity.", request("authentication", "state", {}), z.looseObject({
+  defineOperation("authentication", "state", "Read the owner's username.", request("authentication", "state", {}), z.looseObject({
     username: z.string().nullable().describe("The owner's username, or null before one is set")
   })),
   defineOperation("authentication", "requirements", "Read the credential lengths this System accepts.", request("authentication", "requirements", {}), z.looseObject({
@@ -430,42 +430,42 @@ const executeOperations = Object.freeze([
   }), z.null()),
   defineOperation("authentication", "signOutAll", "End every Session.", request("authentication", "signOutAll", {}), z.null()),
 
-  defineOperation("connection", "list", "List visible live browser Connections.", request("connection", "list", {}), z.array(connectionResult)),
-  defineOperation("connection", "find", "Find one visible browser Connection by identity.", request("connection", "find", {
+  defineOperation("connection", "list", "List the browsers connected now, signed in or not.", request("connection", "list", {}), z.array(connectionResult)),
+  defineOperation("connection", "find", "Find one connected browser by its identity.", request("connection", "find", {
     identity: z.string().describe("Connection identity")
   }), connectionResult.nullable()),
-  defineOperation("connection", "session", "Read the Session attached to one Connection.", request("connection", "session", {
+  defineOperation("connection", "session", "Read the sign-in (Session) one connected browser uses, or null.", request("connection", "session", {
     identity: z.string().describe("Connection identity")
   }), sessionResult.nullable()),
-  defineOperation("connection", "signIn", "Create and attach a Session to one unsigned Connection.", request("connection", "signIn", {
+  defineOperation("connection", "signIn", "Sign a connected browser in without a password, creating a Session for it.", request("connection", "signIn", {
     identity: z.string().describe("Connection identity")
   }), sessionResult),
-  defineOperation("connection", "wait", "Wait for one Connection or registry lifecycle event.", connectionWaitRequest, lifecycleResult),
+  defineOperation("connection", "wait", "Wait for a browser to connect or disconnect, or to sign in or out.", connectionWaitRequest, lifecycleResult),
 
-  defineOperation("session", "list", "List visible valid authentication Sessions.", request("session", "list", {}), z.array(sessionResult)),
-  defineOperation("session", "find", "Find one visible valid Session by identity.", request("session", "find", {
+  defineOperation("session", "list", "List the sign-ins (Sessions) still valid.", request("session", "list", {}), z.array(sessionResult)),
+  defineOperation("session", "find", "Find one valid Session by its identity.", request("session", "find", {
     identity: z.string().describe("Session identity")
   }), sessionResult.nullable()),
-  defineOperation("session", "connections", "List live Connections authorized by one Session.", request("session", "connections", {
+  defineOperation("session", "connections", "List the browsers using one Session.", request("session", "connections", {
     identity: z.string().describe("Session identity")
   }), z.array(connectionResult)),
-  defineOperation("session", "signOut", "End one Session and revoke it from every attached Connection.", request("session", "signOut", {
+  defineOperation("session", "signOut", "End one Session: every browser using it is signed out and stays connected.", request("session", "signOut", {
     identity: z.string().describe("Session identity")
   }), z.null()),
-  defineOperation("session", "wait", "Wait for one Session or registry lifecycle event.", sessionWaitRequest, lifecycleResult),
+  defineOperation("session", "wait", "Wait for a Session to start or end.", sessionWaitRequest, lifecycleResult),
 
-  defineOperation("program", "list", "List Programs visible to the current System connection.", request("program", "list", {
+  defineOperation("program", "list", "List the Programs you can see, installed or running from a project.", request("program", "list", {
     installed: z.boolean().optional().describe("Filter by Program installation state"),
     opens: z.string().optional().describe("Only Programs that open this exact media type"),
     startup: z.boolean().optional().describe("Only Programs that start with the System, or only those that do not")
   }), z.array(programResult)),
-  defineOperation("program", "find", "Find one visible Program by identity.", request("program", "find", {
+  defineOperation("program", "find", "Find one Program by its identity.", request("program", "find", {
     identity: z.string().describe("Program identity")
   }), programResult.nullable()),
   defineOperation("program", "agent", "Read one Program's agent documentation.", request("program", "agent", {
     identity: z.string().describe("Program identity")
   }), z.looseObject({ program: z.string(), content: z.string().nullable() })),
-  defineOperation("program", "definition", "Read one Program's complete canonical definition.", request("program", "definition", {
+  defineOperation("program", "definition", "Read everything one Program's author declared.", request("program", "definition", {
     identity: z.string().describe("Program identity")
   }), jsonValue),
   defineOperation("program", "getStartup", "Read the launch one Program starts when the System starts.", request("program", "getStartup", {
@@ -485,32 +485,32 @@ const executeOperations = Object.freeze([
     identity: z.string().describe("Program identity"),
     pinned: z.boolean().optional().describe("False unpins; omission pins")
   }), z.boolean()),
-  defineOperation("program", "getPermission", "Read one effective Program permission.", request("program", "getPermission", {
+  defineOperation("program", "getPermission", "Read what one permission allows a Program now: the owner's decision, or else its declaration.", request("program", "getPermission", {
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
   }), z.union([z.array(z.string()), z.literal(false), z.null()])),
-  defineOperation("program", "listPermissions", "Read all effective Program permissions.", request("program", "listPermissions", {
+  defineOperation("program", "listPermissions", "Read every permission a Program has now.", request("program", "listPermissions", {
     identity: z.string().describe("Program identity")
   }), z.record(z.string(), z.union([z.array(z.string()), z.literal(false), z.null()]))),
-  defineOperation("program", "allowsPermission", "Test whether one Program permission allows a request.", request("program", "allowsPermission", {
+  defineOperation("program", "allowsPermission", "Check whether a Program may do something, such as reach one address.", request("program", "allowsPermission", {
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name"),
     value: z.union([z.literal(true), z.array(z.string())]).optional().describe("Requested permission value")
   }), z.boolean()),
-  defineOperation("program", "allowPermission", "Allow one exact stored Program permission assignment.", request("program", "allowPermission", {
+  defineOperation("program", "allowPermission", "Grant a Program a permission, replacing what it had for that permission.", request("program", "allowPermission", {
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name"),
     value: z.union([z.literal(true), z.array(z.string())]).optional().describe("Complete allowed permission value")
   }), z.array(z.string())),
-  defineOperation("program", "denyPermission", "Deny one stored Program permission.", request("program", "denyPermission", {
+  defineOperation("program", "denyPermission", "Refuse a Program a permission.", request("program", "denyPermission", {
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
   }), z.literal(false)),
-  defineOperation("program", "resetPermission", "Remove one stored Program permission, so the Program definition applies again.", request("program", "resetPermission", {
+  defineOperation("program", "resetPermission", "Remove the owner's decision on one permission, so what the Program declares applies again.", request("program", "resetPermission", {
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
   }), z.union([z.array(z.string()), z.literal(false), z.null()])),
-  defineOperation("program", "logs", "Query one Program's captured Endpoint logs.", request("program", "logs", {
+  defineOperation("program", "logs", "Query what one Program's Server and Client printed.", request("program", "logs", {
     identity: z.string().describe("Program identity"),
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, process, source, kind, content."),
     values: z.array(jsonValue).optional().describe("Bound statement values")
@@ -534,34 +534,34 @@ const executeOperations = Object.freeze([
     statement: z.string().min(1).describe("SQL statement"),
     values: z.array(jsonValue).optional().describe("Bound statement values")
   }), z.array(sqlRow)),
-  defineOperation("program", "exitProcesses", "End every live Process of one Program.", request("program", "exitProcesses", {
+  defineOperation("program", "exitProcesses", "End every run of one Program.", request("program", "exitProcesses", {
     identity: z.string().describe("Program identity")
   }), z.array(z.string())),
-  defineOperation("program", "forget", "End a Program's Processes and remove it from the runtime registry.", request("program", "forget", {
+  defineOperation("program", "forget", "End a Program's runs and remove it from the System; its installed files stay.", request("program", "forget", {
     identity: z.string().describe("Program identity")
   }), z.null()),
-  defineOperation("program", "wait", "Wait for one Program lifecycle event.", programWaitRequest, lifecycleResult),
+  defineOperation("program", "wait", "Wait for a Program to be created, installed, removed, pinned, or changed.", programWaitRequest, lifecycleResult),
 
-  defineOperation("process", "list", "List live Processes visible to the current System connection.", request("process", "list", {
+  defineOperation("process", "list", "List the runs (Processes) of the Programs you can see.", request("process", "list", {
     program: z.string().optional().describe("Restrict the list to one Program")
   }), z.array(processResult)),
-  defineOperation("process", "find", "Find one live Process by identity or Program-local name.", request("process", "find", {
+  defineOperation("process", "find", "Find one run by its identity, or by its name within its Program.", request("process", "find", {
     program: z.string().optional().describe("Owning Program identity when resolving a Process name"),
     process: z.string().describe("Process identity or Program-local name")
   }), processResult.nullable()),
-  defineOperation("process", "create", "Create one Process from a Program.", request("process", "create", {
+  defineOperation("process", "create", "Start a run of a Program; what is left out starts as the Program declares. With only the Program, this opens it as the owner would.", request("process", "create", {
     program: z.string().describe("Owning Program identity"),
     launch: launch.optional().describe("Process launch")
   }), processResult),
-  defineOperation("process", "findOrCreate", "Find the named Process or create it atomically.", request("process", "findOrCreate", {
+  defineOperation("process", "findOrCreate", "Find the run with this name, or start it if none runs, in one step.", request("process", "findOrCreate", {
     program: z.string().describe("Owning Program identity"),
     launch: namedLaunch.describe("Named Process launch")
   }), processResult),
-  defineOperation("process", "exit", "Exit one Process and all of its live Endpoints.", request("process", "exit", windowIdentity), processResult),
-  defineOperation("process", "wait", "Wait for one Process lifecycle event.", processWaitRequest, lifecycleResult),
+  defineOperation("process", "exit", "End one run: its Server stops and its Window closes.", request("process", "exit", windowIdentity), processResult),
+  defineOperation("process", "wait", "Wait for a run to start or end.", processWaitRequest, lifecycleResult),
 
-  defineOperation("endpoint", "inspect", "Read one Endpoint's current state.", request("endpoint", "inspect", endpointIdentity), endpointResult),
-  defineOperation("endpoint", "start", "Ensure one Endpoint has a running execution context.", z.union([
+  defineOperation("endpoint", "inspect", "Read whether one side of a run, its Server or its Client, runs and is ready.", request("endpoint", "inspect", endpointIdentity), endpointResult),
+  defineOperation("endpoint", "start", "Start one side of a run if it is not running, such as a Window that was closed.", z.union([
     request("endpoint", "start", {
       program: endpointIdentity.program,
       process: endpointIdentity.process,
@@ -575,28 +575,28 @@ const executeOperations = Object.freeze([
       launch: clientLaunch.optional().describe("Client Endpoint launch settings")
     })
   ]), endpointResult),
-  defineOperation("endpoint", "stop", "Ensure one Endpoint has no running execution context.", request("endpoint", "stop", endpointIdentity), endpointResult),
-  defineOperation("endpoint", "waitReady", "Wait until one Endpoint is ready for use.", request("endpoint", "waitReady", {
+  defineOperation("endpoint", "stop", "Stop one side of a run if it runs; the run goes on with its other side.", request("endpoint", "stop", endpointIdentity), endpointResult),
+  defineOperation("endpoint", "waitReady", "Wait until one side of a run can be used, such as a Server that answers.", request("endpoint", "waitReady", {
     ...endpointIdentity,
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), endpointResult),
-  defineOperation("endpoint", "ask", "Ask a Server Endpoint event and return its answer.", request("endpoint", "ask", {
+  defineOperation("endpoint", "ask", "Ask a run's Server a question and return its answer.", request("endpoint", "ask", {
     ...endpointIdentity,
     event: z.string().min(1).describe("Event name"),
     input: jsonValue.optional().describe("Event input"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), jsonValue),
-  defineOperation("endpoint", "publish", "Publish one event without waiting for an answer.", request("endpoint", "publish", {
+  defineOperation("endpoint", "publish", "Send a run's Server or Client a message, with no answer.", request("endpoint", "publish", {
     ...endpointIdentity,
     event: z.string().min(1).describe("Event name"),
     input: jsonValue.optional().describe("Event input")
   }), endpointResult),
-  defineOperation("endpoint", "wait", "Wait for one publication emitted by an Endpoint.", request("endpoint", "wait", {
+  defineOperation("endpoint", "wait", "Wait for one message a run's Server or Client sends out.", request("endpoint", "wait", {
     ...endpointIdentity,
     event: z.string().min(1).describe("Event name"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
-  defineOperation("endpoint", "waitLifecycle", "Wait for one Endpoint execution-context transition.", request("endpoint", "waitLifecycle", {
+  defineOperation("endpoint", "waitLifecycle", "Wait for one side of a run to start or stop.", request("endpoint", "waitLifecycle", {
     ...endpointIdentity,
     event: z.enum(Object.values(endpointLifecycleEvents)).describe("Lifecycle event"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
@@ -617,15 +617,15 @@ const executeOperations = Object.freeze([
   }), z.boolean()),
   defineOperation("endpoint", "memoryEntries", "List all keys and values in a running Client's memory.", request("endpoint", "memoryEntries", windowIdentity), z.array(z.tuple([z.string(), jsonValue]))),
 
-  defineOperation("service", "list", "List ready Services visible to the current System connection.", request("service", "list", {
+  defineOperation("service", "list", "List the Services ready now.", request("service", "list", {
     name: z.string().min(1).optional().describe("Optional Process and Service name filter")
   }), z.array(serviceResult)),
-  defineOperation("service", "inspect", "Read availability at one stable Service address.", request("service", "inspect", serviceAddress), serviceResult),
-  defineOperation("service", "waitReady", "Wait until one Service address becomes available.", request("service", "waitReady", {
+  defineOperation("service", "inspect", "Read whether one Service is available now.", request("service", "inspect", serviceAddress), serviceResult),
+  defineOperation("service", "waitReady", "Wait until one Service is available.", request("service", "waitReady", {
     ...serviceAddress,
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), serviceResult),
-  defineOperation("service", "ask", "Ask a Server Service event and return its answer.", request("service", "ask", {
+  defineOperation("service", "ask", "Ask a Service a question and return its answer.", request("service", "ask", {
     ...serviceAddress,
     endpoint: z.literal("server"),
     event: z.string().min(1).describe("Event name"),
@@ -637,55 +637,55 @@ const executeOperations = Object.freeze([
     event: z.string().min(1).describe("Event name"),
     input: jsonValue.optional().describe("Event input")
   }), serviceResult),
-  defineOperation("service", "wait", "Wait for one publication emitted by a Service.", request("service", "wait", {
+  defineOperation("service", "wait", "Wait for one message a Service sends out.", request("service", "wait", {
     ...serviceAddress,
     event: z.string().min(1).describe("Event name"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
-  defineOperation("service", "waitLifecycle", "Wait for one availability transition at a stable Service address.", request("service", "waitLifecycle", {
+  defineOperation("service", "waitLifecycle", "Wait for one Service to become available or unavailable.", request("service", "waitLifecycle", {
     ...serviceAddress,
     event: z.enum(Object.values(serviceLifecycleEvents)).describe("Availability event"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
-  defineOperation("service", "waitDiscovery", "Wait for a change in the caller's visible Service discovery set.", request("service", "waitDiscovery", {
+  defineOperation("service", "waitDiscovery", "Wait for any Service to become available or unavailable.", request("service", "waitDiscovery", {
     event: z.enum(Object.values(systemServiceEvents)).describe("Discovery event"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
 
-  defineOperation("window", "inspect", "Read one authoritative Window's current state.", request("window", "inspect", windowIdentity), windowResult),
-  defineOperation("window", "move", "Change one Window's stored position.", request("window", "move", {
+  defineOperation("window", "inspect", "Read one Window: title, position, size, and whether it is minimized or maximized.", request("window", "inspect", windowIdentity), windowResult),
+  defineOperation("window", "move", "Move one Window. Its position is its top-left corner, counted from the middle of the view: 0, 0 is the middle, not the screen's edge.", request("window", "move", {
     ...windowIdentity,
     position
   }), windowResult),
-  defineOperation("window", "resize", "Change one Window's stored size.", request("window", "resize", {
+  defineOperation("window", "resize", "Resize one Window; its top-left corner stays.", request("window", "resize", {
     ...windowIdentity,
     size
   }), windowResult),
-  defineOperation("window", "setGeometry", "Change one Window's position and size atomically.", request("window", "setGeometry", {
+  defineOperation("window", "setGeometry", "Move and resize one Window in one step, as move and resize.", request("window", "setGeometry", {
     ...windowIdentity,
     x: metric.describe("Horizontal position"),
     y: metric.describe("Vertical position"),
     width: metric.describe("Window width"),
     height: metric.describe("Window height")
   }), windowResult),
-  defineOperation("window", "minimize", "Change whether one Window is minimized.", request("window", "minimize", {
+  defineOperation("window", "minimize", "Minimize one Window, or restore it.", request("window", "minimize", {
     ...windowIdentity,
     minimized: z.boolean().optional().describe("Whether the Window is minimized; defaults to true")
   }), windowResult),
-  defineOperation("window", "maximize", "Change whether one Window is maximized.", request("window", "maximize", {
+  defineOperation("window", "maximize", "Maximize one Window to fill the view, or restore it.", request("window", "maximize", {
     ...windowIdentity,
     maximized: z.boolean().optional().describe("Whether the Window is maximized; defaults to true")
   }), windowResult),
-  defineOperation("window", "setTitle", "Set one Window's human-readable title.", request("window", "setTitle", {
+  defineOperation("window", "setTitle", "Set one Window's title.", request("window", "setTitle", {
     ...windowIdentity,
     title: z.string().describe("New Window title")
   }), windowResult),
-  defineOperation("window", "setHeader", "Set whether one Window shows its Desktop-owned header.", request("window", "setHeader", {
+  defineOperation("window", "setHeader", "Show or hide the title bar the Desktop draws on one Window.", request("window", "setHeader", {
     ...windowIdentity,
     header: z.boolean().describe("Whether the Window header is shown")
   }), windowResult),
-  defineOperation("window", "raise", "Raise one Window within its own layer.", request("window", "raise", windowIdentity), windowResult),
-  defineOperation("window", "wait", "Wait for one authoritative Window state change.", request("window", "wait", {
+  defineOperation("window", "raise", "Bring one Window in front of the others in its layer.", request("window", "raise", windowIdentity), windowResult),
+  defineOperation("window", "wait", "Wait for one Window to move, resize, or otherwise change.", request("window", "wait", {
     ...windowIdentity,
     event: z.enum(Object.values(windowEvents)).describe("Window event"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
