@@ -84,6 +84,7 @@ describe("Execute", () => {
     const session = {
       identity: "session-one",
       createdAt: new Date(0),
+      device: "Chrome on macOS",
       valid: async () => true,
       lastActiveAt: async () => new Date(1000),
       connections: async () => [connection],
@@ -92,6 +93,7 @@ describe("Execute", () => {
     const connection = {
       identity: "connection-one",
       connectedAt: new Date(500),
+      device: "Chrome on macOS",
       connected: async () => true,
       session: async () => session,
       signIn: async () => { calls.push("signIn"); return session }
@@ -103,8 +105,8 @@ describe("Execute", () => {
       session: async (identity: string) => identity === session.identity ? session : null
     } } as unknown as ExecutionSystem
 
-    const connectionState = { identity: "connection-one", connected: true, session: "session-one", connectedAt: new Date(500).toISOString() }
-    const sessionState = { identity: "session-one", valid: true, createdAt: new Date(0).toISOString(), lastActiveAt: new Date(1000).toISOString() }
+    const connectionState = { identity: "connection-one", connected: true, session: "session-one", connectedAt: new Date(500).toISOString(), device: "Chrome on macOS" }
+    const sessionState = { identity: "session-one", valid: true, createdAt: new Date(0).toISOString(), device: "Chrome on macOS", lastActiveAt: new Date(1000).toISOString() }
     await expect(execute(system, { $domain: "connection", $operation: "list" })).resolves.toEqual([connectionState])
     await expect(execute(system, { $domain: "connection", $operation: "find", identity: "connection-one" })).resolves.toEqual(connectionState)
     await expect(execute(system, { $domain: "connection", $operation: "find", identity: "missing" })).resolves.toBeNull()

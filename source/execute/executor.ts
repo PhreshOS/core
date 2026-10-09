@@ -295,12 +295,12 @@ async function requireSession(system: ExecutionSystem, identity: string) {
 
 async function connectionView(connection: Connection) {
   const [connected, session] = await Promise.all([connection.connected(), connection.session()])
-  return { identity: connection.identity, connected, session: session?.identity ?? null, connectedAt: connection.connectedAt.toISOString() }
+  return { identity: connection.identity, connected, session: session?.identity ?? null, connectedAt: connection.connectedAt.toISOString(), device: connection.device }
 }
 
 async function sessionView(session: Session) {
   const [valid, lastActiveAt] = await Promise.all([session.valid(), session.lastActiveAt()])
-  return { identity: session.identity, valid, createdAt: session.createdAt.toISOString(), lastActiveAt: lastActiveAt?.toISOString() ?? null }
+  return { identity: session.identity, valid, createdAt: session.createdAt.toISOString(), device: session.device, lastActiveAt: lastActiveAt?.toISOString() ?? null }
 }
 
 async function executeService(

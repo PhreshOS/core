@@ -32,6 +32,9 @@ export abstract class Session implements Subscribable<SessionEvents, never> {
   /** When the owner signed in. */
   public abstract readonly createdAt: Date
 
+  /** The browser and system it signed in from, such as "Chrome on macOS", or `null` when unrecognized. */
+  public abstract readonly device: string | null
+
   /** Returns whether this Session can still authorize a Connection. */
   public abstract valid(): Promise<boolean>
 

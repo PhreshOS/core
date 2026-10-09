@@ -26,6 +26,9 @@ export abstract class Connection implements Subscribable<ConnectionEvents, never
   /** When the browser connected. */
   public abstract readonly connectedAt: Date
 
+  /** The browser and system, such as "Chrome on macOS", or `null` when unrecognized. */
+  public abstract readonly device: string | null
+
   /** Returns whether the underlying connection still exists. */
   public abstract connected(): Promise<boolean>
 

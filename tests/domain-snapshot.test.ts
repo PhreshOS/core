@@ -60,23 +60,25 @@ describe("domain snapshots", function () {
 
   it("canonicalizes Connection and Session boundary state", function () {
     const at = new Date(0)
-    expect(parseConnectionSnapshot({ identity: "connection", connected: true, session: "session", connectedAt: at.toISOString(), extension: true })).toEqual({
+    expect(parseConnectionSnapshot({ identity: "connection", connected: true, session: "session", connectedAt: at.toISOString(), device: "Chrome on macOS", extension: true })).toEqual({
       identity: "connection",
       connected: true,
       session: "session",
-      connectedAt: at
+      connectedAt: at,
+      device: "Chrome on macOS"
     })
-    expect(parseSessionSnapshot({ identity: "session", valid: true, createdAt: at, extension: true })).toEqual({ identity: "session", valid: true, createdAt: at })
-    expect(parseSessionEndSnapshot({ identity: "session", valid: false, createdAt: at, reason: "signedOut" })).toEqual({
+    expect(parseSessionSnapshot({ identity: "session", valid: true, createdAt: at, device: null, extension: true })).toEqual({ identity: "session", valid: true, createdAt: at, device: null })
+    expect(parseSessionEndSnapshot({ identity: "session", valid: false, createdAt: at, device: null, reason: "signedOut" })).toEqual({
       identity: "session",
       valid: false,
       createdAt: at,
+      device: null,
       reason: "signedOut"
     })
     expect(parseSessionState({ valid: true, lastActiveAt: at })).toEqual({ valid: true, lastActiveAt: at })
     expect(parseSessionState({ valid: false, lastActiveAt: null })).toEqual({ valid: false, lastActiveAt: null })
     expect(parseConnectionState({ connected: false, session: null })).toEqual({ connected: false, session: null })
     expect(() => parseConnectionSnapshot({ identity: "connection", connected: true, session: null })).toThrow("Connection")
-    expect(() => parseSessionEndSnapshot({ identity: "session", valid: false, createdAt: new Date(0), reason: "disconnect" })).toThrow("Session end")
+    expect(() => parseSessionEndSnapshot({ identity: "session", valid: false, createdAt: new Date(0), device: null, reason: "disconnect" })).toThrow("Session end")
   })
 })

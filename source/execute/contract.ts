@@ -162,13 +162,15 @@ const connectionResult = z.looseObject({
   identity: z.string().describe("Stable Connection identity"),
   connected: z.boolean().describe("Whether the browser connection is live"),
   session: z.string().nullable().describe("Attached Session identity"),
-  connectedAt: z.string().describe("ISO time the browser connected")
+  connectedAt: z.string().describe("ISO time the browser connected"),
+  device: z.string().nullable().describe("Browser and system, such as Chrome on macOS")
 }).describe("Connection state")
 
 const sessionResult = z.looseObject({
   identity: z.string().describe("Stable Session identity"),
   valid: z.boolean().describe("Whether the Session can authorize Connections"),
   createdAt: z.string().describe("ISO time the owner signed in"),
+  device: z.string().nullable().describe("Browser and system it signed in from"),
   lastActiveAt: z.string().nullable().describe("ISO time it was last used; now while a Connection uses it")
 }).describe("Session state")
 

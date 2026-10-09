@@ -52,6 +52,8 @@ export type ConnectionSnapshot = Readonly<{
   session: string | null
   /** When the browser connected. */
   connectedAt: Date
+  /** The browser and system, such as "Chrome on macOS", or `null` when unrecognized. */
+  device: string | null
 }>
 
 /** What may change about one Connection, readable even after it is gone. */
@@ -66,6 +68,8 @@ export type SessionSnapshot = Readonly<{
   valid: boolean
   /** When the owner signed in. */
   createdAt: Date
+  /** The browser and system it signed in from, such as "Chrome on macOS", or `null` when unrecognized. */
+  device: string | null
 }>
 
 /** What may change about one Session, readable even after it ended. */
@@ -157,7 +161,7 @@ export function parseConnectionSnapshot(value: unknown): ConnectionSnapshot {
     throw invalid("Connection")
   }
 
-  return Object.freeze({ identity: source.identity, connected: source.connected, session: source.session, connectedAt: date(source.connectedAt, "Connection") })
+  return Object.freeze({ identity: source.identity, connected: source.connected, session: source.session, connectedAt: date(source.connectedAt, "Connection"), device: nullableText(source.device, "Connection") })
 }
 
 /** Validates what may change about one Connection. */
@@ -173,7 +177,7 @@ export function parseSessionSnapshot(value: unknown): SessionSnapshot {
 
   if (typeof source.identity !== "string" || typeof source.valid !== "boolean") throw invalid("Session")
 
-  return Object.freeze({ identity: source.identity, valid: source.valid, createdAt: date(source.createdAt, "Session") })
+  return Object.freeze({ identity: source.identity, valid: source.valid, createdAt: date(source.createdAt, "Session"), device: nullableText(source.device, "Session") })
 }
 
 /** Validates what may change about one Session. */
