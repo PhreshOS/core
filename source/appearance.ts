@@ -54,6 +54,24 @@ export type AppearanceTaskbar = Readonly<{
   overlay: boolean
 }>
 
+/**
+ * The two wallpapers of one Theme: behind the sign-in form, and behind the windows. Each is an
+ * upload key: one the owner uploaded, or one of the System's own.
+ */
+export type AppearanceWallpaper = Readonly<{
+  signIn: string
+  desktop: string
+}>
+
+/**
+ * Upload keys the System keeps for the wallpapers it comes with. Each release puts its own
+ * pictures behind them, so an Appearance that names them shows the release's wallpapers.
+ */
+export const systemWallpapers: ThemedValue<AppearanceWallpaper> = Object.freeze({
+  light: Object.freeze({ signIn: "sign-in-light.webp", desktop: "desktop-light.webp" }),
+  dark: Object.freeze({ signIn: "sign-in-dark.webp", desktop: "desktop-dark.webp" })
+})
+
 /** Complete, unresolved visual state owned by the System. */
 export type Appearance = Readonly<{
   colors: ThemedValue<AppearanceColors>
@@ -68,8 +86,7 @@ export type Appearance = Readonly<{
    */
   tempo: number
   taskbar: AppearanceTaskbar
-  signInWallpaper: ThemedValue<string | null>
-  desktopWallpaper: ThemedValue<string | null>
+  wallpaper: ThemedValue<AppearanceWallpaper>
 }>
 
 type AppearanceUpdateFields = Readonly<{
@@ -89,8 +106,10 @@ type AppearanceUpdateFields = Readonly<{
   }>
   tempo?: number
   taskbar?: Readonly<Partial<AppearanceTaskbar>>
-  signInWallpaper?: Readonly<Partial<ThemedValue<string | null>>>
-  desktopWallpaper?: Readonly<Partial<ThemedValue<string | null>>>
+  wallpaper?: Readonly<{
+    light?: Readonly<Partial<AppearanceWallpaper>>
+    dark?: Readonly<Partial<AppearanceWallpaper>>
+  }>
 }>
 
 /** At least one partial Appearance field merged recursively into one complete snapshot. */
@@ -173,8 +192,7 @@ export const defaultAppearance = createAppearanceSnapshot({
   },
   tempo: 1,
   taskbar: { position: "bottom", size: 44, overlay: false },
-  signInWallpaper: { light: null, dark: null },
-  desktopWallpaper: { light: null, dark: null }
+  wallpaper: systemWallpapers
 })
 
 /** Creates a deeply immutable Appearance snapshot at the contract boundary. */
@@ -187,8 +205,7 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
     material: themed(appearance.material, value => Object.freeze({ ...value })),
     tempo: appearance.tempo,
     taskbar: Object.freeze({ ...appearance.taskbar }),
-    signInWallpaper: themed(appearance.signInWallpaper),
-    desktopWallpaper: themed(appearance.desktopWallpaper)
+    wallpaper: themed(appearance.wallpaper, value => Object.freeze({ ...value }))
   })
 }
 
@@ -204,15 +221,14 @@ export function parseAppearance(value: unknown): Appearance {
     material: parseThemed(source.material, parseMaterial, "Appearance material"),
     tempo: bounded(source.tempo, appearanceLimits.tempo, "Appearance tempo"),
     taskbar: parseTaskbar(source.taskbar),
-    signInWallpaper: parseThemed(source.signInWallpaper, parseWallpaper, "sign-in wallpaper"),
-    desktopWallpaper: parseThemed(source.desktopWallpaper, parseWallpaper, "desktop wallpaper")
+    wallpaper: parseThemed(source.wallpaper, parseWallpaper, "Appearance wallpaper")
   })
 }
 
 /** Validates and recursively merges one partial update into a complete Appearance. */
 export function applyAppearanceUpdate(appearance: Appearance, value: unknown): Appearance {
   const update = record(value, "Appearance update")
-  const keys = ["colors", "spacing", "radius", "shadow", "material", "tempo", "taskbar", "signInWallpaper", "desktopWallpaper"] as const
+  const keys = ["colors", "spacing", "radius", "shadow", "material", "tempo", "taskbar", "wallpaper"] as const
 
   if (!keys.some(key => Object.hasOwn(update, key))) throw new Error("An Appearance update must contain at least one Appearance field")
 
@@ -226,8 +242,7 @@ export function applyAppearanceUpdate(appearance: Appearance, value: unknown): A
     material: Object.hasOwn(update, "material") ? mergeThemedRecord(appearance.material, update.material, "Appearance material update") : appearance.material,
     tempo: Object.hasOwn(update, "tempo") ? update.tempo : appearance.tempo,
     taskbar: Object.hasOwn(update, "taskbar") ? { ...appearance.taskbar, ...record(update.taskbar, "Appearance taskbar update") } : appearance.taskbar,
-    signInWallpaper: Object.hasOwn(update, "signInWallpaper") ? mergeThemedValue(appearance.signInWallpaper, update.signInWallpaper, "Appearance sign-in wallpaper update") : appearance.signInWallpaper,
-    desktopWallpaper: Object.hasOwn(update, "desktopWallpaper") ? mergeThemedValue(appearance.desktopWallpaper, update.desktopWallpaper, "Appearance desktop wallpaper update") : appearance.desktopWallpaper
+    wallpaper: Object.hasOwn(update, "wallpaper") ? mergeThemedRecord(appearance.wallpaper, update.wallpaper, "Appearance wallpaper update") : appearance.wallpaper
   })
 }
 
@@ -289,9 +304,12 @@ function boolean(value: unknown, name: string) {
   return value
 }
 
-function parseWallpaper(value: unknown) {
-  if (value === null || typeof value === "string") return value
-  throw new Error("Appearance wallpaper is invalid")
+function parseWallpaper(value: unknown): AppearanceWallpaper {
+  const source = record(value, "Appearance wallpaper")
+  return Object.freeze({
+    signIn: nonempty(source.signIn, "Appearance sign-in wallpaper"),
+    desktop: nonempty(source.desktop, "Appearance desktop wallpaper")
+  })
 }
 
 function parseThemed<Value>(value: unknown, parse: (value: unknown) => Value, name: string): ThemedValue<Value> {
@@ -304,14 +322,6 @@ function mergeThemedRecord<Value extends object>(current: ThemedValue<Value>, va
   return {
     light: Object.hasOwn(update, "light") ? { ...current.light, ...record(update.light, `${name} light`) } : current.light,
     dark: Object.hasOwn(update, "dark") ? { ...current.dark, ...record(update.dark, `${name} dark`) } : current.dark
-  }
-}
-
-function mergeThemedValue<Value>(current: ThemedValue<Value>, value: unknown, name: string): ThemedValue<Value> {
-  const update = record(value, name)
-  return {
-    light: Object.hasOwn(update, "light") ? update.light as Value : current.light,
-    dark: Object.hasOwn(update, "dark") ? update.dark as Value : current.dark
   }
 }
 

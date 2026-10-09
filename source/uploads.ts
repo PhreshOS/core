@@ -1,5 +1,6 @@
 import type { WritableContent } from "./content.js"
 import type { FileStat } from "./storage.js"
+import { systemWallpapers } from "./appearance.js"
 
 /** Description returned when one value enters the System-owned uploads collection. */
 export type Upload = FileStat & Readonly<{
@@ -31,8 +32,15 @@ export interface SystemUploads {
   stat(file: string): Promise<FileStat | null>
 }
 
-/** Returns whether a value is one complete opaque upload key. */
+const systemFiles: ReadonlySet<string> = new Set(Object.values(systemWallpapers).flatMap(wallpaper => Object.values(wallpaper)))
+
+/** Returns whether a value is one complete upload key: a generated one, or one the System keeps. */
 export function isUploadFile(value: unknown): value is string {
   return typeof value === "string"
-    && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]+$/.test(value)
+    && (systemFiles.has(value) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]+$/.test(value))
+}
+
+/** Returns whether an upload key is one the System keeps for its own files, rather than a generated one. */
+export function isSystemUploadFile(file: string): boolean {
+  return systemFiles.has(file)
 }

@@ -116,7 +116,7 @@ export {
   type ServiceLifecycleEvents,
   type ServiceProgramMetadata
 } from "./service.js"
-export { isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
+export { isSystemUploadFile, isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
 export {
   type AnimationsPreference,
@@ -152,6 +152,7 @@ export {
   createAppearanceSnapshot,
   parseAppearance,
   defaultAppearance,
+  systemWallpapers,
   type Appearance,
   type AppearanceUpdate,
   type AppearanceColor,
@@ -162,6 +163,7 @@ export {
   type AppearanceMaterial,
   type AppearanceShadow,
   type AppearanceTaskbar,
+  type AppearanceWallpaper,
   type TaskbarPosition,
   type ThemedValue,
   type WritableAppearance
