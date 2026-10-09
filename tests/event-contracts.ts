@@ -270,6 +270,7 @@ function systemHandlesRemainCanonical(
   program.permissions.allow("appearance", [])
   program.permissions.allow("desktopPreferences")
   program.permissions.deny("network")
+  program.permissions.reset("network")
 
   // @ts-expect-error Program-scoped permission values are Program identities.
   program.permissions.allow("services", [42])

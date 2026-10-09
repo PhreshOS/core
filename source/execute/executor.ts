@@ -256,6 +256,7 @@ async function executeProgram(
     | Request<"program", "allowsPermission">
     | Request<"program", "allowPermission">
     | Request<"program", "denyPermission">
+    | Request<"program", "resetPermission">
     | Request<"program", "logs">
     | Request<"program", "wait">
 ) {
@@ -291,6 +292,10 @@ async function executeProgram(
   if (request.$operation === "denyPermission") {
     await program.permissions.deny(request.permission)
     return false
+  }
+  if (request.$operation === "resetPermission") {
+    await program.permissions.reset(request.permission)
+    return program.permissions.get(request.permission)
   }
 
   await program.permissions.allow(request.permission, request.value)

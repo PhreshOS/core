@@ -401,6 +401,10 @@ const executeOperations = Object.freeze([
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
   }), z.literal(false)),
+  defineOperation("program", "resetPermission", "Remove one stored Program permission, so the Program definition applies again.", request("program", "resetPermission", {
+    identity: z.string().describe("Program identity"),
+    permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")
+  }), z.union([z.array(z.string()), z.literal(false), z.null()])),
   defineOperation("program", "logs", "Query one Program's captured Endpoint logs.", request("program", "logs", {
     identity: z.string().describe("Program identity"),
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, process, source, kind, content."),

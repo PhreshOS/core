@@ -235,6 +235,7 @@ describe("Execute", () => {
       "program.allowsPermission",
       "program.allowPermission",
       "program.denyPermission",
+      "program.resetPermission",
       "program.logs",
       "program.wait",
       "process.wait",
@@ -326,7 +327,7 @@ describe("Execute", () => {
     const process = { identity: "process", client: { window } }
     let startup: unknown = null
     let pinned = false
-    const permissions: { network: string[] | false } = { network: ["https://api.example.com"] }
+    const permissions: { network?: string[] | false } = { network: ["https://api.example.com"] }
     const program = {
       identity: "example",
       definition: () => Promise.resolve(programDefinition),
@@ -344,6 +345,7 @@ describe("Execute", () => {
         allows: () => Promise.resolve(true),
         async allow(name: "network", value: true | string[] = true) { permissions[name] = value === true ? [] : value },
         async deny(name: "network") { permissions[name] = false },
+        async reset(name: "network") { delete permissions[name] },
         request: (_name: "network", value: true | string[] = true) => Promise.resolve(value === true ? [] : value),
         timeout: () => ({ request: (_name: "network", value: true | string[] = true) => Promise.resolve(value === true ? [] : value) })
       }
@@ -399,6 +401,13 @@ describe("Execute", () => {
       identity: "example",
       permission: "network"
     })).resolves.toBe(false)
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "resetPermission",
+      identity: "example",
+      permission: "network"
+    })).resolves.toBeNull()
 
     await expect(execute(system, {
       $domain: "window",

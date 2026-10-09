@@ -110,6 +110,8 @@ export interface ProgramPermissions extends Subscribable<ProgramPermissionsEvent
   allow<Name extends PermissionName>(name: Name, permission?: PermissionRequestInput<Name>): Promise<void>
   /** Replaces the complete stored assignment with an explicit denial. */
   deny<Name extends PermissionName>(name: Name): Promise<void>
+  /** Removes the stored assignment, so the Program definition's declaration applies again. */
+  reset<Name extends PermissionName>(name: Name): Promise<void>
 }
 
 /** Permission state and owner approval requests belonging to the currently executing Endpoint. */
