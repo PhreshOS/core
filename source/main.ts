@@ -153,6 +153,8 @@ export {
   parseAppearance,
   defaultAppearance,
   systemWallpapers,
+  wallpaperKind,
+  wallpaperSizeLimit,
   type Appearance,
   type AppearanceUpdate,
   type AppearanceColor,
@@ -165,6 +167,7 @@ export {
   type AppearanceTaskbar,
   type AppearanceWallpapers,
   type TaskbarPosition,
+  type WallpaperKind,
   type ThemedValue,
   type WritableAppearance
 } from "./appearance.js"

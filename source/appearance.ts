@@ -68,9 +68,32 @@ export type AppearanceWallpapers = Readonly<{
  * pictures behind them, so an Appearance that names them shows the release's wallpapers.
  */
 export const systemWallpapers: ThemedValue<AppearanceWallpapers> = Object.freeze({
-  light: Object.freeze({ signIn: "sign-in-light.webp", desktop: "desktop-light.webp" }),
-  dark: Object.freeze({ signIn: "sign-in-dark.webp", desktop: "desktop-dark.webp" })
+  light: Object.freeze({ signIn: "SIGN_IN_LIGHT_WALLPAPER", desktop: "DESKTOP_LIGHT_WALLPAPER" }),
+  dark: Object.freeze({ signIn: "SIGN_IN_DARK_WALLPAPER", desktop: "DESKTOP_DARK_WALLPAPER" })
 })
+
+/** What a wallpaper is: a picture covering the screen, a muted looping video, or a sandboxed page. */
+export type WallpaperKind = "image" | "video" | "html"
+
+/** The most a wallpaper may weigh: stricter than an upload. */
+export const wallpaperSizeLimit = 50 * 1024 * 1024
+
+const wallpaperKinds: Readonly<Record<string, WallpaperKind>> = {
+  avif: "image", bmp: "image", gif: "image", jpeg: "image", jpg: "image", png: "image", svg: "image", webp: "image",
+  mp4: "video", ogg: "video", ogv: "video", webm: "video", html: "html"
+}
+
+const systemWallpaperKeys: ReadonlySet<string> = new Set(Object.values(systemWallpapers).flatMap(wallpapers => Object.values(wallpapers)))
+
+/**
+ * What an upload would be as a wallpaper, from its key, or `null` when it cannot be one. The
+ * System's own wallpapers are pictures.
+ */
+export function wallpaperKind(file: string): WallpaperKind | null {
+  if (systemWallpaperKeys.has(file)) return "image"
+  const extension = file.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase()
+  return extension ? wallpaperKinds[extension] ?? null : null
+}
 
 /** Complete, unresolved visual state owned by the System. */
 export type Appearance = Readonly<{

@@ -8,6 +8,7 @@ import {
   isUploadFile,
   parseAppearance,
   systemWallpapers,
+  wallpaperKind,
   type ThemedValue
 } from "../source/main.js"
 
@@ -198,6 +199,14 @@ describe("Appearance", function () {
       expect(isSystemUploadFile(file)).toBe(true)
     }
     expect(isSystemUploadFile("12345678-1234-1234-1234-123456789abc.webp")).toBe(false)
-    expect(isUploadFile("sign-in-light.png")).toBe(false)
+    expect(isUploadFile("SIGN_IN_LIGHT_WALLPAPER.webp")).toBe(false)
+    expect(isUploadFile("OTHER_WALLPAPER")).toBe(false)
+  })
+
+  it("knows a wallpaper's kind from its key; the System's own are pictures", function () {
+    expect(wallpaperKind(systemWallpapers.dark.desktop)).toBe("image")
+    expect(wallpaperKind("12345678-1234-1234-1234-123456789abc.webm")).toBe("video")
+    expect(wallpaperKind("12345678-1234-1234-1234-123456789abc.html")).toBe("html")
+    expect(wallpaperKind("12345678-1234-1234-1234-123456789abc.txt")).toBe(null)
   })
 })
