@@ -83,12 +83,15 @@ describe("Execute", () => {
     const calls: string[] = []
     const session = {
       identity: "session-one",
+      createdAt: new Date(0),
       valid: async () => true,
+      lastActiveAt: async () => new Date(1000),
       connections: async () => [connection],
       signOut: async () => { calls.push("signOut") }
     }
     const connection = {
       identity: "connection-one",
+      connectedAt: new Date(500),
       connected: async () => true,
       session: async () => session,
       signIn: async () => { calls.push("signIn"); return session }
@@ -100,8 +103,8 @@ describe("Execute", () => {
       session: async (identity: string) => identity === session.identity ? session : null
     } } as unknown as ExecutionSystem
 
-    const connectionState = { identity: "connection-one", connected: true, session: "session-one" }
-    const sessionState = { identity: "session-one", valid: true }
+    const connectionState = { identity: "connection-one", connected: true, session: "session-one", connectedAt: new Date(500).toISOString() }
+    const sessionState = { identity: "session-one", valid: true, createdAt: new Date(0).toISOString(), lastActiveAt: new Date(1000).toISOString() }
     await expect(execute(system, { $domain: "connection", $operation: "list" })).resolves.toEqual([connectionState])
     await expect(execute(system, { $domain: "connection", $operation: "find", identity: "connection-one" })).resolves.toEqual(connectionState)
     await expect(execute(system, { $domain: "connection", $operation: "find", identity: "missing" })).resolves.toBeNull()

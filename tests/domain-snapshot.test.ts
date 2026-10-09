@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseConnectionSnapshot, parseEndpointReference, parseProcessSnapshot, parseProgramSnapshot, parseSessionEndSnapshot, parseSessionSnapshot } from "../source/main.js"
+import { parseConnectionSnapshot, parseEndpointReference, parseProcessSnapshot, parseProgramSnapshot, parseSessionEndSnapshot, parseSessionSnapshot, parseSessionState, parseConnectionState } from "../source/main.js"
 
 const program = {
   reference: "program-reference",
@@ -59,18 +59,24 @@ describe("domain snapshots", function () {
   })
 
   it("canonicalizes Connection and Session boundary state", function () {
-    expect(parseConnectionSnapshot({ identity: "connection", connected: true, session: "session", extension: true })).toEqual({
+    const at = new Date(0)
+    expect(parseConnectionSnapshot({ identity: "connection", connected: true, session: "session", connectedAt: at.toISOString(), extension: true })).toEqual({
       identity: "connection",
       connected: true,
-      session: "session"
+      session: "session",
+      connectedAt: at
     })
-    expect(parseSessionSnapshot({ identity: "session", valid: true, extension: true })).toEqual({ identity: "session", valid: true })
-    expect(parseSessionEndSnapshot({ identity: "session", valid: false, reason: "signedOut" })).toEqual({
+    expect(parseSessionSnapshot({ identity: "session", valid: true, createdAt: at, extension: true })).toEqual({ identity: "session", valid: true, createdAt: at })
+    expect(parseSessionEndSnapshot({ identity: "session", valid: false, createdAt: at, reason: "signedOut" })).toEqual({
       identity: "session",
       valid: false,
+      createdAt: at,
       reason: "signedOut"
     })
-    expect(() => parseConnectionSnapshot({ identity: "connection", connected: true })).toThrow("Connection")
-    expect(() => parseSessionEndSnapshot({ identity: "session", valid: false, reason: "disconnect" })).toThrow("Session end")
+    expect(parseSessionState({ valid: true, lastActiveAt: at })).toEqual({ valid: true, lastActiveAt: at })
+    expect(parseSessionState({ valid: false, lastActiveAt: null })).toEqual({ valid: false, lastActiveAt: null })
+    expect(parseConnectionState({ connected: false, session: null })).toEqual({ connected: false, session: null })
+    expect(() => parseConnectionSnapshot({ identity: "connection", connected: true, session: null })).toThrow("Connection")
+    expect(() => parseSessionEndSnapshot({ identity: "session", valid: false, createdAt: new Date(0), reason: "disconnect" })).toThrow("Session end")
   })
 })

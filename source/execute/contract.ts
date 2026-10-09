@@ -11,7 +11,6 @@ import type { WindowEvents } from "../window.js"
 import type { ConnectionEvents } from "../connection.js"
 import type { SessionEvents } from "../session.js"
 import type { SystemAuthenticationEvents } from "../authentication.js"
-import type { ConnectionSnapshot, SessionSnapshot } from "../domain-snapshot.js"
 import { isProgramIdentity } from "../program-identity.js"
 import { programPermissionCatalog, type SystemPermissionEvents } from "../permissions.js"
 import type { AppearanceEvents } from "../appearance.js"
@@ -159,15 +158,18 @@ const windowResult = z.looseObject({
   layer: z.enum(layers).describe("Window layer")
 }).describe("Window state")
 
-const connectionResult: z.ZodType<ConnectionSnapshot> = z.looseObject({
+const connectionResult = z.looseObject({
   identity: z.string().describe("Stable Connection identity"),
   connected: z.boolean().describe("Whether the browser connection is live"),
-  session: z.string().nullable().describe("Attached Session identity")
+  session: z.string().nullable().describe("Attached Session identity"),
+  connectedAt: z.string().describe("ISO time the browser connected")
 }).describe("Connection state")
 
-const sessionResult: z.ZodType<SessionSnapshot> = z.looseObject({
+const sessionResult = z.looseObject({
   identity: z.string().describe("Stable Session identity"),
-  valid: z.boolean().describe("Whether the Session can authorize Connections")
+  valid: z.boolean().describe("Whether the Session can authorize Connections"),
+  createdAt: z.string().describe("ISO time the owner signed in"),
+  lastActiveAt: z.string().nullable().describe("ISO time it was last used; now while a Connection uses it")
 }).describe("Session state")
 
 const programRegistryEvents = {

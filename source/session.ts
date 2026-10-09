@@ -29,8 +29,14 @@ export abstract class Session implements Subscribable<SessionEvents, never> {
   /** Stable, non-secret identity of this Session. */
   public abstract readonly identity: string
 
+  /** When the owner signed in. */
+  public abstract readonly createdAt: Date
+
   /** Returns whether this Session can still authorize a Connection. */
   public abstract valid(): Promise<boolean>
+
+  /** Returns now while a Connection uses this Session, otherwise when the last one left; `null` once it ended. */
+  public abstract lastActiveAt(): Promise<Date | null>
 
   /** Returns every live Connection currently attached to this Session. */
   public abstract connections(): Promise<Connection[]>

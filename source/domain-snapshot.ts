@@ -50,12 +50,29 @@ export type ConnectionSnapshot = Readonly<{
   identity: string
   connected: boolean
   session: string | null
+  /** When the browser connected. */
+  connectedAt: Date
+}>
+
+/** What may change about one Connection, readable even after it is gone. */
+export type ConnectionState = Readonly<{
+  connected: boolean
+  session: string | null
 }>
 
 /** Public state of one Session carried across a System boundary. */
 export type SessionSnapshot = Readonly<{
   identity: string
   valid: boolean
+  /** When the owner signed in. */
+  createdAt: Date
+}>
+
+/** What may change about one Session, readable even after it ended. */
+export type SessionState = Readonly<{
+  valid: boolean
+  /** Now while a Connection uses it, otherwise when the last one left; `null` once it ended. */
+  lastActiveAt: Date | null
 }>
 
 /** Terminal Session state carried with registry and entity events. */
@@ -140,7 +157,14 @@ export function parseConnectionSnapshot(value: unknown): ConnectionSnapshot {
     throw invalid("Connection")
   }
 
-  return Object.freeze({ identity: source.identity, connected: source.connected, session: source.session })
+  return Object.freeze({ identity: source.identity, connected: source.connected, session: source.session, connectedAt: date(source.connectedAt, "Connection") })
+}
+
+/** Validates what may change about one Connection. */
+export function parseConnectionState(value: unknown): ConnectionState {
+  const source = object(value, "Connection state")
+  if (typeof source.connected !== "boolean" || source.session !== null && typeof source.session !== "string") throw invalid("Connection state")
+  return Object.freeze({ connected: source.connected, session: source.session })
 }
 
 /** Validates and canonicalizes one Session snapshot from an unknown boundary. */
@@ -149,7 +173,21 @@ export function parseSessionSnapshot(value: unknown): SessionSnapshot {
 
   if (typeof source.identity !== "string" || typeof source.valid !== "boolean") throw invalid("Session")
 
-  return Object.freeze({ identity: source.identity, valid: source.valid })
+  return Object.freeze({ identity: source.identity, valid: source.valid, createdAt: date(source.createdAt, "Session") })
+}
+
+/** Validates what may change about one Session. */
+export function parseSessionState(value: unknown): SessionState {
+  const source = object(value, "Session state")
+  if (typeof source.valid !== "boolean") throw invalid("Session state")
+  return Object.freeze({ valid: source.valid, lastActiveAt: source.lastActiveAt === null ? null : date(source.lastActiveAt, "Session state") })
+}
+
+/** A time sent as a Date or as an ISO string. */
+function date(value: unknown, name: string) {
+  const parsed = value instanceof Date ? new Date(value) : typeof value === "string" ? new Date(value) : null
+  if (!parsed || Number.isNaN(parsed.getTime())) throw invalid(name)
+  return parsed
 }
 
 /** Validates one ended Session snapshot and its exact reason. */

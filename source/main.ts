@@ -52,19 +52,23 @@ export {
 } from "./execute/main.js"
 export {
   parseConnectionSnapshot,
+  parseConnectionState,
   parseEndpointReference,
   parseProcessSnapshot,
   parseProgramSnapshot,
   parseSessionEndSnapshot,
   parseSessionSnapshot,
+  parseSessionState,
   type ConnectionSnapshot,
+  type ConnectionState,
   type EndpointReference,
   type EndpointSnapshot,
   type HandleAddress,
   type ProcessSnapshot,
   type ProgramSnapshot,
   type SessionEndSnapshot,
-  type SessionSnapshot
+  type SessionSnapshot,
+  type SessionState
 } from "./domain-snapshot.js"
 export { type Timeoutable } from "./timeout.js"
 export { networkScopeCovers, parseNetworkScope, type NetworkScope, type Network } from "./network.js"

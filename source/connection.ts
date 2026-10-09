@@ -23,6 +23,9 @@ export abstract class Connection implements Subscribable<ConnectionEvents, never
   /** Stable, non-secret identity of this Connection. */
   public abstract readonly identity: string
 
+  /** When the browser connected. */
+  public abstract readonly connectedAt: Date
+
   /** Returns whether the underlying connection still exists. */
   public abstract connected(): Promise<boolean>
 
