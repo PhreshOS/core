@@ -163,7 +163,7 @@ export {
   type AppearanceMaterial,
   type AppearanceShadow,
   type AppearanceTaskbar,
-  type AppearanceWallpaper,
+  type AppearanceWallpapers,
   type TaskbarPosition,
   type ThemedValue,
   type WritableAppearance

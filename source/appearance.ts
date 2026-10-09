@@ -58,7 +58,7 @@ export type AppearanceTaskbar = Readonly<{
  * The two wallpapers of one Theme: behind the sign-in form, and behind the windows. Each is an
  * upload key: one the owner uploaded, or one of the System's own.
  */
-export type AppearanceWallpaper = Readonly<{
+export type AppearanceWallpapers = Readonly<{
   signIn: string
   desktop: string
 }>
@@ -67,7 +67,7 @@ export type AppearanceWallpaper = Readonly<{
  * Upload keys the System keeps for the wallpapers it comes with. Each release puts its own
  * pictures behind them, so an Appearance that names them shows the release's wallpapers.
  */
-export const systemWallpapers: ThemedValue<AppearanceWallpaper> = Object.freeze({
+export const systemWallpapers: ThemedValue<AppearanceWallpapers> = Object.freeze({
   light: Object.freeze({ signIn: "sign-in-light.webp", desktop: "desktop-light.webp" }),
   dark: Object.freeze({ signIn: "sign-in-dark.webp", desktop: "desktop-dark.webp" })
 })
@@ -86,7 +86,7 @@ export type Appearance = Readonly<{
    */
   tempo: number
   taskbar: AppearanceTaskbar
-  wallpaper: ThemedValue<AppearanceWallpaper>
+  wallpapers: ThemedValue<AppearanceWallpapers>
 }>
 
 type AppearanceUpdateFields = Readonly<{
@@ -106,9 +106,9 @@ type AppearanceUpdateFields = Readonly<{
   }>
   tempo?: number
   taskbar?: Readonly<Partial<AppearanceTaskbar>>
-  wallpaper?: Readonly<{
-    light?: Readonly<Partial<AppearanceWallpaper>>
-    dark?: Readonly<Partial<AppearanceWallpaper>>
+  wallpapers?: Readonly<{
+    light?: Readonly<Partial<AppearanceWallpapers>>
+    dark?: Readonly<Partial<AppearanceWallpapers>>
   }>
 }>
 
@@ -192,7 +192,7 @@ export const defaultAppearance = createAppearanceSnapshot({
   },
   tempo: 1,
   taskbar: { position: "bottom", size: 44, overlay: false },
-  wallpaper: systemWallpapers
+  wallpapers: systemWallpapers
 })
 
 /** Creates a deeply immutable Appearance snapshot at the contract boundary. */
@@ -205,7 +205,7 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
     material: themed(appearance.material, value => Object.freeze({ ...value })),
     tempo: appearance.tempo,
     taskbar: Object.freeze({ ...appearance.taskbar }),
-    wallpaper: themed(appearance.wallpaper, value => Object.freeze({ ...value }))
+    wallpapers: themed(appearance.wallpapers, value => Object.freeze({ ...value }))
   })
 }
 
@@ -221,14 +221,14 @@ export function parseAppearance(value: unknown): Appearance {
     material: parseThemed(source.material, parseMaterial, "Appearance material"),
     tempo: bounded(source.tempo, appearanceLimits.tempo, "Appearance tempo"),
     taskbar: parseTaskbar(source.taskbar),
-    wallpaper: parseThemed(source.wallpaper, parseWallpaper, "Appearance wallpaper")
+    wallpapers: parseThemed(source.wallpapers, parseWallpapers, "Appearance wallpapers")
   })
 }
 
 /** Validates and recursively merges one partial update into a complete Appearance. */
 export function applyAppearanceUpdate(appearance: Appearance, value: unknown): Appearance {
   const update = record(value, "Appearance update")
-  const keys = ["colors", "spacing", "radius", "shadow", "material", "tempo", "taskbar", "wallpaper"] as const
+  const keys = ["colors", "spacing", "radius", "shadow", "material", "tempo", "taskbar", "wallpapers"] as const
 
   if (!keys.some(key => Object.hasOwn(update, key))) throw new Error("An Appearance update must contain at least one Appearance field")
 
@@ -242,7 +242,7 @@ export function applyAppearanceUpdate(appearance: Appearance, value: unknown): A
     material: Object.hasOwn(update, "material") ? mergeThemedRecord(appearance.material, update.material, "Appearance material update") : appearance.material,
     tempo: Object.hasOwn(update, "tempo") ? update.tempo : appearance.tempo,
     taskbar: Object.hasOwn(update, "taskbar") ? { ...appearance.taskbar, ...record(update.taskbar, "Appearance taskbar update") } : appearance.taskbar,
-    wallpaper: Object.hasOwn(update, "wallpaper") ? mergeThemedRecord(appearance.wallpaper, update.wallpaper, "Appearance wallpaper update") : appearance.wallpaper
+    wallpapers: Object.hasOwn(update, "wallpapers") ? mergeThemedRecord(appearance.wallpapers, update.wallpapers, "Appearance wallpapers update") : appearance.wallpapers
   })
 }
 
@@ -304,8 +304,8 @@ function boolean(value: unknown, name: string) {
   return value
 }
 
-function parseWallpaper(value: unknown): AppearanceWallpaper {
-  const source = record(value, "Appearance wallpaper")
+function parseWallpapers(value: unknown): AppearanceWallpapers {
+  const source = record(value, "Appearance wallpapers")
   return Object.freeze({
     signIn: nonempty(source.signIn, "Appearance sign-in wallpaper"),
     desktop: nonempty(source.desktop, "Appearance desktop wallpaper")

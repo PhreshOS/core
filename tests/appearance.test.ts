@@ -26,7 +26,7 @@ describe("Appearance", function () {
     expect(defaultAppearance.spacing).toBe(12)
     expect(defaultAppearance.tempo).toBe(1)
     expect(defaultAppearance.taskbar).toEqual({ position: "bottom", size: 44, overlay: false })
-    expect(defaultAppearance.wallpaper).toEqual(systemWallpapers)
+    expect(defaultAppearance.wallpapers).toEqual(systemWallpapers)
     expect(defaultAppearance.material.light.grain).toBe(0.03)
   })
 
@@ -185,11 +185,11 @@ describe("Appearance", function () {
 
   it("holds both wallpapers of each Theme, always a file, merged one leaf at a time", function () {
     const file = "12345678-1234-1234-1234-123456789abc.webp"
-    const changed = applyAppearanceUpdate(defaultAppearance, { wallpaper: { dark: { desktop: file } } })
+    const changed = applyAppearanceUpdate(defaultAppearance, { wallpapers: { dark: { desktop: file } } })
 
-    expect(changed.wallpaper).toEqual({ light: systemWallpapers.light, dark: { signIn: systemWallpapers.dark.signIn, desktop: file } })
-    expect(() => applyAppearanceUpdate(defaultAppearance, { wallpaper: { light: { signIn: null } } })).toThrow()
-    expect(() => applyAppearanceUpdate(defaultAppearance, { wallpaper: { light: { desktop: "" } } })).toThrow()
+    expect(changed.wallpapers).toEqual({ light: systemWallpapers.light, dark: { signIn: systemWallpapers.dark.signIn, desktop: file } })
+    expect(() => applyAppearanceUpdate(defaultAppearance, { wallpapers: { light: { signIn: null } } })).toThrow()
+    expect(() => applyAppearanceUpdate(defaultAppearance, { wallpapers: { light: { desktop: "" } } })).toThrow()
   })
 
   it("keeps upload keys for the System's own wallpapers", function () {
