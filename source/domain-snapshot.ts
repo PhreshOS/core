@@ -1,4 +1,5 @@
 import { isRelativeValue } from "./value.js"
+import { parseOpenTarget, type OpenTarget } from "./open-target.js"
 import { isLayer, type Position, type Size } from "./launch.js"
 import { parseProgramPermissionDeclarations, type ProgramPermissionDeclarations } from "./permissions.js"
 import type { ClientDeclaration, EndpointDeclaration } from "./program.js"
@@ -34,6 +35,8 @@ export type ProcessSnapshot = HandleAddress & Readonly<{
   name: string | null
   program: ProgramSnapshot
   options: Readonly<Record<string, string>>
+  /** What the Process was started to open through `system.open()`, or `null` when it was not. */
+  opened: OpenTarget | null
   startedAt: Date
   server: EndpointSnapshot | null
   client: EndpointSnapshot | null
@@ -126,6 +129,7 @@ export function parseProcessSnapshot(value: unknown): ProcessSnapshot {
     || typeof source.identity !== "string"
     || source.name !== null && typeof source.name !== "string"
     || !recordOfStrings(source.options)
+    || source.opened === undefined
     || Number.isNaN(startedAt.getTime())) {
     throw invalid("Process")
   }
@@ -136,6 +140,7 @@ export function parseProcessSnapshot(value: unknown): ProcessSnapshot {
     name: source.name,
     program: parseProgramSnapshot(source.program),
     options: Object.freeze({ ...source.options }),
+    opened: source.opened === null ? null : parseOpenTarget(source.opened),
     startedAt,
     server: source.server === null ? null : parseEndpointSnapshot(source.server),
     client: source.client === null ? null : parseEndpointSnapshot(source.client)

@@ -777,13 +777,14 @@ function endedProcessView(process: Process) {
 
 async function processView(process: Process) {
   const program = process.program()
-  const [server, client] = await Promise.all([
+  const [server, client, opened] = await Promise.all([
     program.server === null
       ? Promise.resolve({ running: false, service: false })
       : Promise.all([process.server.running(), process.server.isService()]).then(([running, service]) => ({ running, service })),
     program.client === null
       ? Promise.resolve({ running: false, service: false })
-      : Promise.all([process.client.running(), process.client.isService()]).then(([running, service]) => ({ running, service }))
+      : Promise.all([process.client.running(), process.client.isService()]).then(([running, service]) => ({ running, service })),
+    process.opened()
   ])
 
   return {
@@ -791,6 +792,7 @@ async function processView(process: Process) {
     name: process.name,
     program: program.identity,
     startedAt: process.startedAt.toISOString(),
+    opened,
     server: { declared: program.server !== null, ...server },
     client: { declared: program.client !== null, ...client }
   }

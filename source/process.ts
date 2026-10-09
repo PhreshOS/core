@@ -1,5 +1,6 @@
 import type { ClientEndpoint } from "./client-endpoint.js"
 import type { Program } from "./program.js"
+import type { OpenTarget } from "./open-target.js"
 import type { ServerEndpoint } from "./server-endpoint.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 
@@ -62,6 +63,8 @@ export abstract class Process implements Subscribable<ProcessEvents, never> {
 
   /** Returns one immutable option supplied when this Process was created. */
   public abstract options<Option extends string = string>(name: string): Promise<Option | undefined>
+  /** What this Process was started to open through `system.open()`, or `null` when it was not. */
+  public abstract opened(): Promise<OpenTarget | null>
 
   /** Ends the complete Process and all live Endpoints. */
   public abstract exit(): Promise<void>

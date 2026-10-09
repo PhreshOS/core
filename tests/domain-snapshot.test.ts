@@ -35,6 +35,7 @@ const process = {
   name: null,
   program,
   options: { view: "main" },
+  opened: { type: "IMAGE/PNG", uri: "file:///home/me/picture.png" },
   startedAt: "2026-09-12T00:00:00.000Z",
   server: { service: false },
   client: { service: true }
@@ -49,6 +50,10 @@ describe("domain snapshots", function () {
     expect(parsedProcess.program).toEqual(parsedProgram)
     expect(parsedProcess.startedAt).toEqual(new Date(process.startedAt))
     expect(Object.isFrozen(parsedProcess.options)).toBe(true)
+    // What it was started to open travels with it, its type in canonical case; a Process states it, even as null.
+    expect(parsedProcess.opened).toEqual({ type: "image/png", uri: "file:///home/me/picture.png" })
+    expect(parseProcessSnapshot({ ...process, opened: null }).opened).toBeNull()
+    expect(() => parseProcessSnapshot({ ...process, opened: undefined })).toThrow("Process")
   })
 
   it("validates consumed values and ignores additional properties", function () {
