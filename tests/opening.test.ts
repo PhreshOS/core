@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { opensType, parseOpenTarget, parseOpens, parseProgramDefinition, parseSystemProgramListOptions } from "../source/main.js"
+import { opensType, parseOpenTarget, parseOpenType, parseOpeningDefaults, parseOpens, parseProgramDefinition, parseSystemProgramListOptions } from "../source/main.js"
 
 describe("Opening", () => {
   it("reads a target as an exact type and a URI, whatever it points at", () => {
@@ -14,6 +14,17 @@ describe("Opening", () => {
     expect(opensType(["image/png"], "IMAGE/PNG")).toBe(true)
     expect(opensType(["image/png"], "image/jpeg")).toBe(false)
     expect(opensType(["inode/directory"], "image/png")).toBe(false)
+  })
+
+  it("keeps defaults for exact types and whole families, and a family only for a Program that opens all of it", () => {
+    expect(parseOpenType("Image/*")).toBe("image/*")
+    expect(parseOpenType("image/png")).toBe("image/png")
+    expect(() => parseOpenType("*/*")).toThrow(/family/)
+    expect(opensType(["image/*"], "image/*")).toBe(true)
+    expect(opensType(["image/png"], "image/*")).toBe(false)
+
+    const program = { reference: "r", identity: "paint", assetId: "a", installed: true, name: "Paint", version: "0.0.0", description: null, hasAgent: false, server: null, client: null }
+    expect(Object.keys(parseOpeningDefaults({ "image/*": program, "image/png": program }))).toEqual(["image/*", "image/png"])
   })
 
   it("keeps what a Program opens in its definition, and filters Programs by it", () => {

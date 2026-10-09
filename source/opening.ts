@@ -40,6 +40,14 @@ export function parseOpens(value: unknown): readonly string[] {
   return Object.freeze([...new Set(value.map(entry => (entry as string).toLowerCase()))])
 }
 
+/** Reads a type a default is kept for: an exact media type, or a family such as `image/*`. */
+export function parseOpenType(value: unknown): string {
+  if (typeof value !== "string" || !typePattern.test(value)) {
+    throw new Error("A default is kept for a media type, such as image/png, or a family, such as image/*")
+  }
+  return value.toLowerCase()
+}
+
 /** Whether a Program that opens these patterns opens this exact media type. */
 export function opensType(patterns: readonly string[], type: string): boolean {
   const wanted = type.toLowerCase()
@@ -87,6 +95,12 @@ export abstract class OpenRequest implements Subscribable<OpenRequestEvents, nev
   public abstract cancel(): Promise<void>
 }
 
+/** A type's or family's default Program after it was set, or `null` after it was cleared. */
+export type SystemOpeningDefault = Readonly<{
+  type: string
+  program: Program | null
+}>
+
 /** One request and the Program it was opened with, or `null` when it was cancelled. */
 export type SystemOpenResolve = Readonly<{
   request: OpenRequest
@@ -97,6 +111,7 @@ export type SystemOpenResolve = Readonly<{
 export type SystemOpeningEvents = {
   openRequest: OpenRequest
   openResolve: SystemOpenResolve
+  changeDefault: SystemOpeningDefault
 }
 
 /**
@@ -106,10 +121,13 @@ export type SystemOpeningEvents = {
 export interface SystemOpening extends Subscribable<SystemOpeningEvents, never> {
   requests(): Promise<OpenRequest[]>
 
-  /** The default Program for each media type. */
+  /** The default Program for each media type and family. */
   defaults(): Promise<Readonly<Record<string, Program>>>
 
-  /** Makes one installed Program that opens this exact type its default. */
+  /**
+   * Makes one installed Program the default for a media type, or for a family such as `image/*`;
+   * the Program must open all of it. Opening uses the exact type's default first, then its family's.
+   */
   setDefault(type: string, program: Program): Promise<void>
 
   clearDefault(type: string): Promise<void>
@@ -134,7 +152,7 @@ export function parseOpenRequestSnapshot(value: unknown): OpenRequestSnapshot {
 
 /** Validates the default Program recorded for each media type. */
 export function parseOpeningDefaults(value: unknown): Readonly<Record<string, ProgramSnapshot>> {
-  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).some(type => !exactType.test(type))) {
+  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).some(type => !typePattern.test(type))) {
     throw new Error("The System returned invalid opening defaults")
   }
   return Object.freeze(Object.fromEntries(Object.entries(value).map(([type, program]) => [type, parseProgramSnapshot(program)])))

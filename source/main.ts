@@ -25,6 +25,7 @@ export {
   opensType,
   parseOpenRequestSnapshot,
   parseOpenTarget,
+  parseOpenType,
   parseOpeningDefaults,
   parseOpens,
   type OpenRequestEvents,
@@ -32,6 +33,7 @@ export {
   type OpenTarget,
   type SystemOpenResolve,
   type SystemOpening,
+  type SystemOpeningDefault,
   type SystemOpeningEvents
 } from "./opening.js"
 export { type ClientMemory } from "./client-memory.js"
