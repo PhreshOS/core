@@ -27,15 +27,26 @@ export type PresentationMoveGestureStart = Readonly<{
   point: PresentationMovePoint
 }>
 
-/** One move whose continuous pointer interaction is owned by the presenting Desktop. */
+/**
+ * One move the Desktop carries out while the Client document keeps the pointer: the document reports
+ * where the pointer goes and where it is let go, and the Desktop owns the geometry, snapping, and
+ * the result. A press that begins in a document stays with it in every browser until it ends, so
+ * the positions travel from there.
+ */
 export interface PresentationMoveGesture {
-  /** Resolves after the presenting Desktop is ready to receive pointer events. */
+  /** Resolves once the Desktop has begun the move. */
   readonly ready: Promise<void>
 
-  /** Resolves after the Desktop ends or cancels the interaction. */
+  /** Resolves after the Desktop ends or cancels the move. */
   readonly finished: Promise<void>
 
-  /** Cancels the interaction when its initiating Client lifecycle ends first. */
+  /** The pointer is now at this point of the Client document's viewport. */
+  move(point: PresentationMovePoint): void
+
+  /** The pointer was let go at this point; the Desktop settles the move there. */
+  end(point: PresentationMovePoint): void
+
+  /** Cancels the move when its initiating Client lifecycle ends first. */
   cancel(): void
 }
 
@@ -153,7 +164,7 @@ export interface Presentation extends PresentationTransactionOperations, Subscri
   /** Returns the Desktop-painted surface behind the drawing. */
   surface(): Promise<PresentationSurface>
 
-  /** Hands a pointer move that began in the Client document to the Desktop. */
+  /** Begins a move the Desktop carries out for a press that began in the Client document. */
   beginMoveGesture: BeginPresentationMoveGesture
 
   /** Changes whether clicks reach the drawing or pass through it. */
