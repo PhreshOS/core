@@ -87,7 +87,7 @@ function clientContextContract(context: ClientContext) {
   authoritative.position()
   const presentation = context.presentation
   presentation.layer()
-  presentation.beginMoveGesture({ origin: { x: 0, y: 0 }, point: { x: 8, y: 8 } }).ready
+  presentation.beginMoveGesture({ x: 0, y: 0 }).finished
   presentation.setInteractive(false)
   presentation.setAnchor("plane")
   presentation.raise()

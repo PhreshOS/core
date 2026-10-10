@@ -96,7 +96,7 @@ test("package contract", async () => {
   const windowTransaction: PresentationTransaction = transaction
   declare const presentation: Presentation
   const presentationLayer = presentation.layer()
-  const moveGesture = presentation.beginMoveGesture({ origin: { x: 0, y: 0 }, point: { x: 8, y: 8 } })
+  const moveGesture = presentation.beginMoveGesture({ x: 0, y: 0 })
   const geometry: WindowGeometry = {
     x: "0/1",
     y: "0/1",
@@ -148,7 +148,6 @@ test("package contract", async () => {
   void forcedProgram
   void transaction
   void presentationLayer
-  void moveGesture.ready
   void moveGesture.finished
   void presentation.transactionAndWait(windowTransaction).setSurface(true)
   void presentation.setSurface(false)

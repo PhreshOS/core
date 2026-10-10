@@ -310,7 +310,6 @@ export {
   type BeginPresentationMoveGesture,
   type PresentationMoveGesture,
   type PresentationMovePoint,
-  type PresentationMoveGestureStart,
   type Presentation,
   type PresentationEvents,
   type PresentationGeometry,

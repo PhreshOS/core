@@ -21,37 +21,33 @@ export type PresentationSurface = false | true | Readonly<{
 /** One pointer position in the executing Client document's viewport. */
 export type PresentationMovePoint = Readonly<{ x: number, y: number }>
 
-/** The press origin and first intentional movement that initiate one move. */
-export type PresentationMoveGestureStart = Readonly<{
-  origin: PresentationMovePoint
-  point: PresentationMovePoint
-}>
-
 /**
- * One move the Desktop carries out while the Client document keeps the pointer: the document reports
- * where the pointer goes and where it is let go, and the Desktop owns the geometry, snapping, and
- * the result. A press that begins in a document stays with it in every browser until it ends, so
- * the positions travel from there.
+ * One move the Desktop carries out for a press that began in the Client document. Once it begins, the
+ * document lets go of the pointer, so the Desktop may take it, and reports whatever of it still
+ * reaches the document: where the hand takes it, and that it was let go. Some browsers hand the
+ * pointer to the Desktop; others keep it with the document until the press ends. The Desktop moves
+ * the Window by the pointer it has, or else by these reports, and owns the geometry, snapping, and
+ * the result.
  */
 export interface PresentationMoveGesture {
-  /** Resolves once the Desktop has begun the move. */
-  readonly ready: Promise<void>
-
-  /** Resolves after the Desktop ends or cancels the move. */
+  /** Resolves once the move ended or was cancelled; rejects when it could not begin. */
   readonly finished: Promise<void>
 
-  /** The pointer is now at this point of the Client document's viewport. */
+  /**
+   * The hand moved the pointer to this point. A pointer the window's own movement passes under, the
+   * hand still, has not moved: reporting it moves the window again for a place nobody chose.
+   */
   move(point: PresentationMovePoint): void
 
-  /** The pointer was let go at this point; the Desktop settles the move there. */
-  end(point: PresentationMovePoint): void
+  /** The pointer was let go; the move settles at its last point. */
+  end(): void
 
-  /** Cancels the move when its initiating Client lifecycle ends first. */
+  /** Abandons the move. */
   cancel(): void
 }
 
-/** Starts one host-owned move from a pointer interaction initiated by presented content. */
-export type BeginPresentationMoveGesture = (start: PresentationMoveGestureStart) => PresentationMoveGesture
+/** Begins one move the Desktop carries out, from where the press began. */
+export type BeginPresentationMoveGesture = (origin: PresentationMovePoint) => PresentationMoveGesture
 
 /**
  * What a drawing is fixed to. On `"viewport"` it stays where it is in the viewport while the
