@@ -80,6 +80,8 @@ export type PresentationState = Readonly<{
   size: PresentationSize
   /** Whether the drawing is the front of its layer. */
   front: boolean
+  /** Whether this Desktop focuses the drawing; see `Presentation.focused`. */
+  focused: boolean
   /** Whether clicks reach the drawing instead of passing through it. */
   interactive: boolean
   /** The Desktop-painted surface behind the drawing. */
@@ -94,6 +96,8 @@ export type PresentationEvents = {
   resize: PresentationSize
   /** The drawing became, or stopped being, the front of its layer. */
   front: boolean
+  /** This Desktop focused the drawing, or focused another. */
+  focus: boolean
   /** Clicks began, or stopped, reaching the drawing instead of passing through it. */
   changeInteractive: boolean
   /** The Desktop-painted surface behind the drawing changed. */
@@ -153,6 +157,13 @@ export interface Presentation extends PresentationTransactionOperations, Subscri
 
   /** Returns whether the drawing is the front of its layer. */
   front(): Promise<boolean>
+
+  /**
+   * Returns whether this Desktop focuses the drawing. Each Desktop focuses one standard Window: the
+   * one last raised while in its view; a Window raised where it does not look is raised there, not
+   * focused. A drawing in any other layer is always focused.
+   */
+  focused(): Promise<boolean>
 
   /** Returns whether clicks reach the drawing instead of passing through it. */
   interactive(): Promise<boolean>

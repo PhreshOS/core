@@ -87,6 +87,8 @@ function clientContextContract(context: ClientContext) {
   authoritative.position()
   const presentation = context.presentation
   presentation.layer()
+  presentation.focused()
+  presentation.subscribe("focus", focused => void (focused satisfies boolean))
   presentation.beginMoveGesture({ x: 0, y: 0 }).finished
   presentation.setInteractive(false)
   presentation.setAnchor("plane")

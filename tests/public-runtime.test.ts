@@ -62,6 +62,7 @@ describe("public runtime", function () {
     expectTypeOf<Presentation>().toHaveProperty("position")
     expectTypeOf<Presentation>().toHaveProperty("size")
     expectTypeOf<Presentation>().toHaveProperty("front")
+    expectTypeOf<Presentation>().toHaveProperty("focused")
     expectTypeOf<Presentation>().toHaveProperty("interactive")
     expectTypeOf<Presentation>().toHaveProperty("surface")
     expectTypeOf<Presentation>().toHaveProperty("subscribe")
