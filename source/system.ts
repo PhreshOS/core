@@ -157,6 +157,7 @@ export type SystemProcessEvents = {
 
 /** Filters for visible Programs. */
 export type SystemProgramListOptions = Readonly<{
+  /** Only the installed Programs, or only those run from a project. */
   installed?: boolean
   /** Only the Programs that open this exact media type. */
   opens?: string
@@ -165,6 +166,22 @@ export type SystemProgramListOptions = Readonly<{
   /** Only the pinned Programs, or only those that are not. It filters; it does not change the order. */
   pinned?: boolean
 }>
+
+/** What the order of Programs reads from each one: its identity, and when it was first installed. */
+export type ProgramOrderKey = Readonly<{ identity: string, installedAt: string | null }>
+
+/**
+ * The order `system.program.list()` returns Programs in: first installed first, those installed at
+ * once by identity; those run from a project, never installed, last, by identity.
+ */
+export function programOrder(left: ProgramOrderKey, right: ProgramOrderKey): number {
+  if (left.installedAt !== right.installedAt) {
+    if (left.installedAt === null) return 1
+    if (right.installedAt === null) return -1
+    return left.installedAt < right.installedAt ? -1 : 1
+  }
+  return left.identity < right.identity ? -1 : left.identity > right.identity ? 1 : 0
+}
 
 /** Filters for ready Services visible to the caller. */
 export type SystemServiceListOptions = Readonly<{ name?: string }>
@@ -226,7 +243,10 @@ export function parseSystemServiceListOptions(value: unknown = {}): SystemServic
 }
 
 export interface SystemProgram extends Subscribable<SystemProgramEvents, never> {
-  /** Lists visible Programs; an omitted installation state includes both states. */
+  /**
+   * Lists visible Programs, in the order they were first installed; those run from a project, never
+   * installed, come last. Filters only filter, keeping that order.
+   */
   list(options?: SystemProgramListOptions): Promise<Program[]>
   find(identity: string): Promise<Program | null>
   create(source: ProgramDefinition | string): Promise<Program>

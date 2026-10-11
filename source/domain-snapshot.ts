@@ -14,7 +14,10 @@ export type HandleAddress = Readonly<{
 /** Public Program state shared across System boundaries. */
 export type ProgramSnapshot = HandleAddress & Readonly<{
   assetId: string
-  installed?: boolean
+  /** When the System made this Program, in this run, as an ISO time. */
+  createdAt: string
+  /** When it was first installed, as an ISO time; `null` without an installed form. */
+  installedAt?: string | null
   name: string
   version: string
   description: string | null
@@ -101,7 +104,8 @@ export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
     || source.description !== null && typeof source.description !== "string"
     || source.website !== null && typeof source.website !== "string"
     || typeof source.hasAgent !== "boolean"
-    || source.installed !== undefined && typeof source.installed !== "boolean") {
+    || typeof source.createdAt !== "string" || Number.isNaN(Date.parse(source.createdAt))
+    || source.installedAt !== undefined && source.installedAt !== null && (typeof source.installedAt !== "string" || Number.isNaN(Date.parse(source.installedAt)))) {
     throw invalid("Program")
   }
 
@@ -109,7 +113,8 @@ export function parseProgramSnapshot(value: unknown): ProgramSnapshot {
     reference: source.reference,
     identity: source.identity,
     assetId: source.assetId,
-    ...(source.installed === undefined ? {} : { installed: source.installed }),
+    createdAt: source.createdAt,
+    ...(source.installedAt === undefined ? {} : { installedAt: source.installedAt }),
     name: source.name,
     version: source.version,
     description: source.description,

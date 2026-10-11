@@ -195,6 +195,8 @@ export {
 export {
   parseShellEvent,
   parseSystemProgramListOptions,
+  programOrder,
+  type ProgramOrderKey,
   parseSystemAbout,
   parseSystemServiceListOptions,
   type ClientDefinition,

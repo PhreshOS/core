@@ -7,6 +7,7 @@ import {
   parseSystemAbout,
   parseSystemProgramListOptions,
   parseSystemServiceListOptions,
+  programOrder,
   type ExecutionSystem
 } from "../source/main.js"
 
@@ -23,6 +24,17 @@ describe("Execute", () => {
     // A start time crosses JSON as text and arrives as a Date again.
     expect(parseSystemAbout(JSON.parse(JSON.stringify(about)))).toEqual(about)
     expect(() => parseSystemAbout({ ...about, startedAt: "yesterday" })).toThrow(/malformed/)
+  })
+
+  it("orders Programs by when they were first installed, those never installed last", () => {
+    const programs = [
+      { identity: "project", installedAt: null },
+      { identity: "later", installedAt: "2026-10-11T00:00:00.000Z" },
+      { identity: "b", installedAt: "2026-10-10T00:00:00.000Z" },
+      { identity: "a", installedAt: "2026-10-10T00:00:00.000Z" },
+      { identity: "another-project", installedAt: null }
+    ]
+    expect(programs.sort(programOrder).map(program => program.identity)).toEqual(["a", "b", "later", "another-project", "project"])
   })
 
   it("uses object filters for Program and Service discovery", async () => {

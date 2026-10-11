@@ -142,6 +142,12 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Runtime identity used to address this Program's browser assets. */
   public abstract readonly assetId: string
 
+  /**
+   * When the System made this handle's Program, in this run: when it was installed, run from a
+   * project, or found again as the System started. It never changes; a restart makes it anew.
+   */
+  public abstract readonly createdAt: Date
+
   /** Human-readable name. */
   public abstract readonly name: string
 
@@ -219,8 +225,12 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Reads this Program's agent documentation, or `null` when none is declared. */
   public abstract agent(): Promise<string | null>
 
-  /** Returns whether this Program currently has an installed form. */
-  public abstract installed(): Promise<boolean>
+  /**
+   * Returns when this Program was first installed, or `null` when it has no installed form, as one
+   * run from a project. Updating it, or installing it again over the data it kept, keeps the time;
+   * installing it after its data was purged starts a new one.
+   */
+  public abstract installedAt(): Promise<Date | null>
 
   /** Returns every live Process belonging to this Program. */
   public abstract processes(): Promise<Process[]>
@@ -253,9 +263,10 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   public abstract install(options?: ProgramInstallOptions): AsyncGenerator<ProgramCommandChunk, void, void>
 
   /**
-   * Ensures this Program has no installed form while yielding cleanup output.
-   * An already-uninstalled Program yields nothing. Purge additionally removes
-   * its runtime entity and storage.
+   * Removes this Program's installed form while yielding cleanup output, ends its Processes, and
+   * forgets it: this handle ends with it, as a Process handle does once its Process exits. Its data
+   * stays for a later install unless `purge` removes it too. A Program with no installed form, as
+   * one run from a project, is left as it is.
    */
   public abstract uninstall(options?: ProgramUninstallOptions): AsyncGenerator<ProgramCommandChunk, void, void>
 
