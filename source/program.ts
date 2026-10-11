@@ -256,6 +256,16 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Ends every live Process belonging to this Program and returns their identities. */
   public abstract exitProcesses(): Promise<string[]>
 
+  /**
+   * Ends this Program's Processes, then empties what it keeps: its `data`, `cache`, `store`, and
+   * `database`. The owner's decisions about it, such as its permissions, startup, and pin, its install
+   * time, and its logs stay.
+   */
+  public abstract clearStorage(): Promise<void>
+
+  /** Returns how many bytes everything this Program keeps in the System holds, logs included. */
+  public abstract storageSize(): Promise<number>
+
   /** Creates a Process whose lifetime belongs to the returned iterator. */
   public abstract runProcess(launch?: Launch, options?: ProgramProcessRunOptions): AsyncGenerator<ProgramProcessRunEvent, void, void>
 

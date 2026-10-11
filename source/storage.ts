@@ -168,6 +168,9 @@ export abstract class Storage {
   /** Removes every entry below this directory while preserving the directory. */
   public abstract clear(): Promise<void>
 
+  /** Returns how many bytes the files beneath this directory hold; `0` when it does not exist. */
+  public abstract size(): Promise<number>
+
   /** Returns capacity information for this directory's filesystem. */
   public abstract space(): Promise<StorageSpace>
 

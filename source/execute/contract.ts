@@ -540,6 +540,12 @@ const executeOperations = Object.freeze([
   defineOperation("program", "exitProcesses", "End every run of one Program.", request("program", "exitProcesses", {
     identity: z.string().describe("Program identity")
   }), z.array(z.string())),
+  defineOperation("program", "clearStorage", "End one Program's runs and empty its data, cache, store, and database; the owner's decisions about it and its logs stay.", request("program", "clearStorage", {
+    identity: z.string().describe("Program identity")
+  }), z.null()),
+  defineOperation("program", "storageSize", "Read how many bytes everything one Program keeps in the System holds, logs included.", request("program", "storageSize", {
+    identity: z.string().describe("Program identity")
+  }), z.number().describe("Bytes")),
   defineOperation("program", "forget", "End a Program's runs and remove it from the System; its installed files stay.", request("program", "forget", {
     identity: z.string().describe("Program identity")
   }), z.null()),

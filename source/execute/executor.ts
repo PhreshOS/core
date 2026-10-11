@@ -399,6 +399,8 @@ async function executeProgram(
     | Request<"program", "storeDelete">
     | Request<"program", "query">
     | Request<"program", "exitProcesses">
+    | Request<"program", "clearStorage">
+    | Request<"program", "storageSize">
     | Request<"program", "forget">
     | Request<"program", "logs">
     | Request<"program", "wait">
@@ -441,6 +443,11 @@ async function executeProgram(
   if (request.$operation === "storeDelete") return program.store.delete(request.key)
   if (request.$operation === "query") return program.database.query(request.statement, request.values)
   if (request.$operation === "exitProcesses") return program.exitProcesses()
+  if (request.$operation === "clearStorage") {
+    await program.clearStorage()
+    return null
+  }
+  if (request.$operation === "storageSize") return program.storageSize()
   if (request.$operation === "forget") {
     await program.forget()
     return null
