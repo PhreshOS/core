@@ -3,9 +3,9 @@ import type { EndpointReference, ProgramSnapshot } from "./domain-snapshot.js"
 import { parseEndpointReference, parseProgramSnapshot } from "./domain-snapshot.js"
 import type { Program } from "./program.js"
 import type { Subscribable } from "./subscribable.js"
-import { parseOpenTarget, typePattern, type OpenTarget } from "./open-target.js"
+import { parseOpenOptions, parseOpenTarget, typePattern, type OpenOptions, type OpenTarget } from "./open-target.js"
 
-export { parseOpenTarget, type OpenTarget }
+export { parseOpenOptions, parseOpenTarget, type OpenOptions, type OpenTarget }
 
 /** Reads what a Program declares it opens: media types, where `image/*` stands for every image. */
 export function parseOpens(value: unknown): readonly string[] {

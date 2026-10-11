@@ -58,7 +58,7 @@ async function dispatch(system: ExecutionSystem, request: ExecuteRequest): Promi
 async function executeSystem(system: ExecutionSystem, request: Request<"system", "about"> | Request<"system", "open"> | Request<"system", "logs">) {
   if (request.$operation === "about") return system.about()
   if (request.$operation === "open") {
-    await system.open({ type: request.type, uri: request.uri })
+    await system.open({ type: request.type, uri: request.uri }, request.position ? { position: request.position } : undefined)
     return null
   }
   return system.logs.query(request.statement, request.values)

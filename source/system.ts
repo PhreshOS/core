@@ -1,4 +1,4 @@
-import type { OpenTarget, SystemOpening } from "./opening.js"
+import type { OpenOptions, OpenTarget, SystemOpening } from "./opening.js"
 import type { WritableAppearance } from "./appearance.js"
 import type { IconSize, Program } from "./program.js"
 import type { Launch, Layer, Position, ProcessDefaults, Size } from "./launch.js"
@@ -298,9 +298,10 @@ export interface System {
   /**
    * Opens something with the Program its type opens with: the default one, or the one the owner
    * chooses when there is no default. It resolves once a Process is started for it, and rejects when
-   * no Program opens it or the owner opens it with none.
+   * no Program opens it or the owner opens it with none. `options.position` is where its window
+   * opens unless that Program declares where its windows open.
    */
-  open(target: OpenTarget): Promise<void>
+  open(target: OpenTarget, options?: OpenOptions): Promise<void>
 
   /** Open requests waiting for a choice, and the default Program for each type. Requires `all`. */
   readonly opening: SystemOpening

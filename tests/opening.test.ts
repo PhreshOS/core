@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { opensType, parseOpenTarget, parseOpenType, parseOpeningDefaults, parseOpens, parseProgramDefinition, parseSystemProgramListOptions } from "../source/main.js"
+import { parseOpenOptions, opensType, parseOpenTarget, parseOpenType, parseOpeningDefaults, parseOpens, parseProgramDefinition, parseSystemProgramListOptions } from "../source/main.js"
 
 describe("Opening", () => {
   it("reads a target as an exact type and a URI, whatever it points at", () => {
@@ -36,4 +36,15 @@ describe("Opening", () => {
     expect(parseSystemProgramListOptions({ opens: "Image/PNG" })).toEqual({ opens: "image/png" })
     expect(() => parseSystemProgramListOptions({ opens: "png" })).toThrow(/media type/)
   })
+})
+
+describe("Open options", () => {
+  it("carry where the window opens, in pixels or shares, or nothing", () => {
+  expect(parseOpenOptions(undefined)).toEqual({})
+  expect(parseOpenOptions({})).toEqual({})
+  expect(parseOpenOptions({ position: { x: 400, y: "-25% + 10" } })).toEqual({ position: { x: 400, y: "-25% + 10" } })
+  expect(() => parseOpenOptions({ position: { x: 400 } })).toThrow(/x and y/)
+  expect(() => parseOpenOptions({ position: { x: "beside", y: 0 } })).toThrow(/relative expression/)
+  expect(() => parseOpenOptions([])).toThrow(/must be an object/)
+})
 })

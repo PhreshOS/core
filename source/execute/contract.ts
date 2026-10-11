@@ -364,7 +364,8 @@ const executeOperations = Object.freeze([
   })),
   defineOperation("system", "open", "Open something with its type's default Program, or the one the owner chooses.", request("system", "open", {
     type: z.string().describe("Exact media type, such as image/png or x-scheme-handler/https"),
-    uri: z.string().describe("Where it is, as a URI")
+    uri: z.string().describe("Where it is, as a URI"),
+    position: position.optional().describe("Where its window opens unless its Program declares a place; left out, centered on zero")
   }), z.null()),
   defineOperation("system", "logs", "Query records produced by the PhreshOS System.", request("system", "logs", {
     statement: z.string().min(1).describe("Table: logs. Columns: createdAt, level, source, kind, content, data."),
