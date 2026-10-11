@@ -386,7 +386,7 @@ async function executeProgram(
     | Request<"program", "getStartup">
     | Request<"program", "setStartup">
     | Request<"program", "removeStartup">
-    | Request<"program", "pinned">
+    | Request<"program", "pinnedAt">
     | Request<"program", "pin">
     | Request<"program", "getPermission">
     | Request<"program", "listPermissions">
@@ -404,7 +404,7 @@ async function executeProgram(
     | Request<"program", "wait">
 ) {
   if (request.$operation === "list") {
-    return Promise.all((await system.program.list(parseSystemProgramListOptions({ installed: request.installed, opens: request.opens, startup: request.startup }))).map(programView))
+    return Promise.all((await system.program.list(parseSystemProgramListOptions({ installed: request.installed, opens: request.opens, startup: request.startup, pinned: request.pinned }))).map(programView))
   }
 
   if (request.$operation === "wait") return waitForProgram(system, request)
@@ -424,10 +424,10 @@ async function executeProgram(
     await program.startup.remove()
     return null
   }
-  if (request.$operation === "pinned") return program.pinned()
+  if (request.$operation === "pinnedAt") return (await program.pinnedAt())?.toISOString() ?? null
   if (request.$operation === "pin") {
     await program.pin(request.pinned)
-    return program.pinned()
+    return (await program.pinnedAt())?.toISOString() ?? null
   }
   if (request.$operation === "getPermission") return program.permissions.get(request.permission)
   if (request.$operation === "listPermissions") return program.permissions.all()
@@ -621,7 +621,7 @@ async function waitForProgram(system: ExecutionSystem, request: Request<"program
         return {
           scope: "system",
           event: request.event,
-          payload: { program: await programView(value.program), pinned: value.pinned }
+          payload: { program: await programView(value.program), pinnedAt: value.pinnedAt?.toISOString() ?? null }
         }
       }
       case "changePermissions": {
@@ -674,7 +674,7 @@ async function waitForProgram(system: ExecutionSystem, request: Request<"program
       scope: "program",
       program: program.identity,
       event: request.event,
-      payload: await program.wait("pin", request.timeout)
+      payload: (await program.wait("pin", request.timeout))?.toISOString() ?? null
     }
     default: throw new Error(`${request.event} belongs to the Program registry`)
   }

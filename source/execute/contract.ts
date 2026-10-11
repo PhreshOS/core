@@ -458,7 +458,8 @@ const executeOperations = Object.freeze([
   defineOperation("program", "list", "List the Programs you can see, installed or running from a project.", request("program", "list", {
     installed: z.boolean().optional().describe("Filter by Program installation state"),
     opens: z.string().optional().describe("Only Programs that open this exact media type"),
-    startup: z.boolean().optional().describe("Only Programs that start with the System, or only those that do not")
+    startup: z.boolean().optional().describe("Only Programs that start with the System, or only those that do not"),
+    pinned: z.boolean().optional().describe("Only pinned Programs, or only those that are not")
   }), z.array(programResult)),
   defineOperation("program", "find", "Find one Program by its identity.", request("program", "find", {
     identity: z.string().describe("Program identity")
@@ -479,13 +480,13 @@ const executeOperations = Object.freeze([
   defineOperation("program", "removeStartup", "Remove the launch one Program starts when the System starts.", request("program", "removeStartup", {
     identity: z.string().describe("Program identity")
   }), z.null()),
-  defineOperation("program", "pinned", "Read whether one Program is pinned.", request("program", "pinned", {
+  defineOperation("program", "pinnedAt", "Read when one Program was pinned, or null when it is not.", request("program", "pinnedAt", {
     identity: z.string().describe("Program identity")
-  }), z.boolean()),
+  }), z.string().nullable().describe("When it was pinned, as an ISO time; null when it is not")),
   defineOperation("program", "pin", "Pin one Program, or unpin it.", request("program", "pin", {
     identity: z.string().describe("Program identity"),
     pinned: z.boolean().optional().describe("False unpins; omission pins")
-  }), z.boolean()),
+  }), z.string().nullable().describe("When it was pinned, as an ISO time; null once unpinned")),
   defineOperation("program", "getPermission", "Read what one permission allows a Program now: the owner's decision, or else its declaration.", request("program", "getPermission", {
     identity: z.string().describe("Program identity"),
     permission: z.enum(Object.keys(programPermissionCatalog) as [keyof typeof programPermissionCatalog, ...(keyof typeof programPermissionCatalog)[]]).describe("Permission name")

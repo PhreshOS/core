@@ -78,7 +78,8 @@ export type SystemProgramUninstall = Readonly<{
 
 export type SystemProgramPin = Readonly<{
   program: Program
-  pinned: boolean
+  /** When it was pinned, or `null` when it was unpinned. */
+  pinnedAt: Date | null
 }>
 export type SystemProgramPermissions = Readonly<{
   program: Program
@@ -161,6 +162,8 @@ export type SystemProgramListOptions = Readonly<{
   opens?: string
   /** Only the Programs that start with the System, or only those that do not. */
   startup?: boolean
+  /** Only the pinned Programs, or only those that are not. It filters; it does not change the order. */
+  pinned?: boolean
 }>
 
 /** Filters for ready Services visible to the caller. */
@@ -168,14 +171,16 @@ export type SystemServiceListOptions = Readonly<{ name?: string }>
 
 export function parseSystemProgramListOptions(value: unknown = {}): SystemProgramListOptions {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Program list options must be an object")
-  const { installed, opens, startup } = value as { installed?: unknown, opens?: unknown, startup?: unknown }
+  const { installed, opens, startup, pinned } = value as { installed?: unknown, opens?: unknown, startup?: unknown, pinned?: unknown }
   if (installed !== undefined && typeof installed !== "boolean") throw new Error("The installed Program filter must be a boolean")
   if (opens !== undefined && (typeof opens !== "string" || !opens.includes("/"))) throw new Error("The opens Program filter must be a media type")
   if (startup !== undefined && typeof startup !== "boolean") throw new Error("The startup Program filter must be a boolean")
+  if (pinned !== undefined && typeof pinned !== "boolean") throw new Error("The pinned Program filter must be a boolean")
   return {
     ...(installed === undefined ? {} : { installed }),
     ...(opens === undefined ? {} : { opens: (opens as string).toLowerCase() }),
-    ...(startup === undefined ? {} : { startup })
+    ...(startup === undefined ? {} : { startup }),
+    ...(pinned === undefined ? {} : { pinned })
   }
 }
 

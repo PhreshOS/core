@@ -122,8 +122,8 @@ export type ProgramEvents = {
   /** Whether every installed resource, including storage, was removed. */
   uninstall: Readonly<{ purge: boolean }>
 
-  /** Whether this Program became pinned or unpinned. */
-  pin: boolean
+  /** This Program was pinned, at this time, or unpinned (`null`). */
+  pin: Date | null
 }
 
 /** The stable domain root from which Processes are created. */
@@ -196,8 +196,11 @@ export abstract class Program implements Subscribable<ProgramEvents, never> {
   /** Effective permission state resolved from stored assignments and the Program definition. */
   public abstract readonly permissions: ProgramPermissions
 
-  /** Returns whether this Program is pinned. */
-  public abstract pinned(): Promise<boolean>
+  /**
+   * Returns when this Program was pinned, or `null` when it is not. Pinned Programs keep the order
+   * they were pinned in; pinning one already pinned keeps its time.
+   */
+  public abstract pinnedAt(): Promise<Date | null>
 
   /** Pins this Program, or unpins it with `false`. */
   public abstract pin(pinned?: boolean): Promise<void>

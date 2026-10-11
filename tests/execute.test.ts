@@ -312,7 +312,7 @@ describe("Execute", () => {
       "program.getStartup",
       "program.setStartup",
       "program.removeStartup",
-      "program.pinned",
+      "program.pinnedAt",
       "program.pin",
       "program.getPermission",
       "program.listPermissions",
@@ -435,7 +435,7 @@ describe("Execute", () => {
     }
     const process = { identity: "process", client: { window } }
     let startup: unknown = null
-    let pinned = false
+    let pinnedAt: Date | null = null
     const permissions: { network?: string[] | false } = { network: ["https://api.example.com"] }
     const program = {
       identity: "example",
@@ -445,9 +445,8 @@ describe("Execute", () => {
         async set(value: unknown = {}) { startup = value },
         async remove() { startup = null }
       },
-      pinned: () => Promise.resolve(pinned),
-      async pin() { pinned = true },
-      async unpin() { pinned = false },
+      pinnedAt: () => Promise.resolve(pinnedAt),
+      async pin(pinned = true) { pinnedAt = pinned ? pinnedAt ?? new Date("2026-10-11T00:00:00.000Z") : null },
       permissions: {
         get: (name: "network") => Promise.resolve(permissions[name] ?? null),
         all: () => Promise.resolve(permissions),
@@ -487,7 +486,20 @@ describe("Execute", () => {
       $domain: "program",
       $operation: "pin",
       identity: "example"
-    })).resolves.toBe(true)
+    })).resolves.toBe("2026-10-11T00:00:00.000Z")
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "pinnedAt",
+      identity: "example"
+    })).resolves.toBe("2026-10-11T00:00:00.000Z")
+
+    await expect(execute(system, {
+      $domain: "program",
+      $operation: "pin",
+      identity: "example",
+      pinned: false
+    })).resolves.toBe(null)
 
     await expect(execute(system, {
       $domain: "program",

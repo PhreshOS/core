@@ -161,7 +161,7 @@ describe("public runtime", function () {
     expectTypeOf<Found>().toEqualTypeOf<Process | null>()
     expectTypeOf<Program>().toHaveProperty("assetId")
     expectTypeOf<Program["startup"]["get"]>().returns.toEqualTypeOf<Promise<Launch | null>>()
-    expectTypeOf<Program["pinned"]>().returns.toEqualTypeOf<Promise<boolean>>()
+    expectTypeOf<Program["pinnedAt"]>().returns.toEqualTypeOf<Promise<Date | null>>()
     expectTypeOf<Program["pin"]>().returns.toEqualTypeOf<Promise<void>>()
     expectTypeOf<Program["data"]>().toEqualTypeOf<Storage>()
   })
