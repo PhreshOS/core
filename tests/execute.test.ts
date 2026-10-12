@@ -56,6 +56,16 @@ describe("Execute", () => {
     expect(() => parseExecuteRequest({ $domain: "service", $operation: "search", name: "editor" })).toThrow(/Unknown Execute operation/)
   })
 
+  it("returns what a Program gives as JSON carries it", async () => {
+    const answer = { kept: 1, gone: undefined, list: [{ gone: undefined, kept: "x" }], at: new Date(0) }
+    const server = { ask: async () => answer }
+    const system = { process: { find: async () => ({ identity: "board", server: { ...server, timeout: () => server } }) } } as unknown as ExecutionSystem
+    await expect(execute(system, { $domain: "endpoint", $operation: "ask", process: "board", endpoint: "server", event: "read" }))
+      .resolves.toEqual({ kept: 1, list: [{ kept: "x" }], at: "1970-01-01T00:00:00.000Z" })
+    const silent = { process: { find: async () => ({ identity: "board", server: { ask: async () => undefined } }) } } as unknown as ExecutionSystem
+    await expect(execute(silent, { $domain: "endpoint", $operation: "ask", process: "board", endpoint: "server", event: "read" })).resolves.toBeNull()
+  })
+
   it("validates requests without rejecting unrelated values", () => {
     expect(parseExecuteRequest({
       $domain: "endpoint",

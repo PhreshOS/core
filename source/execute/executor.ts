@@ -1,3 +1,4 @@
+import type { JsonValue } from "../content.js"
 import type { Endpoint } from "../endpoint.js"
 import type { Process } from "../process.js"
 import type { Program } from "../program.js"
@@ -344,7 +345,7 @@ async function executeService(
       const answer = await (Object.hasOwn(request, "input")
         ? asker.ask(request.event, request.input)
         : asker.ask(request.event))
-      return answer === undefined ? null : answer
+      return jsonMessage(answer)
     }
     case "publish":
       if (Object.hasOwn(request, "input")) target.publish(request.event, request.input)
@@ -438,7 +439,7 @@ async function executeProgram(
     await program.permissions.deny(request.permission)
     return false
   }
-  if (request.$operation === "storeGet") return (await program.store.get(request.key)) ?? null
+  if (request.$operation === "storeGet") return jsonMessage(await program.store.get(request.key))
   if (request.$operation === "storeSet") return program.store.set(request.key, request.value, request.ttl)
   if (request.$operation === "storeDelete") return program.store.delete(request.key)
   if (request.$operation === "query") return program.database.query(request.statement, request.values)
@@ -518,10 +519,10 @@ async function executeEndpoint(
     | Request<"endpoint", "memoryEntries">
 ) {
   const process = await requireProcess(system, request.process, request.program)
-  if (request.$operation === "memoryGet") return (await process.client.memory.get(request.key)) ?? null
+  if (request.$operation === "memoryGet") return jsonMessage(await process.client.memory.get(request.key))
   if (request.$operation === "memorySet") { await process.client.memory.set(request.key, request.value); return request.value }
   if (request.$operation === "memoryDelete") return process.client.memory.delete(request.key)
-  if (request.$operation === "memoryEntries") return process.client.memory.entries()
+  if (request.$operation === "memoryEntries") return jsonMessage(await process.client.memory.entries())
   const target = endpoint(process, request.endpoint)
 
   switch (request.$operation) {
@@ -542,7 +543,7 @@ async function executeEndpoint(
       const answer = await (Object.hasOwn(request, "input")
         ? asker.ask(request.event, request.input)
         : asker.ask(request.event))
-      return answer === undefined ? null : answer
+      return jsonMessage(answer)
     }
     case "publish":
       if (Object.hasOwn(request, "input")) target.publish(request.event, request.input)
@@ -843,6 +844,11 @@ function exitView(value: Readonly<{ status: "exited" | "signaled", code: number 
   return { status: value.status, code: value.code, signal: value.signal }
 }
 
-function jsonMessage(value: unknown) {
-  return value === undefined ? null : value
+/**
+ * A value a Program gave, as JSON carries it: what JSON has no form for, such as a property that is
+ * undefined, drops out, as JSON.stringify leaves it; no value at all is null.
+ */
+function jsonMessage(value: unknown): JsonValue {
+  const text = value === undefined ? undefined : JSON.stringify(value)
+  return text === undefined ? null : JSON.parse(text) as JsonValue
 }
