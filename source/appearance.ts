@@ -12,12 +12,16 @@ export type AppearanceRange = Readonly<{
 
 /** Concrete controls for visual material, independent of any component that consumes it. */
 export type AppearanceMaterial = Readonly<{
+  /** Grain from 0 to 1: as it rises there are fewer grains, each stronger. At 0 every pixel holds an unseen grain; at 1 none is left at full strength. */
   grain: number
-  grainAmount: number
-  backdrop: number
+  /** How opaque a Surface's own paint is. */
   opacity: number
-  distortion: number
-  saturation: number
+  /** How far what lies behind a frosted Surface is blurred, in pixels. */
+  backdropBlur: number
+  /** How saturated what lies behind a frosted Surface becomes; 1 leaves it as it is. */
+  backdropSaturation: number
+  /** How far a frosted Surface bends what lies behind it, as glass does, in pixels. */
+  refraction: number
 }>
 
 /** Named colors available to every Appearance consumer. */
@@ -35,14 +39,6 @@ export type AppearanceColors = Readonly<{
 
 export type AppearanceColor = keyof AppearanceColors
 
-/** Independent outer shadow geometry in CSS pixels and color opacity. */
-export type AppearanceShadow = Readonly<{
-  x: number
-  y: number
-  blur: number
-  spread: number
-  opacity: number
-}>
 
 export type TaskbarPosition = "top" | "left" | "bottom" | "right"
 
@@ -100,7 +96,11 @@ export type Appearance = Readonly<{
   colors: ThemedValue<AppearanceColors>
   spacing: number
   radius: number
-  shadow: ThemedValue<AppearanceShadow>
+  /**
+   * How strong the shadow around a raised Surface is, from 0 (none). It falls evenly on every
+   * side, at one fixed blur.
+   */
+  shadow: ThemedValue<number>
   material: ThemedValue<AppearanceMaterial>
   /**
    * How fast everything moves, as a share of the pace the System was designed with: 1 is that
@@ -120,8 +120,8 @@ type AppearanceUpdateFields = Readonly<{
   spacing?: number
   radius?: number
   shadow?: Readonly<{
-    light?: Readonly<Partial<AppearanceShadow>>
-    dark?: Readonly<Partial<AppearanceShadow>>
+    light?: number
+    dark?: number
   }>
   material?: Readonly<{
     light?: Readonly<Partial<AppearanceMaterial>>
@@ -150,27 +150,20 @@ export const appearanceLimits = Object.freeze({
   taskbar: Object.freeze({
     size: Object.freeze({ minimum: 0, maximum: 100 })
   }),
-  shadow: Object.freeze({
-    x: Object.freeze({ minimum: -48, maximum: 48 }),
-    y: Object.freeze({ minimum: -48, maximum: 48 }),
-    blur: Object.freeze({ minimum: 0, maximum: 96 }),
-    spread: Object.freeze({ minimum: -24, maximum: 24 }),
-    opacity: Object.freeze({ minimum: 0, maximum: 1 })
-  }),
+  shadow: Object.freeze({ minimum: 0, maximum: 0.3 }),
   material: Object.freeze({
     grain: Object.freeze({ minimum: 0, maximum: 1 }),
-    grainAmount: Object.freeze({ minimum: 0, maximum: 1 }),
-    backdrop: Object.freeze({ minimum: 0, maximum: 24 }),
     opacity: Object.freeze({ minimum: 0, maximum: 1 }),
-    distortion: Object.freeze({ minimum: 0, maximum: 140 }),
-    saturation: Object.freeze({ minimum: 1, maximum: 2.6 })
+    backdropBlur: Object.freeze({ minimum: 0, maximum: 24 }),
+    backdropSaturation: Object.freeze({ minimum: 1, maximum: 2.6 }),
+    refraction: Object.freeze({ minimum: 0, maximum: 140 })
   })
 }) satisfies Readonly<{
   spacing: AppearanceRange
   radius: AppearanceRange
   tempo: AppearanceRange
   taskbar: Readonly<{ size: AppearanceRange }>
-  shadow: Readonly<Record<keyof AppearanceShadow, AppearanceRange>>
+  shadow: AppearanceRange
   material: Readonly<Record<keyof AppearanceMaterial, AppearanceRange>>
 }>
 
@@ -203,15 +196,12 @@ export const defaultAppearance = createAppearanceSnapshot({
   },
   spacing: 12,
   radius: 10,
-  shadow: {
-    light: { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 },
-    dark: { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 }
-  },
+  shadow: { light: 0.07, dark: 0.07 },
   material: {
     // Nothing reads what lies behind a Surface by default: a backdrop filter redraws everything
     // beneath it on every change, the heaviest cost on a modest graphics processor.
-    light: { grain: 0.03, grainAmount: 0.95, backdrop: 0, opacity: 0.96, distortion: 0, saturation: 1 },
-    dark: { grain: 0.02, grainAmount: 0.95, backdrop: 0, opacity: 0.96, distortion: 0, saturation: 1 }
+    light: { grain: 0.03, opacity: 0.96, backdropBlur: 0, backdropSaturation: 1, refraction: 0 },
+    dark: { grain: 0.02, opacity: 0.96, backdropBlur: 0, backdropSaturation: 1, refraction: 0 }
   },
   tempo: 1,
   taskbar: { position: "bottom", size: 44, overlay: false },
@@ -224,7 +214,7 @@ export function createAppearanceSnapshot(appearance: Appearance): Appearance {
     colors: themed(appearance.colors, value => Object.freeze({ ...value })),
     spacing: appearance.spacing,
     radius: appearance.radius,
-    shadow: themed(appearance.shadow, value => Object.freeze({ ...value })),
+    shadow: themed(appearance.shadow),
     material: themed(appearance.material, value => Object.freeze({ ...value })),
     tempo: appearance.tempo,
     taskbar: Object.freeze({ ...appearance.taskbar }),
@@ -240,7 +230,7 @@ export function parseAppearance(value: unknown): Appearance {
     colors: parseThemed(source.colors, parseColors, "Appearance colors"),
     spacing: bounded(source.spacing, appearanceLimits.spacing, "Appearance spacing"),
     radius: bounded(source.radius, appearanceLimits.radius, "Appearance radius"),
-    shadow: parseThemed(source.shadow, parseShadow, "Appearance shadow"),
+    shadow: parseThemed(source.shadow, value => bounded(value, appearanceLimits.shadow, "Appearance shadow"), "Appearance shadow"),
     material: parseThemed(source.material, parseMaterial, "Appearance material"),
     tempo: bounded(source.tempo, appearanceLimits.tempo, "Appearance tempo"),
     taskbar: parseTaskbar(source.taskbar),
@@ -261,12 +251,29 @@ export function applyAppearanceUpdate(appearance: Appearance, value: unknown): A
     colors: Object.hasOwn(update, "colors") ? mergeThemedRecord(appearance.colors, update.colors, "Appearance colors update") : appearance.colors,
     spacing: Object.hasOwn(update, "spacing") ? update.spacing : appearance.spacing,
     radius: Object.hasOwn(update, "radius") ? update.radius : appearance.radius,
-    shadow: Object.hasOwn(update, "shadow") ? mergeThemedRecord(appearance.shadow, update.shadow, "Appearance shadow update") : appearance.shadow,
+    shadow: Object.hasOwn(update, "shadow") ? mergeThemedValue(appearance.shadow, update.shadow, "Appearance shadow update") : appearance.shadow,
     material: Object.hasOwn(update, "material") ? mergeThemedRecord(appearance.material, update.material, "Appearance material update") : appearance.material,
     tempo: Object.hasOwn(update, "tempo") ? update.tempo : appearance.tempo,
     taskbar: Object.hasOwn(update, "taskbar") ? { ...appearance.taskbar, ...record(update.taskbar, "Appearance taskbar update") } : appearance.taskbar,
     wallpapers: Object.hasOwn(update, "wallpapers") ? mergeThemedRecord(appearance.wallpapers, update.wallpapers, "Appearance wallpapers update") : appearance.wallpapers
   })
+}
+
+/**
+ * An Appearance kept from earlier, as this version reads it: each kept field it still understands
+ * stays, and one it no longer does, such as a field whose shape has changed, takes its default.
+ */
+export function readSavedAppearance(value: unknown): Appearance {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return defaultAppearance
+
+  return Object.entries(value).reduce<Appearance>((appearance, [field, saved]) => {
+    try {
+      return applyAppearanceUpdate(appearance, { [field]: saved })
+    }
+    catch {
+      return appearance
+    }
+  }, defaultAppearance)
 }
 
 /** Live events published after the authoritative Appearance changes. */
@@ -289,17 +296,11 @@ function themed<Value>(value: ThemedValue<Value>, clone: (value: Value) => Value
 function same<Value>(value: Value) { return value }
 
 const colorKeys = ["background", "foreground", "default", "primary", "secondary", "success", "warning", "danger", "info"] as const
-const shadowKeys = ["x", "y", "blur", "spread", "opacity"] as const
-const materialKeys = ["grain", "grainAmount", "backdrop", "opacity", "distortion", "saturation"] as const
+const materialKeys = ["grain", "opacity", "backdropBlur", "backdropSaturation", "refraction"] as const
 
 function parseColors(value: unknown): AppearanceColors {
   const source = record(value, "Appearance colors")
   return Object.freeze(Object.fromEntries(colorKeys.map(key => [key, nonempty(source[key], `Appearance color ${key}`)]))) as AppearanceColors
-}
-
-function parseShadow(value: unknown): AppearanceShadow {
-  const source = record(value, "Appearance shadow")
-  return Object.freeze(Object.fromEntries(shadowKeys.map(key => [key, bounded(source[key], appearanceLimits.shadow[key], `Appearance shadow ${key}`)]))) as AppearanceShadow
 }
 
 function parseMaterial(value: unknown): AppearanceMaterial {
@@ -338,6 +339,14 @@ function parseWallpapers(value: unknown): AppearanceWallpapers {
 function parseThemed<Value>(value: unknown, parse: (value: unknown) => Value, name: string): ThemedValue<Value> {
   const source = record(value, name)
   return Object.freeze({ light: parse(source.light), dark: parse(source.dark) })
+}
+
+function mergeThemedValue<Value>(current: ThemedValue<Value>, value: unknown, name: string): ThemedValue<unknown> {
+  const update = record(value, name)
+  return {
+    light: Object.hasOwn(update, "light") ? update.light : current.light,
+    dark: Object.hasOwn(update, "dark") ? update.dark : current.dark
+  }
 }
 
 function mergeThemedRecord<Value extends object>(current: ThemedValue<Value>, value: unknown, name: string): ThemedValue<Value> {

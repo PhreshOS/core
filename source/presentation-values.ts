@@ -70,4 +70,4 @@ function finite(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value)
 }
 
-const materialNames = ["grain", "grainAmount", "backdrop", "opacity", "distortion", "saturation"] as const
+const materialNames = ["grain", "opacity", "backdropBlur", "backdropSaturation", "refraction"] as const

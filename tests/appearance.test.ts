@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  readSavedAppearance,
   applyAppearanceUpdate,
   appearanceLimits,
   createAppearanceSnapshot,
@@ -34,33 +35,36 @@ describe("Appearance", function () {
   it("uses independent light and dark material defaults that read nothing behind a Surface", function () {
     expect(defaultAppearance.material.light).toEqual({
       grain: 0.03,
-      grainAmount: 0.95,
-      backdrop: 0,
+      backdropBlur: 0,
       opacity: 0.96,
-      distortion: 0,
-      saturation: 1
+      refraction: 0,
+      backdropSaturation: 1
     })
     expect(defaultAppearance.material.dark).toEqual({
       grain: 0.02,
-      grainAmount: 0.95,
-      backdrop: 0,
+      backdropBlur: 0,
       opacity: 0.96,
-      distortion: 0,
-      saturation: 1
+      refraction: 0,
+      backdropSaturation: 1
     })
   })
 
-  it("owns independent, immutable shadow values", function () {
-    const light = { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 }
-    const dark = { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.07 }
-    expect(defaultAppearance.shadow).toEqual({ light, dark })
-    const input = { ...light, y: 12 }
-    const snapshot = createAppearanceSnapshot({ ...defaultAppearance, shadow: { light: input, dark } })
-    input.y = 20
-    expect(snapshot.shadow.light.y).toBe(12)
+  it("reads a kept Appearance by the fields it still understands", function () {
+    const kept = { spacing: 16, shadow: { light: { x: 0, y: 0, blur: 10, spread: 0, opacity: 0.2 }, dark: {} }, material: { light: { grainAmount: 0.5, opacity: 0.8 } }, gone: true }
+    const appearance = readSavedAppearance(kept)
+    expect(appearance.spacing).toBe(16)
+    expect(appearance.shadow).toEqual(defaultAppearance.shadow)
+    expect(appearance.material.light).toEqual({ ...defaultAppearance.material.light, opacity: 0.8 })
+    expect(readSavedAppearance("not an Appearance")).toBe(defaultAppearance)
+  })
+
+  it("holds the shadow as one strength per theme", function () {
+    expect(defaultAppearance.shadow).toEqual({ light: 0.07, dark: 0.07 })
+    const snapshot = createAppearanceSnapshot({ ...defaultAppearance, shadow: { light: 0.2, dark: 0 } })
+    expect(snapshot.shadow).toEqual({ light: 0.2, dark: 0 })
     expect(Object.isFrozen(snapshot.shadow)).toBe(true)
-    expect(Object.isFrozen(snapshot.shadow.light)).toBe(true)
-    expect(Object.isFrozen(snapshot.shadow.dark)).toBe(true)
+    expect(applyAppearanceUpdate(defaultAppearance, { shadow: { dark: 0.12 } }).shadow).toEqual({ light: 0.07, dark: 0.12 })
+    expect(() => applyAppearanceUpdate(defaultAppearance, { shadow: { light: 0.5 } })).toThrow("Appearance shadow is invalid")
     expect(snapshot.material).toEqual(defaultAppearance.material)
   })
 
@@ -176,11 +180,10 @@ describe("Appearance", function () {
     expect(appearanceLimits.taskbar.size).toEqual({ minimum: 0, maximum: 100 })
     expect(appearanceLimits.material).toEqual({
       grain: { minimum: 0, maximum: 1 },
-      grainAmount: { minimum: 0, maximum: 1 },
-      backdrop: { minimum: 0, maximum: 24 },
+      backdropBlur: { minimum: 0, maximum: 24 },
       opacity: { minimum: 0, maximum: 1 },
-      distortion: { minimum: 0, maximum: 140 },
-      saturation: { minimum: 1, maximum: 2.6 }
+      refraction: { minimum: 0, maximum: 140 },
+      backdropSaturation: { minimum: 1, maximum: 2.6 }
     })
   })
 
