@@ -5,13 +5,11 @@ import type { EndpointLifecycleEvents } from "../endpoint.js"
 import type { ProcessEvents } from "../process.js"
 import type { ProgramEvents } from "../program.js"
 import type { SystemProcessEvents, SystemProgramEvents } from "../system.js"
-import type { ServiceLifecycleEvents } from "../service.js"
-import type { SystemServiceEvents } from "../system.js"
+import { isServiceName, type ServiceLifecycleEvents } from "../service.js"
 import type { WindowEvents } from "../window.js"
 import type { ConnectionEvents } from "../connection.js"
 import type { SessionEvents } from "../session.js"
 import type { SystemAuthenticationEvents } from "../authentication.js"
-import { isProgramIdentity } from "../program-identity.js"
 import { programPermissionCatalog, type SystemPermissionEvents } from "../permissions.js"
 import type { AppearanceEvents } from "../appearance.js"
 import type { SystemOpeningEvents } from "../opening.js"
@@ -40,12 +38,18 @@ const size = z.looseObject({
   height: metric.describe("Window height")
 }).describe("Window size")
 
+/** A Service name, public across the System, such as `file-picker-v1`. */
+const serviceName = z.string().refine(isServiceName, "A Service name is lowercase words of letters and digits joined by -, such as file-picker-v1")
+
+/** What an Endpoint is reached by: a Service name, or `false` for none. */
+const serviceValue = z.union([serviceName, z.literal(false)])
+
 const serverLaunch = z.looseObject({
-  service: z.boolean().optional().describe("Whether the Server Endpoint is addressable as a Service")
+  service: serviceValue.optional().describe("The Service name the Server is reached by, or false for none; left out, as the Program declares")
 }).describe("Server Endpoint launch settings")
 
 const clientLaunch = z.looseObject({
-  service: z.boolean().optional().describe("Whether the Client Endpoint is addressable as a Service"),
+  service: serviceValue.optional().describe("The Service name the Client is reached by, or false for none; left out, as the Program declares"),
   title: z.string().optional().describe("Initial Window title"),
   header: z.boolean().optional().describe("Whether the standard Window header is shown"),
   size: size.optional().describe("Initial Window size"),
@@ -74,9 +78,8 @@ const endpointIdentity = {
 } as const
 
 const serviceAddress = {
-  program: z.string().refine(isProgramIdentity, "A Service Program must be a canonical identity").describe("Owning Program identity"),
-  process: z.string().min(1).describe("Program-local Process and Service name"),
-  endpoint: z.enum(["server", "client"]).describe("Endpoint kind")
+  name: serviceName.describe("Service name"),
+  endpoint: z.enum(["server", "client"]).optional().describe("The kind of Endpoint the name must be held by; any kind when left out")
 } as const
 
 const windowIdentity = {
@@ -87,7 +90,7 @@ const windowIdentity = {
 const endpointState = z.looseObject({
   declared: z.boolean().describe("Whether the Program declares this Endpoint"),
   running: z.boolean().describe("Whether the Endpoint currently has a running execution context"),
-  service: z.boolean().describe("Whether the Endpoint execution context is a Service")
+  service: serviceValue.describe("The Service name the Endpoint holds, or false for none")
 })
 
 const programResult = z.looseObject({
@@ -105,11 +108,11 @@ const programResult = z.looseObject({
   hasAgent: z.boolean().describe("Whether the Program provides agent documentation"),
   server: z.looseObject({
     start: z.boolean(),
-    service: z.boolean()
+    service: serviceValue
   }).nullable().describe("Resolved Server Endpoint declaration"),
   client: z.looseObject({
     start: z.boolean(),
-    service: z.boolean(),
+    service: serviceValue,
     title: z.string().nullable(),
     header: z.boolean().nullable(),
     size: size.nullable(),
@@ -139,12 +142,12 @@ const endpointResult = z.looseObject({
   endpoint: z.enum(["server", "client"]).describe("Endpoint kind"),
   declared: z.boolean().describe("Whether the Program declares this Endpoint"),
   running: z.boolean().describe("Whether the Endpoint currently has a running execution context"),
-  service: z.boolean().describe("Whether the Endpoint execution context is a Service")
+  service: serviceValue.describe("The Service name the Endpoint holds, or false for none")
 }).describe("Endpoint state")
 
 const serviceResult = z.looseObject({
   ...serviceAddress,
-  available: z.boolean().describe("Whether a ready Endpoint is currently available at this Service address")
+  available: z.boolean().describe("Whether an Endpoint of the addressed kind holds this name and is ready now")
 }).describe("Service state")
 
 const windowResult = z.looseObject({
@@ -193,9 +196,6 @@ const endpointLifecycleEvents = {
 const serviceLifecycleEvents = {
   available: "available", unavailable: "unavailable"
 } as const satisfies { [Event in keyof ServiceLifecycleEvents]: Event }
-const systemServiceEvents = {
-  available: "available", unavailable: "unavailable"
-} as const satisfies { [Event in keyof SystemServiceEvents]: Event }
 const windowEvents = {
   move: "move", resize: "resize", minimize: "minimize",
   maximize: "maximize", changeTitle: "changeTitle", changeHeader: "changeHeader", front: "front"
@@ -626,17 +626,13 @@ const executeOperations = Object.freeze([
   }), z.boolean()),
   defineOperation("endpoint", "memoryEntries", "List all keys and values in a running Client's memory.", request("endpoint", "memoryEntries", windowIdentity), z.array(z.tuple([z.string(), jsonValue]))),
 
-  defineOperation("service", "list", "List the Services ready now.", request("service", "list", {
-    name: z.string().min(1).optional().describe("Optional Process and Service name filter")
-  }), z.array(serviceResult)),
   defineOperation("service", "inspect", "Read whether one Service is available now.", request("service", "inspect", serviceAddress), serviceResult),
   defineOperation("service", "waitReady", "Wait until one Service is available.", request("service", "waitReady", {
     ...serviceAddress,
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), serviceResult),
-  defineOperation("service", "ask", "Ask a Service a question and return its answer.", request("service", "ask", {
-    ...serviceAddress,
-    endpoint: z.literal("server"),
+  defineOperation("service", "ask", "Ask a Service a question and return its answer: only a Server answers.", request("service", "ask", {
+    name: serviceAddress.name,
     event: z.string().min(1).describe("Event name"),
     input: jsonValue.optional().describe("Event input"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
@@ -654,10 +650,6 @@ const executeOperations = Object.freeze([
   defineOperation("service", "waitLifecycle", "Wait for one Service to become available or unavailable.", request("service", "waitLifecycle", {
     ...serviceAddress,
     event: z.enum(Object.values(serviceLifecycleEvents)).describe("Availability event"),
-    timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
-  }), lifecycleResult),
-  defineOperation("service", "waitDiscovery", "Wait for any Service to become available or unavailable.", request("service", "waitDiscovery", {
-    event: z.enum(Object.values(systemServiceEvents)).describe("Discovery event"),
     timeout: z.number().positive().optional().describe("Maximum wait in milliseconds")
   }), lifecycleResult),
 

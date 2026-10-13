@@ -17,7 +17,7 @@ import type { SystemLogs } from "./sql.js"
 type ServerDefinitionBase = Readonly<{
   location: string
   start?: boolean
-  service?: boolean
+  service?: string | false
   installCommand?: string
   uninstallCommand?: string
 }>
@@ -33,7 +33,7 @@ export type ClientDefinition = Readonly<{
   /** Whether the Client document runs in a browser sandbox. Defaults to `true`. */
   sandbox?: boolean
   start?: boolean
-  service?: boolean
+  service?: string | false
   title?: string
   header?: boolean
   size?: Size
@@ -183,9 +183,6 @@ export function programOrder(left: ProgramOrderKey, right: ProgramOrderKey): num
   return left.identity < right.identity ? -1 : left.identity > right.identity ? 1 : 0
 }
 
-/** Filters for ready Services visible to the caller. */
-export type SystemServiceListOptions = Readonly<{ name?: string }>
-
 export function parseSystemProgramListOptions(value: unknown = {}): SystemProgramListOptions {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Program list options must be an object")
   const { installed, opens, startup, pinned } = value as { installed?: unknown, opens?: unknown, startup?: unknown, pinned?: unknown }
@@ -235,13 +232,6 @@ export function parseSystemAbout(value: unknown): SystemAbout {
   })
 }
 
-export function parseSystemServiceListOptions(value: unknown = {}): SystemServiceListOptions {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Service list options must be an object")
-  const name = (value as { name?: unknown }).name
-  if (name !== undefined && (typeof name !== "string" || !name.trim())) throw new Error("A Service name must be a non-empty string")
-  return name === undefined ? {} : { name }
-}
-
 export interface SystemProgram extends Subscribable<SystemProgramEvents, never> {
   /**
    * Lists visible Programs, in the order they were first installed; those run from a project, never
@@ -266,35 +256,25 @@ export interface SystemProcess extends Subscribable<SystemProcessEvents, never> 
   find(identity: string): Promise<Process | null>
 }
 
-/** Availability changes in the caller's visible Service discovery scope. */
-export type SystemServiceEvents = {
-  /** A ready Service became visible to this caller. */
-  available: Service
+/**
+ * Reaches a Service by its name, as a handle returned at once that waits for a holder: of the kind
+ * named, or of either kind when none is. The name is the contract; who provides it stays out of sight.
+ */
+export interface SystemService {
+  /** The Endpoint of the kind named holding this name; the kind decides the handle, so both kinds are offered while it is written. */
+  <Endpoint extends ServiceEndpoint>(address: Readonly<{ name: string, endpoint: Endpoint }>): Endpoint extends "server" ? ServerService : ClientService
 
-  /** A Service ceased to be ready or visible to this caller. */
-  unavailable: Service
-}
+  /** The Server holding this name: the one kind that answers questions. */
+  <Events extends object = {}, Fallback = unknown>(address: Readonly<{ name: string, endpoint: "server" }>): ServerService<Events, Fallback>
 
-type ServiceHandle<Endpoint extends ServiceEndpoint, Events extends object, Fallback> = Endpoint extends "server"
-  ? ServerService<Events, Fallback>
-  : ClientService<Events, Fallback>
+  /** The Client holding this name. */
+  <Events extends object = {}, Fallback = unknown>(address: Readonly<{ name: string, endpoint: "client" }>): ClientService<Events, Fallback>
 
-/** Discoverable Endpoint Services and stable Service address handles. */
-export interface SystemService extends Subscribable<SystemServiceEvents, never> {
-  /** Returns ready Services visible to the caller, optionally filtered by Process name. */
-  list(options?: SystemServiceListOptions): Promise<(ServerService | ClientService)[]>
-
-  /** Prepares a canonical local handle from the address's Endpoint discriminant. */
-  prepare<Endpoint extends ServiceEndpoint>(address: ServiceAddress<Endpoint>): ServiceHandle<Endpoint, {}, unknown>
-
-  /** Prepares one canonical local Server Service handle with an explicit event contract. */
-  prepare<Events extends object = {}, Fallback = unknown>(address: ServiceAddress<"server">): ServerService<Events, Fallback>
-
-  /** Prepares one canonical local Client Service handle with an explicit event contract. */
-  prepare<Events extends object = {}, Fallback = unknown>(address: ServiceAddress<"client">): ClientService<Events, Fallback>
-
-  /** Prepares one canonical local Service handle without communicating. */
-  prepare(address: ServiceAddress): ServerService | ClientService
+  /**
+   * Whichever Endpoint holds this name, for what both kinds share: publishing, subscribing, waiting.
+   * An address whose kind is known only at run time also lands here.
+   */
+  <Events extends object = {}, Fallback = unknown>(address: ServiceAddress): Service<Events, Fallback>
 }
 
 /** Transport-neutral authoritative System contract shared by environment adapters. */
@@ -321,10 +301,11 @@ export interface System {
   icon(size?: IconSize): Promise<Blob>
 
   /**
-   * Opens something with the Program its type opens with: the default one, or the one the owner
-   * chooses when there is no default. It resolves once a Process is started for it, and rejects when
-   * no Program opens it or the owner opens it with none. `options.position` is where its window
-   * opens unless that Program declares where its windows open.
+   * Hands something to the System to open with the Program its type opens with: the default one, or
+   * the one the owner chooses when there is none, even when no Program opens it. It resolves once the
+   * System has taken it, and rejects only for a target or options it cannot read: what is opened, if
+   * anything, is between the System and the owner. `options.position` is where its window opens
+   * unless that Program declares where its windows open.
    */
   open(target: OpenTarget, options?: OpenOptions): Promise<void>
 

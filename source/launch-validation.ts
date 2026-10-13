@@ -1,5 +1,6 @@
 import { isLayer, layers, type ClientLaunch, type Launch, type ProcessDefaults, type ServerLaunch } from "./launch.js"
 import { isRelativeValue } from "./value.js"
+import { parseServiceValue } from "./service.js"
 
 /** Validate one Process launch without resolving Program or Desktop defaults. */
 export function parseLaunch(value: unknown): Launch {
@@ -63,13 +64,14 @@ export function withProcessDefaults(launch: Launch, defaults: ProcessDefaults | 
 
 function server(value: unknown): ServerLaunch {
   const source = object(value, "Server launch")
-  return Object.freeze(source.service === undefined ? {} : { service: boolean(source.service, "service") })
+  return Object.freeze(source.service === undefined ? {} : { service: parseServiceValue(source.service, "A Server launch's service") })
 }
 
 function client(value: unknown): ClientLaunch {
   const source = object(value, "Client launch")
   const result: { -readonly [Key in keyof ClientLaunch]: ClientLaunch[Key] } = {}
-  for (const key of ["service", "header", "minimize", "maximize"] as const) {
+  if (source.service !== undefined) result.service = parseServiceValue(source.service, "A Client launch's service")
+  for (const key of ["header", "minimize", "maximize"] as const) {
     if (source[key] !== undefined) result[key] = boolean(source[key], key)
   }
   if (source.title !== undefined) {

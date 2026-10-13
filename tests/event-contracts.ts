@@ -99,7 +99,7 @@ function clientContextContract(context: ClientContext) {
   context.permissions.allows("network", ["https://api.example.com"])
   context.permissions.request("all", [])
   context.permissions.timeout(120_000).request("all")
-  context.permissions.request("services", ["flambo"])
+  context.permissions.request("consumeServices", ["flambo"])
   context.permissions.request("layers", ["under", "over"])
   // @ts-expect-error The standard Window layer requires no permission.
   context.permissions.request("layers", ["window"])
@@ -152,19 +152,17 @@ function explicitlyOpenEndpoint(endpoint: Endpoint<{ changed: number }, unknown>
 void explicitlyOpenEndpoint
 
 function explicitlyOpenSystemService(system: System) {
-  const service = system.service.prepare<{ changed: number }, unknown>({
-    program: "application",
-    process: "main",
-    endpoint: "server"
-  })
+  const service = system.service<{ changed: number }, unknown>({ name: "application-v1", endpoint: "server" })
 
   service.subscribe("changed", message => message.toFixed(0))
   service.subscribe("application-event", message => void message)
-  service.programMetadata().then(metadata => {
-    metadata.name.toUpperCase()
-    metadata.version.toUpperCase()
-  })
-  service.programIcon("small").then(icon => icon.arrayBuffer())
+  service.timeout(1_000).ask<number>("count").then(count => count.toFixed(0))
+
+  // Without an endpoint, held by either kind: it publishes and is followed, but is asked nothing.
+  const either = system.service<{ changed: number }>({ name: "application-v1" })
+  either.subscribe("changed", message => message.toFixed(0))
+  // @ts-expect-error Only a Server Service answers questions.
+  void either.ask
 }
 
 void explicitlyOpenSystemService
@@ -263,11 +261,11 @@ function systemHandlesRemainCanonical(
   const canonicalClient: ClientEndpoint = client
 
   program.permissions.get("all")
-  program.permissions.get("services")
+  program.permissions.get("consumeServices")
   program.permissions.all()
-  program.permissions.allows("services", ["flambo"])
+  program.permissions.allows("provideServices", ["flambo"])
   program.permissions.allow("all")
-  program.permissions.allow("services", ["flambo"])
+  program.permissions.allow("consumeServices", ["flambo"])
   program.permissions.allow("programs")
   program.permissions.allow("appearance", [])
   program.permissions.allow("desktopPreferences")

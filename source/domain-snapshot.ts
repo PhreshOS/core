@@ -1,4 +1,5 @@
 import { isRelativeValue } from "./value.js"
+import { isServiceName } from "./service.js"
 import { parseOpenTarget, type OpenTarget } from "./open-target.js"
 import { isLayer, type Position, type Size } from "./launch.js"
 import { parseProgramPermissionDeclarations, type ProgramPermissionDeclarations } from "./permissions.js"
@@ -32,8 +33,8 @@ export type ProgramSnapshot = HandleAddress & Readonly<{
   client: ClientDeclaration | null
 }>
 
-/** Live state of one Endpoint carried with a Process reference. */
-export type EndpointSnapshot = Readonly<{ service: boolean }>
+/** Live state of one Endpoint carried with a Process reference: the Service name it holds, or `false`. */
+export type EndpointSnapshot = Readonly<{ service: string | false }>
 
 /** Immutable Process identity and Endpoint state shared across boundaries. */
 export type ProcessSnapshot = HandleAddress & Readonly<{
@@ -220,7 +221,7 @@ export function parseSessionEndSnapshot(value: unknown): SessionEndSnapshot {
 
 function parseEndpointDeclaration(value: unknown): EndpointDeclaration {
   const source = object(value, "Endpoint declaration")
-  if (typeof source.start !== "boolean" || typeof source.service !== "boolean") throw invalid("Endpoint declaration")
+  if (typeof source.start !== "boolean" || !isServiceValue(source.service)) throw invalid("Endpoint declaration")
   return Object.freeze({ start: source.start, service: source.service })
 }
 
@@ -229,7 +230,7 @@ function parseClientDeclaration(value: unknown): ClientDeclaration {
 
   if (typeof source.sandbox !== "boolean"
     || typeof source.start !== "boolean"
-    || typeof source.service !== "boolean") {
+    || !isServiceValue(source.service)) {
     throw invalid("Client declaration")
   }
 
@@ -249,7 +250,7 @@ function parseClientDeclaration(value: unknown): ClientDeclaration {
 
 function parseEndpointSnapshot(value: unknown): EndpointSnapshot {
   const source = object(value, "Endpoint")
-  if (typeof source.service !== "boolean") throw invalid("Endpoint")
+  if (!isServiceValue(source.service)) throw invalid("Endpoint")
   return Object.freeze({ service: source.service })
 }
 
@@ -296,3 +297,8 @@ function nullableLayer(value: unknown): ClientDeclaration["layer"] {
 }
 
 function invalid(name: string) { return new Error(`The System returned an invalid ${name}`) }
+
+/** A Service name, or `false` for none. */
+function isServiceValue(value: unknown): value is string | false {
+  return value === false || isServiceName(value)
+}

@@ -5,6 +5,7 @@ import type { ClientDefinition, ProgramDefinition, ServerDefinition } from "./sy
 import { isRelativeValue } from "./value.js"
 import { parseLaunch, parseProcessDefaults } from "./launch-validation.js"
 import { isProgramIdentity } from "./program-identity.js"
+import { parseServiceValue } from "./service.js"
 import { defaultProgramVersion } from "./program.js"
 
 type ProgramDefinitionBase = Omit<ProgramDefinition, "server" | "client">
@@ -67,7 +68,7 @@ function parseServer(value: unknown): ServerDefinition {
 
   if (typeof source.location !== "string") throw new Error("A Server must have a location")
   const start = optionalBoolean(source.start, "A Server's start default")
-  const service = optionalBoolean(source.service, "A Server's service default")
+  const service = source.service === undefined ? undefined : parseServiceValue(source.service, "A Server's service")
   const installCommand = optionalText(source.installCommand, "A Server's install command")
   const uninstallCommand = optionalText(source.uninstallCommand, "A Server's uninstall command")
 
@@ -104,7 +105,7 @@ function parseClient(value: unknown): ClientDefinition {
   if (typeof source.location !== "string") throw new Error("A Client must have a location")
   const sandbox = optionalBoolean(source.sandbox, "A Client's sandbox mode")
   const start = optionalBoolean(source.start, "A Client's start default")
-  const service = optionalBoolean(source.service, "A Client's service default")
+  const service = source.service === undefined ? undefined : parseServiceValue(source.service, "A Client's service")
   const minimize = optionalBoolean(source.minimize, "A Client's minimize default")
   const maximize = optionalBoolean(source.maximize, "A Client's maximize default")
   const header = optionalBoolean(source.header, "A Client's header default")

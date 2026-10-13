@@ -31,14 +31,20 @@ export function isLayer(value: unknown): value is Layer {
 
 /** Settings for one Server Endpoint execution context. */
 export type ServerLaunch = Readonly<{
-  /** Whether this execution context may become discoverable through `system.service`. */
-  service?: boolean
+  /**
+   * The Service name it is reached by across the System, or `false` for none, whatever the Program
+   * declares. Left out, the Program's declaration decides.
+   */
+  service?: string | false
 }>
 
 /** Settings for starting one Client Endpoint and explicitly replacing Window values. */
 export type ClientLaunch = Readonly<{
-  /** Whether this execution context may become discoverable through `system.service`. */
-  service?: boolean
+  /**
+   * The Service name it is reached by across the System, or `false` for none, whatever the Program
+   * declares. Left out, the Program's declaration decides.
+   */
+  service?: string | false
 
   /** Window title to use when this Client starts. */
   title?: string

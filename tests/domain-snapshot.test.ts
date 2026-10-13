@@ -40,7 +40,7 @@ const process = {
   opened: { type: "IMAGE/PNG", uri: "file:///home/me/picture.png" },
   startedAt: "2026-09-12T00:00:00.000Z",
   server: { service: false },
-  client: { service: true }
+  client: { service: "board-canvas-v1" }
 }
 
 describe("domain snapshots", function () {

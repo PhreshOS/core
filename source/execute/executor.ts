@@ -307,63 +307,41 @@ async function sessionView(session: Session) {
 async function executeService(
   system: ExecutionSystem,
   request:
-    | Request<"service", "list">
     | Request<"service", "inspect">
     | Request<"service", "waitReady">
     | Request<"service", "ask">
     | Request<"service", "publish">
     | Request<"service", "wait">
     | Request<"service", "waitLifecycle">
-    | Request<"service", "waitDiscovery">
 ) {
-  if (request.$operation === "list") return Promise.all((await system.service.list({ name: request.name })).map(serviceView))
-  if (request.$operation === "waitDiscovery") {
-    const service = await system.service.wait(request.event, request.timeout)
-    return {
-      scope: "system",
-      event: request.event,
-      payload: await serviceView(service)
-    }
+  if (request.$operation === "ask") {
+    const server = system.service({ name: request.name, endpoint: "server" })
+    const asker = request.timeout === undefined ? server : server.timeout(request.timeout)
+    const answer = await (Object.hasOwn(request, "input")
+      ? asker.ask(request.event, request.input)
+      : asker.ask(request.event))
+    return jsonMessage(answer)
   }
 
-  const target = system.service.prepare({
-    program: request.program,
-    process: request.process,
-    endpoint: request.endpoint
-  })
+  const address = { name: request.name, ...(request.endpoint === undefined ? {} : { endpoint: request.endpoint }) }
+  const target = system.service(address as { name: string })
 
   switch (request.$operation) {
     case "inspect": break
     case "waitReady": await target.waitReady(request.timeout); break
-    case "ask": {
-      const server = system.service.prepare({
-        program: request.program,
-        process: request.process,
-        endpoint: "server"
-      })
-      const asker = request.timeout === undefined ? server : server.timeout(request.timeout)
-      const answer = await (Object.hasOwn(request, "input")
-        ? asker.ask(request.event, request.input)
-        : asker.ask(request.event))
-      return jsonMessage(answer)
-    }
     case "publish":
       if (Object.hasOwn(request, "input")) target.publish(request.event, request.input)
       else target.publish(request.event)
       break
     case "wait": return {
       scope: "service",
-      program: request.program,
-      process: request.process,
-      endpoint: request.endpoint,
+      ...address,
       event: request.event,
       payload: jsonMessage(await target.wait(request.event, request.timeout))
     }
     case "waitLifecycle": return {
       scope: "service",
-      program: request.program,
-      process: request.process,
-      endpoint: request.endpoint,
+      ...address,
       event: request.event,
       payload: jsonMessage(await target.lifecycle.wait(request.event, request.timeout))
     }
@@ -790,10 +768,10 @@ async function processView(process: Process) {
   const [server, client] = await Promise.all([
     program.server === null
       ? Promise.resolve({ running: false, service: false })
-      : Promise.all([process.server.running(), process.server.isService()]).then(([running, service]) => ({ running, service })),
+      : Promise.all([process.server.running(), process.server.service()]).then(([running, service]) => ({ running, service })),
     program.client === null
       ? Promise.resolve({ running: false, service: false })
-      : Promise.all([process.client.running(), process.client.isService()]).then(([running, service]) => ({ running, service }))
+      : Promise.all([process.client.running(), process.client.service()]).then(([running, service]) => ({ running, service }))
   ])
 
   return {
@@ -817,7 +795,7 @@ async function endpointView(process: Process, name: "server" | "client") {
     endpoint: name,
     declared: name === "server" ? program.server !== null : program.client !== null,
     running: await target.running(),
-    service: await target.isService()
+    service: await target.service()
   }
 }
 

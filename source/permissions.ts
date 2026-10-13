@@ -4,13 +4,15 @@ import { parseEndpointReference, type EndpointReference } from "./domain-snapsho
 import type { Subscribable } from "./subscribable.js"
 import { parseNetworkScope, type NetworkScope } from "./network.js"
 import { parseStorageScope, type StorageScope } from "./storage.js"
+import { isServiceName } from "./service.js"
 import type { Layer } from "./launch.js"
 import { isProgramIdentity } from "./program-identity.js"
 
 /** Every Program permission and the value domain accepted by it. */
 export const programPermissionCatalog = Object.freeze({
   all: "none",
-  services: "service",
+  consumeServices: "service",
+  provideServices: "service",
   programs: "program",
   layers: "layer",
   network: "network",
@@ -241,7 +243,7 @@ function parsePermissionValues<Name extends PermissionName>(name: Name, values: 
     return values.every(isProgramIdentity) ? values : null
   }
   if (domain === "service") {
-    return values.every(value => typeof value === "string" && value.trim().length > 0) ? values : null
+    return values.every(isServiceName) ? values : null
   }
   if (domain === "layer") {
     return values.every(value => value === "under" || value === "over" || value === "wallpaper" || value === "shell") ? values : null

@@ -1,43 +1,48 @@
 import type { Askable } from "./askable.js"
 import type { Publishable } from "./publishable.js"
-import type { IconSize } from "./program.js"
 import { subscribableDefinition, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
-import { isProgramIdentity } from "./program-identity.js"
 
 /** Endpoint kind addressed by a Service. */
 export type ServiceEndpoint = "server" | "client"
 
-/** Stable symbolic address of one discoverable Endpoint. */
+const namePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/**
+ * Whether a value is a Service name: lowercase letters and digits in words joined by `-`, such as
+ * `file-picker-v1`. A Service name is public across the whole System, held by one Endpoint at a time.
+ */
+export function isServiceName(value: unknown): value is string {
+  return typeof value === "string" && namePattern.test(value)
+}
+
+/**
+ * What a Service handle reaches: a Service name, and the kind of Endpoint it must be, when the
+ * caller needs one kind. The name alone reaches whichever Endpoint holds it.
+ */
 export type ServiceAddress<Endpoint extends ServiceEndpoint = ServiceEndpoint> = Readonly<{
-  /** Stable identity of the Program that owns the named Process. */
-  program: string
+  /** The Service name, public across the System. */
+  name: string
 
-  /** Program-local Process name, which acts as the Service name. */
-  process: string
-
-  /** Endpoint kind exposed through this Service address. */
-  endpoint: Endpoint
+  /** The kind of Endpoint the name must be held by; any kind when left out. */
+  endpoint?: Endpoint
 }>
 
-/** Repeating availability transitions of one stable Service address. */
+/** Repeating availability transitions of one Service name. */
 export type ServiceLifecycleEvents = {
-  /** A ready Endpoint became available in Service mode at this address. */
+  /** An Endpoint of the addressed kind became ready under this name. */
   available: undefined
 
-  /** The Endpoint at this address ceased to be an available Service. */
+  /** The Endpoint under this name ended, was replaced, or stopped being a Service. */
   unavailable: undefined
 }
 
-/** Availability lifecycle of one stable Service address. */
+/** Availability lifecycle of one Service name. */
 export interface ServiceLifecycle extends Subscribable<ServiceLifecycleEvents, never> {}
 
-/** Live Program presentation metadata exposed through an available Service. */
-export type ServiceProgramMetadata = Readonly<{
-  name: string
-  version: string
-}>
-
-/** Stable communication handle for one Service address. */
+/**
+ * A handle to whatever Endpoint holds a Service name now: the same handle reaches a new holder when
+ * the name changes hands. Who provides it stays out of sight; the name is the contract.
+ */
 export abstract class Service<Events extends object = {}, Fallback = unknown>
   implements Publishable, Subscribable<Events, Fallback> {
   protected constructor() {}
@@ -49,59 +54,60 @@ export abstract class Service<Events extends object = {}, Fallback = unknown>
   public abstract readonly wait: Subscribable<Events, Fallback>["wait"]
   public abstract readonly events: Subscribable<Events, Fallback>["events"]
 
-  /** Repeating availability transitions at this stable address. */
+  /** Repeating availability transitions of this name. */
   public abstract readonly lifecycle: ServiceLifecycle
 
-  /** Returns the immutable symbolic address represented by this handle. */
+  /** The address this handle reaches. */
   public abstract address(): ServiceAddress
 
-  /** Returns whether a ready Endpoint is currently available as this Service. */
+  /** Returns whether an Endpoint of the addressed kind holds this name now. */
   public abstract available(): Promise<boolean>
 
-  /** Reads Program metadata from the currently available Service provider. */
-  public abstract programMetadata(): Promise<ServiceProgramMetadata>
-
-  /** Reads one PNG Program icon from the currently available Service provider. */
-  public abstract programIcon(size?: IconSize): Promise<Blob>
-
   /**
-   * Waits until a ready Endpoint is available in Service mode at this address.
+   * Waits until an Endpoint of the addressed kind holds this name and is ready.
    * The SDK uses its ten-second deadline unless one is supplied.
    */
   public abstract waitReady(timeout?: number): Promise<void>
 }
 
-/** Stable handle for one Server Service address. */
+/** A handle to the Server Endpoint holding a Service name: the one kind that answers questions. */
 export abstract class ServerService<Events extends object = {}, Fallback = unknown>
   extends Service<Events, Fallback> {
   protected constructor() {
     super()
   }
 
-  public abstract override address(): ServiceAddress<"server">
+  public abstract override address(): ServiceAddress<"server"> & Readonly<{ endpoint: "server" }>
   public abstract ask<Answer = unknown>(event: string): Promise<Answer>
   public abstract ask<Answer = unknown, Payload = unknown>(event: string, payload: Payload): Promise<Answer>
   public abstract timeout(milliseconds: number): ReturnType<Askable["timeout"]>
 }
 
-/** Stable handle for one Client Service address. */
+/** A handle to the Client Endpoint holding a Service name. */
 export abstract class ClientService<Events extends object = {}, Fallback = unknown>
   extends Service<Events, Fallback> {
   protected constructor() {
     super()
   }
 
-  public abstract override address(): ServiceAddress<"client">
+  public abstract override address(): ServiceAddress<"client"> & Readonly<{ endpoint: "client" }>
 }
 
-/** Returns whether a boundary value is a complete Service address. */
+/**
+ * Reads what a definition or a Launch says of an Endpoint's Service: a Service name, under which it is
+ * reached across the System, or `false` for none.
+ */
+export function parseServiceValue(value: unknown, what: string): string | false {
+  if (value === false || isServiceName(value)) return value
+  throw new Error(`${what} is a Service name, such as "file-picker-v1", or false`)
+}
+
+/** Returns whether a boundary value is a Service address. */
 export function isServiceAddress(value: unknown): value is ServiceAddress {
   if (typeof value !== "object" || value === null) return false
 
   const candidate = value as Partial<ServiceAddress>
 
-  return isProgramIdentity(candidate.program)
-    && typeof candidate.process === "string"
-    && candidate.process.trim().length > 0
-    && (candidate.endpoint === "server" || candidate.endpoint === "client")
+  return isServiceName(candidate.name)
+    && (candidate.endpoint === undefined || candidate.endpoint === "server" || candidate.endpoint === "client")
 }

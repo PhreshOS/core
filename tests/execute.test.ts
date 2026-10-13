@@ -6,7 +6,6 @@ import {
   parseExecuteRequest,
   parseSystemAbout,
   parseSystemProgramListOptions,
-  parseSystemServiceListOptions,
   programOrder,
   type ExecutionSystem
 } from "../source/main.js"
@@ -37,24 +36,21 @@ describe("Execute", () => {
     expect(programs.sort(programOrder).map(program => program.identity)).toEqual(["a", "b", "later", "another-project", "project"])
   })
 
-  it("uses object filters for Program and Service discovery", async () => {
+  it("uses object filters for Program discovery", async () => {
     expect(parseSystemProgramListOptions({ installed: true, extra: "caller-owned" })).toEqual({ installed: true })
-    expect(parseSystemServiceListOptions({ name: "editor", extra: "caller-owned" })).toEqual({ name: "editor" })
     expect(() => parseSystemProgramListOptions(true)).toThrow(/object/)
-    expect(() => parseSystemServiceListOptions("editor")).toThrow(/object/)
-    expect(() => parseSystemServiceListOptions({ name: " " })).toThrow(/non-empty/)
 
     const calls: unknown[] = []
     const system = {
-      program: { list: async (options: unknown) => { calls.push(["program", options]); return [] } },
-      service: { list: async (options: unknown) => { calls.push(["service", options]); return [] } }
+      program: { list: async (options: unknown) => { calls.push(["program", options]); return [] } }
     } as unknown as ExecutionSystem
 
     await expect(execute(system, { $domain: "program", $operation: "list", installed: true })).resolves.toEqual([])
-    await expect(execute(system, { $domain: "service", $operation: "list", name: "editor" })).resolves.toEqual([])
-    expect(calls).toEqual([["program", { installed: true }], ["service", { name: "editor" }]])
-    expect(() => parseExecuteRequest({ $domain: "service", $operation: "search", name: "editor" })).toThrow(/Unknown Execute operation/)
+    expect(calls).toEqual([["program", { installed: true }]])
+    // Services are reached by name, never listed: what holds one shows in the Process list.
+    expect(() => parseExecuteRequest({ $domain: "service", $operation: "list" })).toThrow(/Unknown Execute operation/)
   })
+
 
   it("returns what a Program gives as JSON carries it", async () => {
     const answer = { kept: 1, gone: undefined, list: [{ gone: undefined, kept: "x" }], at: new Date(0) }
@@ -302,7 +298,7 @@ describe("Execute", () => {
     const program = { identity: "notes", server: { start: true, service: false }, client: null }
     const process = {
       identity: "p1", name: "main", startedAt: new Date(0), program: () => program,
-      server: { running: ended, isService: ended }, client: { running: ended, isService: ended }
+      server: { running: ended, service: ended }, client: { running: ended, service: ended }
     }
     const exit = { process, status: "exited", code: 0, signal: null }
     const system = {
@@ -376,14 +372,12 @@ describe("Execute", () => {
       "endpoint.memorySet",
       "endpoint.memoryDelete",
       "endpoint.memoryEntries",
-      "service.list",
       "service.inspect",
       "service.waitReady",
       "service.ask",
       "service.publish",
       "service.wait",
       "service.waitLifecycle",
-      "service.waitDiscovery",
       "window.wait"
     ]) expect(operations.has(operation)).toBe(true)
 
@@ -416,31 +410,25 @@ describe("Execute", () => {
     expect(calls).toEqual([["select * from logs where level = ?", ["error"]]])
   })
 
-  it("discovers and inspects Services through the public Service registry", async () => {
-    const address = { program: "notes", process: "main", endpoint: "server" as const }
-    const service = {
+  it("reaches a Service by its name, of the kind asked for or any", async () => {
+    const reached: unknown[] = []
+    const service = (address: { name: string, endpoint?: string }) => ({
       address: () => address,
-      available: () => Promise.resolve(true)
-    }
+      available: () => Promise.resolve(true),
+      ask: (event: string, input: unknown) => Promise.resolve({ event, input })
+    })
     const system = {
-      service: {
-        list: (options: { name?: string }) => Promise.resolve(options.name === "main" ? [service] : []),
-        prepare: () => service
-      }
+      service: (address: { name: string, endpoint?: string }) => { reached.push(address); return service(address) }
     } as unknown as ExecutionSystem
 
-    await expect(execute(system, {
-      $domain: "service",
-      $operation: "list",
-      name: "main"
-    })).resolves.toEqual([{ ...address, available: true }])
-
-    await expect(execute(system, {
-      $domain: "service",
-      $operation: "inspect",
-      ...address
-    })).resolves.toEqual({ ...address, available: true })
+    await expect(execute(system, { $domain: "service", $operation: "inspect", name: "file-picker-v1" })).resolves.toEqual({ name: "file-picker-v1", available: true })
+    await expect(execute(system, { $domain: "service", $operation: "inspect", name: "file-picker-v1", endpoint: "server" })).resolves.toEqual({ name: "file-picker-v1", endpoint: "server", available: true })
+    // Only a Server answers, so a question always reaches one.
+    await expect(execute(system, { $domain: "service", $operation: "ask", name: "file-picker-v1", event: "open", input: {} })).resolves.toEqual({ event: "open", input: {} })
+    expect(reached).toEqual([{ name: "file-picker-v1" }, { name: "file-picker-v1", endpoint: "server" }, { name: "file-picker-v1", endpoint: "server" }])
+    expect(() => parseExecuteRequest({ $domain: "service", $operation: "inspect", program: "files", process: "picker" })).toThrow()
   })
+
 
   it("executes Program state and lifecycle waits through public handles", async () => {
     const programDefinition = {

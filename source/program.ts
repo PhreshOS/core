@@ -40,8 +40,8 @@ export type EndpointDeclaration = Readonly<{
   /** Whether a default Process starts this declared Endpoint. */
   start: boolean
 
-  /** Default service role for new Endpoint execution contexts. */
-  service: boolean
+  /** The Service name its runs are reached by unless a launch says otherwise, or `false` for none. */
+  service: string | false
 }>
 
 /** Resolved Client declaration and its default Window state. */

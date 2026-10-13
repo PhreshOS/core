@@ -25,9 +25,14 @@ describe("Launch", () => {
     expect(parseLaunch({ server: false, client: true })).toEqual({ server: false, client: true })
   })
 
+  it("names the Service an Endpoint is reached by, or says it is none", () => {
+    expect(parseLaunch({ server: { service: "file-picker-v1" } })).toEqual({ server: { service: "file-picker-v1" } })
+    expect(parseLaunch({ client: { service: false } })).toEqual({ client: { service: false } })
+  })
+
   it("validates consumed values and ignores additional properties", () => {
     expect(parseLaunch({ extension: true, client: { extension: true } })).toEqual({ client: {} })
-    for (const value of [null, [], true, { name: "" }, { options: null }, { options: ["x"] }, { server: { service: "yes" } }, { client: { layer: "top" } }, { client: { maximize: 1 } }, { client: { header: "hidden" } }]) {
+    for (const value of [null, [], true, { name: "" }, { options: null }, { options: ["x"] }, { server: { service: true } }, { server: { service: "Not A Name" } }, { client: { service: "" } }, { client: { layer: "top" } }, { client: { maximize: 1 } }, { client: { header: "hidden" } }]) {
       expect(() => parseLaunch(value)).toThrow()
     }
   })
