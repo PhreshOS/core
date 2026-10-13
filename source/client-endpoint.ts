@@ -1,16 +1,10 @@
 import { Endpoint, type EndpointTraffic } from "./endpoint.js"
 import type { ClientLaunch } from "./launch.js"
-import type { ServerEndpoint } from "./server-endpoint.js"
 import type { Window } from "./window.js"
 import type { ClientMemory } from "./client-memory.js"
 
 /** Directed communication originating from one Client Endpoint. */
-export interface ClientTraffic<
-  Events extends object = {},
-  To = Endpoint | null,
-  AskTo = ServerEndpoint | null,
-  Fallback = unknown
-> extends EndpointTraffic<Events, To, AskTo, Fallback> {}
+export interface ClientTraffic<Events extends object = {}, Fallback = unknown> extends EndpointTraffic<Events, Fallback> {}
 
 /** The Client Endpoint of a Process. */
 export abstract class ClientEndpoint<Events extends object = {}, Fallback = unknown> extends Endpoint<Events, Fallback> {
@@ -18,7 +12,7 @@ export abstract class ClientEndpoint<Events extends object = {}, Fallback = unkn
     super()
   }
   /** Directed communication originating from this Client Endpoint. */
-  public abstract override readonly traffic: ClientTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
+  public abstract override readonly traffic: ClientTraffic<Events, Fallback>
 
   /** Presentation capability permanently owned by this Client Endpoint handle. */
   public abstract readonly window: Window

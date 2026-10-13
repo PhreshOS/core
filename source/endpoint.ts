@@ -1,37 +1,68 @@
 import type { Process } from "./process.js"
 import type { Publishable } from "./publishable.js"
-import type { ServerEndpoint } from "./server-endpoint.js"
 import { subscribableDefinition, type Captures, type Cleanup, type EventOptions, type Subscribable, type SubscribableDefinition } from "./subscribable.js"
 
+/**
+ * Who an Endpoint is, as a message carries it: public values filled by the System, never a handle and
+ * never hidden by permissions. Whoever may reach that Endpoint finds it by its Process:
+ * `system.process.find(metadata.process)`.
+ */
+export type EndpointMetadata = Readonly<{
+  /** The Program it belongs to. */
+  program: Readonly<{ identity: string, name: string }>
+
+  /** The identity of its Process: random, and never reused. */
+  process: string
+
+  /** Which side of that Process it is. */
+  endpoint: "server" | "client"
+}>
+
+/** Validate one Endpoint's metadata, or `null` for a party outside every Program. */
+export function parseEndpointMetadata(value: unknown): EndpointMetadata | null {
+  if (value === null) return null
+  const record = value as { program?: { identity?: unknown, name?: unknown }, process?: unknown, endpoint?: unknown } | undefined
+  if (!record || typeof record !== "object" || !record.program || typeof record.program !== "object"
+    || typeof record.program.identity !== "string" || typeof record.program.name !== "string"
+    || typeof record.process !== "string" || (record.endpoint !== "server" && record.endpoint !== "client")) {
+    throw new Error("The System sent malformed Endpoint metadata")
+  }
+  return Object.freeze({
+    program: Object.freeze({ identity: record.program.identity, name: record.program.name }),
+    process: record.process,
+    endpoint: record.endpoint
+  })
+}
+
 /** One application value observed in traffic originating from an Endpoint. */
-export type TrafficMessage<Payload = unknown, To = Endpoint | null> = Readonly<{
-  /** Destination Endpoint, or `null` when its identity is outside this boundary. */
-  to: To
+export type TrafficMessage<Payload = unknown> = Readonly<{
+  /** Who it went to, or `null` for a party outside every Program. */
+  to: EndpointMetadata | null
 
   /** Single value supplied by the publisher. */
   payload: Payload
 }>
 
 /** Applies destination metadata to every observed ordinary event. */
-export type TrafficEvents<Events extends object, To = Endpoint | null> = {
-  readonly [Event in keyof Events]: TrafficMessage<Events[Event], To>
+export type TrafficEvents<Events extends object> = {
+  readonly [Event in keyof Events]: TrafficMessage<Events[Event]>
 }
 
-type TrafficFallback<Fallback, To> = [Fallback] extends [never]
+type TrafficFallback<Fallback> = [Fallback] extends [never]
   ? never
-  : TrafficMessage<Fallback, To>
+  : TrafficMessage<Fallback>
 
 /** One question sent by this Endpoint to a Server Endpoint. */
-export type AskMessage<Payload = unknown, To = ServerEndpoint | null> = Readonly<{
-  /** Destination Server Endpoint, or `null` when its identity is outside this boundary. */
-  to: To
+export type AskMessage<Payload = unknown> = Readonly<{
+  /** The Server it asked. */
+  to: EndpointMetadata
 
   /** Single question value supplied by the asker. */
   payload: Payload
 }>
 
 /** One observed question sent by this Endpoint. */
-export type AskCapture<Payload = unknown, To = ServerEndpoint | null> = Readonly<{
+export type AskCapture<Payload = unknown> = Readonly<{
   /** Event addressed by the question. */
   event: string
 
@@ -39,28 +70,24 @@ export type AskCapture<Payload = unknown, To = ServerEndpoint | null> = Readonly
   questionId: string
 
   /** Question destination and payload. */
-  message: AskMessage<Payload, To>
+  message: AskMessage<Payload>
 }>
 
 /** A callback subscribed to questions sent by this Endpoint. */
-export type AskSubscriber<Payload = unknown, To = ServerEndpoint | null> = (capture: AskCapture<Payload, To>) => unknown
+export type AskSubscriber<Payload = unknown> = (capture: AskCapture<Payload>) => unknown
 
 /** Every ordinary publication observable in traffic from one Endpoint. */
-export type TrafficCapture<Events extends object = {}, To = Endpoint | null, Fallback = unknown> =
-  Captures<TrafficEvents<Events, To>, TrafficFallback<Fallback, To>>
+export type TrafficCapture<Events extends object = {}, Fallback = unknown> =
+  Captures<TrafficEvents<Events>, TrafficFallback<Fallback>>
 
 /** Directed communication originating from one Endpoint. */
-export interface EndpointTraffic<
-  Events extends object = {},
-  To = Endpoint | null,
-  AskTo = ServerEndpoint | null,
-  Fallback = unknown
-> extends Subscribable<TrafficEvents<Events, To>, TrafficFallback<Fallback, To>> {
+export interface EndpointTraffic<Events extends object = {}, Fallback = unknown>
+  extends Subscribable<TrafficEvents<Events>, TrafficFallback<Fallback>> {
   /** Subscribes to questions originating from this Endpoint. */
-  subscribeAsks<Payload = unknown>(subscriber: AskSubscriber<Payload, AskTo>): Cleanup
+  subscribeAsks<Payload = unknown>(subscriber: AskSubscriber<Payload>): Cleanup
 
   /** Iterates questions originating from this Endpoint. */
-  asks<Payload = unknown>(options?: EventOptions): AsyncIterableIterator<AskCapture<Payload, AskTo>>
+  asks<Payload = unknown>(options?: EventOptions): AsyncIterableIterator<AskCapture<Payload>>
 }
 
 /** Lifecycle transitions observed for one Endpoint's execution context. */
@@ -94,7 +121,7 @@ export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
   public abstract readonly events: Subscribable<Events, Fallback>["events"]
 
   /** Directed communication originating from this Endpoint. */
-  public abstract readonly traffic: EndpointTraffic<Events, Endpoint | null, ServerEndpoint | null, Fallback>
+  public abstract readonly traffic: EndpointTraffic<Events, Fallback>
 
   /** Start and stop transitions of this permanent Endpoint's execution context. */
   public abstract readonly lifecycle: EndpointLifecycle
@@ -135,7 +162,7 @@ export abstract class Endpoint<Events extends object = {}, Fallback = unknown>
    */
   public abstract stop(): Promise<void>
 
-  /** Returns whether the current Endpoint execution context is a service. */
-  public abstract isService(): Promise<boolean>
+  /** The Service name this Endpoint is reached by across the System now, or `false` for none. */
+  public abstract service(): Promise<string | false>
 
 }

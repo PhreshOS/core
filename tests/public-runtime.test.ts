@@ -9,6 +9,15 @@ import {
   type FileStat,
   type IconSize,
   type Context,
+  type ContextMessage,
+  type QuestionMessage,
+  type Answerer,
+  type AskMessage,
+  type AnswerMessage,
+  type EndpointMetadata,
+  type ServiceAddress,
+  type TrafficMessage,
+  parseEndpointMetadata,
   type Launch,
   type Presentation,
   type PresentationState,
@@ -147,10 +156,35 @@ describe("public runtime", function () {
     })
   })
 
-  it("keeps Service discovery concrete and address preparation discriminated", function () {
-    expectTypeOf<System["service"]["list"]>().returns.resolves.toEqualTypeOf<(ServerService | ClientService)[]>()
+  it("tells whoever answers a question whether its asker still waits", function () {
+    expectTypeOf<Parameters<Answerer>[0]>().toEqualTypeOf<QuestionMessage>()
+    expectTypeOf<QuestionMessage["signal"]>().toEqualTypeOf<AbortSignal>()
+    expectTypeOf<QuestionMessage["from"]>().toEqualTypeOf<EndpointMetadata | null>()
+    // A publication waits for no answer.
+    expectTypeOf<ContextMessage>().not.toHaveProperty("signal")
+  })
 
-    void declareServicePreparation
+  it("carries who sent and where it went as public values, never as handles", function () {
+    expectTypeOf<ContextMessage["from"]>().toEqualTypeOf<EndpointMetadata | null>()
+    expectTypeOf<TrafficMessage["to"]>().toEqualTypeOf<EndpointMetadata | null>()
+    expectTypeOf<AnswerMessage["to"]>().toEqualTypeOf<EndpointMetadata | null>()
+    // A question always goes to a Server of some Program.
+    expectTypeOf<AskMessage["to"]>().toEqualTypeOf<EndpointMetadata>()
+
+    const metadata = { program: { identity: "board", name: "Board" }, process: "k3m9x2a7pq", endpoint: "client" }
+    expect(parseEndpointMetadata(metadata)).toEqual(metadata)
+    expect(Object.isFrozen(parseEndpointMetadata(metadata))).toBe(true)
+    expect(parseEndpointMetadata(null)).toBeNull()
+    for (const malformed of [undefined, {}, { ...metadata, endpoint: "window" }, { ...metadata, program: { identity: "board" } }, { ...metadata, process: 1 }]) {
+      expect(() => parseEndpointMetadata(malformed)).toThrow(/malformed Endpoint metadata/)
+    }
+  })
+
+  it("reaches a Service by name, of the kind asked for or either", function () {
+    expectTypeOf<System["service"]>().not.toHaveProperty("list")
+    expectTypeOf<System["service"]>().not.toHaveProperty("prepare")
+
+    void declareServiceAddresses
   })
 
   it("keeps one complete Program and Process contract", function () {
@@ -189,18 +223,18 @@ describe("public runtime", function () {
 
   it("shares Endpoint launch contracts across Process creation and restart", function () {
     const launch: Launch = {
-      server: { service: true },
-      client: { service: true }
+      server: { service: "editor-v1" },
+      client: { service: false }
     }
     type ClientLaunchHasService = "service" extends keyof NonNullable<Parameters<ClientEndpoint["start"]>[0]> ? true : false
     type ServerLaunchHasService = "service" extends keyof NonNullable<Parameters<ServerEndpoint["start"]>[0]> ? true : false
 
-    expect(launch.server).toEqual({ service: true })
+    expect(launch.server).toEqual({ service: "editor-v1" })
     expectTypeOf<ClientLaunchHasService>().toEqualTypeOf<true>()
     expectTypeOf<ServerLaunchHasService>().toEqualTypeOf<true>()
-    expectTypeOf<Context>().toHaveProperty("isService")
-    expectTypeOf<Endpoint>().toHaveProperty("isService")
-    expectTypeOf<Endpoint>().not.toHaveProperty("service")
+    expectTypeOf<Context["service"]>().returns.resolves.toEqualTypeOf<string | false>()
+    expectTypeOf<Endpoint["service"]>().returns.resolves.toEqualTypeOf<string | false>()
+    expectTypeOf<Endpoint>().not.toHaveProperty("isService")
     expectTypeOf<Endpoint>().toHaveProperty("lifecycle")
     expectTypeOf<Endpoint>().toHaveProperty("running")
     expectTypeOf<Endpoint>().not.toHaveProperty("exists")
@@ -240,7 +274,7 @@ describe("public runtime", function () {
   })
 
   it("keeps permission values canonical after input resolution", function () {
-    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "services" | "programs" | "layers" | "network" | "storage" | "uploads" | "logs" | "appearance" | "desktopPreferences" | "desktopViewport" | "desktopConnection" | "authentication">()
+    expectTypeOf<PermissionName>().toEqualTypeOf<"all" | "consumeServices" | "provideServices" | "programs" | "layers" | "network" | "storage" | "uploads" | "logs" | "appearance" | "desktopPreferences" | "desktopViewport" | "desktopConnection" | "authentication">()
     expectTypeOf<PermissionValue<"all">>().toEqualTypeOf<never>()
     expectTypeOf<PermissionValue<"programs">>().toEqualTypeOf<string>()
     expectTypeOf<PermissionValue<"layers">>().toEqualTypeOf<"under" | "over" | "wallpaper" | "shell">()
@@ -250,7 +284,9 @@ describe("public runtime", function () {
     expectTypeOf<ClientContext["permissions"]["request"]>().returns.toEqualTypeOf<Promise<Permission>>()
     expectTypeOf<Program>().toHaveProperty("permissions")
     expect(parsePermission("all", [])).toEqual([])
-    expect(parsePermission("services", ["flambo", "terminal", "flambo"])).toEqual(["flambo", "terminal"])
+    expect(parsePermission("consumeServices", ["flambo", "terminal", "flambo"])).toEqual(["flambo", "terminal"])
+    expect(parsePermission("provideServices", ["file-picker-v1"])).toEqual(["file-picker-v1"])
+    expect(() => parsePermission("provideServices", ["Not A Name"])).toThrow()
     expect(parsePermission("programs", [])).toEqual([])
     expect(parsePermission("network", ["HTTPS://API.Example.com:443/v1/**", "http://localhost:*"])).toEqual([
       "https://api.example.com/v1/**",
@@ -320,7 +356,7 @@ describe("public runtime", function () {
     defineConfig({
       identity: "selected-permissions",
       permissions: {
-        services: ["flambo"],
+        consumeServices: ["flambo"],
         programs: true,
         network: ["https://api.example.com/v1/**"],
         storage: ["read:Documents/**"],
@@ -371,13 +407,12 @@ describe("public runtime", function () {
     void neither
   })
 
-  it("recognizes only complete public Service addresses", function () {
-    expect(isServiceAddress({ program: "counter", process: "main", endpoint: "server" })).toBe(true)
-    expect(isServiceAddress({ process: "1f4b222c-25d7-4ba8-85e5-d5e59cfe0928", endpoint: "server" })).toBe(false)
-    expect(isServiceAddress({ process: "main", endpoint: "server" })).toBe(false)
-    expect(isServiceAddress({ program: "Not An Identity", process: "main", endpoint: "server" })).toBe(false)
-    expect(isServiceAddress({ program: "counter", process: "main", endpoint: "process" })).toBe(false)
-    expect(isServiceAddress({ program: "counter", process: "", endpoint: "client" })).toBe(false)
+  it("recognizes a Service address: a Service name, and the kind it must be held by if any", function () {
+    expect(isServiceAddress({ name: "file-picker-v1", endpoint: "server" })).toBe(true)
+    expect(isServiceAddress({ name: "file-picker-v1" })).toBe(true)
+    expect(isServiceAddress({ name: "Not A Name" })).toBe(false)
+    expect(isServiceAddress({ name: "file-picker-v1", endpoint: "process" })).toBe(false)
+    expect(isServiceAddress({ program: "files", process: "picker", endpoint: "server" })).toBe(false)
   })
 
   it("accepts only finite linear geometry", function () {
@@ -388,9 +423,16 @@ describe("public runtime", function () {
   })
 })
 
-function declareServicePreparation(system: System) {
-  const server: ServerService = system.service.prepare({ program: "notes", process: "main", endpoint: "server" })
-  const client: ClientService = system.service.prepare({ program: "notes", process: "main", endpoint: "client" })
+function declareServiceAddresses(system: System) {
+  const server: ServerService = system.service({ name: "notes-v1", endpoint: "server" })
+  const client: ClientService = system.service({ name: "notes-v1", endpoint: "client" })
+  const either: Service = system.service({ name: "notes-v1" })
+  const kind = null as never as ServiceAddress["endpoint"]
+  const decidedLater: Service = system.service({ name: "notes-v1", endpoint: kind })
+  // @ts-expect-error A kind known only at run time cannot promise a question.
+  void decidedLater.ask
   void server
   void client
+  void either
+  void decidedLater
 }

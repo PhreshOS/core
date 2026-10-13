@@ -1,4 +1,4 @@
-import type { Endpoint } from "./endpoint.js"
+import type { EndpointMetadata } from "./endpoint.js"
 import type { ClientEndpoint } from "./client-endpoint.js"
 import type { Presentation } from "./presentation.js"
 import type { Publishable } from "./publishable.js"
@@ -12,35 +12,35 @@ import type { ClientMemory } from "./client-memory.js"
 import type { OpenTarget } from "./opening.js"
 
 /** One application value arriving through the executing Endpoint's Context. */
-export type ContextMessage<Payload = unknown, From = Endpoint | null> = Readonly<{
-  /** Endpoint that sent the message, or `null` when its identity is outside this boundary. */
-  from: From
+export type ContextMessage<Payload = unknown> = Readonly<{
+  /** Who sent it, or `null` for a party outside every Program, such as a script acting for the owner. */
+  from: EndpointMetadata | null
 
   /** Single value supplied by the publisher. */
   payload: Payload
 }>
 
 /** Applies the sender envelope to every application event accepted here. */
-export type ContextEvents<Events extends object, From = Endpoint | null> = {
-  readonly [Event in keyof Events]: ContextMessage<Events[Event], From>
+export type ContextEvents<Events extends object> = {
+  readonly [Event in keyof Events]: ContextMessage<Events[Event]>
 }
 
-type ContextFallback<From> = ContextMessage<unknown, From>
+type ContextFallback = ContextMessage<unknown>
 
 /** Every application event observable through an executing Context. */
-export type ContextCapture<Events extends object = {}, From = Endpoint | null> =
-  Captures<ContextEvents<Events, From>, ContextFallback<From>>
+export type ContextCapture<Events extends object = {}> =
+  Captures<ContextEvents<Events>, ContextFallback>
 
 /** Inbound communication and destinationless output of the executing Endpoint. */
-export interface Context<Events extends object = {}, From = Endpoint | null>
-  extends Subscribable<ContextEvents<Events, From>, ContextFallback<From>>, Publishable {
-  /** Returns whether the executing Endpoint context is a service. */
-  isService(): Promise<boolean>
+export interface Context<Events extends object = {}>
+  extends Subscribable<ContextEvents<Events>, ContextFallback>, Publishable {
+  /** The Service name the executing Endpoint is reached by across the System, or `false` for none. */
+  service(): Promise<string | false>
 }
 
 /** Shared operations belonging to one executing Program endpoint. */
 export interface EndpointContext<Events extends object = {}>
-  extends Context<Events, Endpoint | null> {
+  extends Context<Events> {
   readonly permissions: ContextPermissions
   process(): Promise<Process>
   name(): Promise<string | null>
@@ -63,9 +63,18 @@ export interface ClientContext<Events extends object = {}> extends EndpointConte
   readonly presentation: Presentation
 }
 
+/** One question addressed to the executing Server Endpoint, and whether its asker still waits. */
+export type QuestionMessage<Payload = unknown> = ContextMessage<Payload> & Readonly<{
+  /**
+   * Aborted once the asker stops waiting: its time ran out, it stopped, or it went away. An answer
+   * given after that reaches no one.
+   */
+  signal: AbortSignal
+}>
+
 /** Handles one question addressed to the currently executing Server Endpoint. */
 export type Answerer<Payload = unknown, Result = undefined> = (
-  message: ContextMessage<Payload, Endpoint | null>
+  message: QuestionMessage<Payload>
 ) => Result | Promise<Result>
 
 /** Runtime context of the currently executing Server Endpoint. */

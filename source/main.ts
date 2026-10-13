@@ -112,11 +112,12 @@ export {
   ServerService,
   Service,
   isServiceAddress,
+  isServiceName,
+  parseServiceValue,
   type ServiceAddress,
   type ServiceEndpoint,
   type ServiceLifecycle,
-  type ServiceLifecycleEvents,
-  type ServiceProgramMetadata
+  type ServiceLifecycleEvents
 } from "./service.js"
 export { isSystemUploadFile, isUploadFile, type SystemUploads, type Upload } from "./uploads.js"
 export { isRelativeValue, parseRelativeValue, type RelativeValue, type Value } from "./value.js"
@@ -198,7 +199,6 @@ export {
   programOrder,
   type ProgramOrderKey,
   parseSystemAbout,
-  parseSystemServiceListOptions,
   type ClientDefinition,
   type ProgramDefinition,
   type ServerDefinition,
@@ -218,8 +218,6 @@ export {
   type SystemProgramStartup,
   type SystemProgramUninstall,
   type SystemService,
-  type SystemServiceListOptions,
-  type SystemServiceEvents
 } from "./system.js"
 export {
   parseProgramLogRecord,
@@ -239,6 +237,8 @@ export {
 
 export {
   Endpoint,
+  parseEndpointMetadata,
+  type EndpointMetadata,
   type AskCapture,
   type AskMessage,
   type AskSubscriber,
@@ -256,6 +256,7 @@ export {
   type ContextCapture,
   type ContextEvents,
   type ContextMessage,
+  type QuestionMessage,
   type EndpointContext,
   type ServerContext
 } from "./context.js"
