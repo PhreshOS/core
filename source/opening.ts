@@ -37,7 +37,7 @@ export type OpenRequestSnapshot = Readonly<{
   from: EndpointReference | null
   createdAt: Date
   target: OpenTarget
-  /** The installed Programs that open the target's type. */
+  /** The Programs that open the target's type: installed, or attached from their projects. */
   programs: readonly ProgramSnapshot[]
 }>
 
@@ -100,8 +100,8 @@ export interface SystemOpening extends Subscribable<SystemOpeningEvents, never> 
   defaults(): Promise<Readonly<Record<string, Program>>>
 
   /**
-   * Makes one installed Program the default for a media type, or for a family such as `image/*`;
-   * the Program must open all of it. Opening uses the exact type's default first, then its family's.
+   * Makes one Program the System knows, installed or attached from its project, the default for a
+   * media type, or for a family such as `image/*`; the Program must open all of it. Opening uses the exact type's default first, then its family's.
    */
   setDefault(type: string, program: Program): Promise<void>
 
