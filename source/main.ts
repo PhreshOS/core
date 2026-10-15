@@ -38,6 +38,7 @@ export {
   type SystemOpeningDefault,
   type SystemOpeningEvents
 } from "./opening.js"
+export { addressOf, pathOf } from "./path-address.js"
 export { type ClientMemory } from "./client-memory.js"
 export {
   describeExecuteOperation,
